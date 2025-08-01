@@ -6,7 +6,7 @@
 
 ## Members
 
-- Harry Marshall 1 (s4015845)
+* Harry Marshall 1 (s4015845)
 * Luca Grosso 2 (s4093817)
 * Khanh Nguyen 3 (s4090097)
 * Athrinandana Vase 4 (s4007366)
