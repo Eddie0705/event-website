@@ -6,7 +6,8 @@
 
 - You are not allowed to make this repository public or share its content out side of the github organization created for this course.
 
-## Setup your environment 
+## Setup your environment
+
 You will need to have in your system
 
 - Java 17.0 or higher
@@ -17,18 +18,14 @@ Other tools will be required to complete the project (e.g., Docker)
 
 ## Run Instructions
 
-- Confirm you can run your application 
+- Confirm you can run your application
+
 ```shell
 ./mvnw spring-boot:run
 ```
-- Open in your browser [http://localhost:8080](http://localhost:8080)
+
+- Open in your browser [http://localhost:8080](http://xlxocalhost:8080)
 
 - You will see a page with the message "Whitelabel Error Page"
 
 - You can use the lectorials material to start developing your web application.
-
-
-
-
-
-
