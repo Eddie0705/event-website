@@ -1,5 +1,5 @@
 name: GitHub Actions - Maven Testing # Workflow name
-run-name: Running JMaven Test Cases 
+run-name: Running Maven Test Cases 
 on: 
     push:
         branches:
