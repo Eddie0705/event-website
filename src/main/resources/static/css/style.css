@@ -1,0 +1,16 @@
+nav .home {
+    
+}
+nav .profile {
+    align-items: right;
+}
+
+nav .mid-nav {
+   
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
