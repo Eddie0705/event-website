@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - EventHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 admin-sidebar">
+                <div class="p-4 d-flex flex-column" style="height: 100vh;">
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary rounded-circle mb-3" style="width: 48px; height: 48px;">
+                            <i class="fas fa-crown text-white"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold">Admin Panel</h5>
+                        <small class="text-muted">EventHub Management</small>
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#events" onclick="showSection('events')">
+                            <i class="fas fa-calendar-alt me-2"></i>Events Management
+                        </a>
+                        <a class="nav-link" href="#users" onclick="showSection('users')">
+                            <i class="fas fa-users me-2"></i>User Management
+                        </a>
+                        <a class="nav-link" href="#analytics" onclick="showSection('analytics')">
+                            <i class="fas fa-chart-bar me-2"></i>Analytics Dashboard
+                        </a>
+                    </nav>
+                    
+                    <!-- Bottom Navigation -->
+                    <div class="sidebar-bottom">
+                        <a class="nav-link" href="/Index">
+                            <i class="fas fa-home me-2"></i>Back to Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 admin-content">
+                <!-- Header -->
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 id="page-title">Events Management</h2>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" onclick="refreshData()">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4">
+
+                    <!-- Events Management Section -->
+                    <div id="events-section">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>All Events
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" placeholder="Search events..." id="event-search">
+                                    <select class="form-select" id="event-filter">
+                                        <option value="all">All Events</option>
+                                        <option value="active">Active</option>
+                                        <option value="flagged">Flagged</option>
+                                        <option value="upcoming">Upcoming</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Event</th>
+                                                <th>Organizer</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="events-table">
+                                            <!-- Sample data - will be populated dynamically -->
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/50x50" alt="Event" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                        <div>
+                                                            <h6 class="mb-0">Tech Conference 2024</h6>
+                                                            <small class="text-muted">Technology & Innovation</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>John Smith</td>
+                                                <td>2024-03-15</td>
+                                                <td><span class="badge bg-success status-badge">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewEvent(1)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning btn-action" onclick="editEvent(1)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteEvent(1)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/50x50" alt="Event" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                        <div>
+                                                            <h6 class="mb-0">Music Festival</h6>
+                                                            <small class="text-muted">Entertainment</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Sarah Johnson</td>
+                                                <td>2024-04-20</td>
+                                                <td><span class="badge bg-warning status-badge">Flagged</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewEvent(2)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning btn-action" onclick="editEvent(2)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteEvent(2)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/50x50" alt="Event" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                        <div>
+                                                            <h6 class="mb-0">Art Exhibition</h6>
+                                                            <small class="text-muted">Arts & Culture</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Mike Wilson</td>
+                                                <td>2024-05-10</td>
+                                                <td><span class="badge bg-info status-badge">Upcoming</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewEvent(3)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning btn-action" onclick="editEvent(3)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteEvent(3)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Management Section -->
+                    <div id="users-section" style="display: none;">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>User Management
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" placeholder="Search users..." id="user-search">
+                                    <select class="form-select" id="user-filter">
+                                        <option value="all">All Users</option>
+                                        <option value="active">Active</option>
+                                        <option value="banned">Banned</option>
+                                        <option value="admin">Admins</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Joined</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="users-table">
+                                            <!-- Sample data - will be populated dynamically -->
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/40x40" alt="User" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                                        <div>
+                                                            <h6 class="mb-0">John Smith</h6>
+                                                            <small class="text-muted">@johnsmith</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>john.smith@email.com</td>
+                                                <td><span class="badge bg-primary">User</span></td>
+                                                <td><span class="badge bg-success status-badge">Active</span></td>
+                                                <td>2024-01-15</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewUser(1)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning btn-action" onclick="editUser(1)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="banUser(1)">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/40x40" alt="User" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                                        <div>
+                                                            <h6 class="mb-0">Sarah Johnson</h6>
+                                                            <small class="text-muted">@sarahj</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>sarah.johnson@email.com</td>
+                                                <td><span class="badge bg-warning">Organizer</span></td>
+                                                <td><span class="badge bg-success status-badge">Active</span></td>
+                                                <td>2024-02-01</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewUser(2)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning btn-action" onclick="editUser(2)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-action" onclick="banUser(2)">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/40x40" alt="User" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                                        <div>
+                                                            <h6 class="mb-0">Mike Wilson</h6>
+                                                            <small class="text-muted">@mikew</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>mike.wilson@email.com</td>
+                                                <td><span class="badge bg-danger">Admin</span></td>
+                                                <td><span class="badge bg-danger status-badge">Banned</span></td>
+                                                <td>2024-01-10</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewUser(3)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning btn-action" onclick="editUser(3)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success btn-action" onclick="unbanUser(3)">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Section -->
+                    <div id="analytics-section" style="display: none;">
+                        <!-- Statistics Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                                        <h5 class="card-title">Total Events</h5>
+                                        <h3 class="mb-0" id="total-events">24</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-users fa-2x mb-2"></i>
+                                        <h5 class="card-title">Total Users</h5>
+                                        <h3 class="mb-0" id="total-users">156</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                        <h5 class="card-title">Flagged Events</h5>
+                                        <h3 class="mb-0" id="flagged-events">3</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                        <h5 class="card-title">Banned Users</h5>
+                                        <h3 class="mb-0" id="banned-users">2</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-chart-line me-2"></i>Event Statistics
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="eventChart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-chart-pie me-2"></i>User Distribution
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="userChart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Delete Event Modal -->
+    <div class="modal fade" id="deleteEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this event? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteEvent()">Delete Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ban User Modal -->
+    <div class="modal fade" id="banUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ban User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to ban this user? They will not be able to access the platform.</p>
+                    <div class="mb-3">
+                        <label for="banReason" class="form-label">Reason for ban:</label>
+                        <textarea class="form-control" id="banReason" rows="3" placeholder="Enter reason for banning this user..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmBanUser()">Ban User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let currentEventId = null;
+        let currentUserId = null;
+
+        // Navigation functions
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('events-section').style.display = 'none';
+            document.getElementById('users-section').style.display = 'none';
+            document.getElementById('analytics-section').style.display = 'none';
+
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            document.querySelector(`[href="#${section}"]`).classList.add('active');
+
+            // Update page title
+            const titles = {
+                'events': 'Events Management',
+                'users': 'User Management',
+                'analytics': 'Analytics Dashboard'
+            };
+            document.getElementById('page-title').textContent = titles[section];
+
+            // Initialize charts if analytics section is shown
+            if (section === 'analytics') {
+                initializeCharts();
+            }
+        }
+
+        // Event management functions
+        function viewEvent(id) {
+            alert(`Viewing event with ID: ${id}`);
+        }
+
+        function editEvent(id) {
+            alert(`Editing event with ID: ${id}`);
+        }
+
+        function deleteEvent(id) {
+            currentEventId = id;
+            const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+            modal.show();
+        }
+
+        function confirmDeleteEvent() {
+            if (currentEventId) {
+                // Here you would make an API call to delete the event
+                alert(`Event ${currentEventId} deleted successfully!`);
+                // Remove the row from the table
+                const row = document.querySelector(`tr[data-event-id="${currentEventId}"]`);
+                if (row) {
+                    row.remove();
+                }
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
+                modal.hide();
+                currentEventId = null;
+            }
+        }
+
+        // User management functions
+        function viewUser(id) {
+            alert(`Viewing user with ID: ${id}`);
+        }
+
+        function editUser(id) {
+            alert(`Editing user with ID: ${id}`);
+        }
+
+        function banUser(id) {
+            currentUserId = id;
+            const modal = new bootstrap.Modal(document.getElementById('banUserModal'));
+            modal.show();
+        }
+
+        function unbanUser(id) {
+            if (confirm('Are you sure you want to unban this user?')) {
+                alert(`User ${id} unbanned successfully!`);
+                // Update the status badge
+                const row = document.querySelector(`tr[data-user-id="${id}"]`);
+                if (row) {
+                    const statusBadge = row.querySelector('.status-badge');
+                    statusBadge.textContent = 'Active';
+                    statusBadge.className = 'badge bg-success status-badge';
+                }
+            }
+        }
+
+        function confirmBanUser() {
+            if (currentUserId) {
+                const reason = document.getElementById('banReason').value;
+                if (!reason.trim()) {
+                    alert('Please provide a reason for banning this user.');
+                    return;
+                }
+                // Here you would make an API call to ban the user
+                alert(`User ${currentUserId} banned successfully! Reason: ${reason}`);
+                // Update the status badge
+                const row = document.querySelector(`tr[data-user-id="${currentUserId}"]`);
+                if (row) {
+                    const statusBadge = row.querySelector('.status-badge');
+                    statusBadge.textContent = 'Banned';
+                    statusBadge.className = 'badge bg-danger status-badge';
+                }
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('banUserModal'));
+                modal.hide();
+                document.getElementById('banReason').value = '';
+                currentUserId = null;
+            }
+        }
+
+        // Search and filter functions
+        function setupSearchAndFilter() {
+            // Event search
+            document.getElementById('event-search').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#events-table tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+
+            // User search
+            document.getElementById('user-search').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#users-table tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+
+        // Chart initialization
+        function initializeCharts() {
+            // Event Chart
+            const eventCtx = document.getElementById('eventChart').getContext('2d');
+            new Chart(eventCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Events Created',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // User Chart
+            const userCtx = document.getElementById('userChart').getContext('2d');
+            new Chart(userCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active Users', 'Banned Users', 'Admins'],
+                    datasets: [{
+                        data: [150, 2, 4],
+                        backgroundColor: [
+                            'rgb(54, 162, 235)',
+                            'rgb(255, 99, 132)',
+                            'rgb(255, 205, 86)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Refresh data function
+        function refreshData() {
+            alert('Data refreshed!');
+            // Here you would make API calls to refresh the data
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSearchAndFilter();
+        });
+    </script>
+</body>
+</html>
