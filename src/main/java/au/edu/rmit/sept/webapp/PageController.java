@@ -22,9 +22,9 @@ public class PageController {
         return "Calendar"; // Calendar.html in templates
     }
 
-    @GetMapping("/rspv")
+    @GetMapping("/eventRSVP")
     public String rspv() {
-        return "Rspv"; // Rspv.html in templates
+        return "rsvp/eventRSVP"; // Rspv.html in templates
     }
 
     @GetMapping("/noti")
