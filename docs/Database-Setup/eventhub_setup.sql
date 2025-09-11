@@ -1,37 +1,32 @@
 -- =============================================
 -- EventHub Campus Event Management System
 -- MySQL 8.0 Database Setup Script
--- Team-Friendly Version with Progress Indicators
 -- =============================================
 
--- Show initial status
 SELECT '🚀 Starting EventHub Database Setup...' AS Status;
 SELECT NOW() AS Started_At;
 
 -- =============================================
--- STEP 1: DATABASE SETUP
+-- DATABASE SETUP
 -- =============================================
 
-SELECT '📁 Step 1: Setting up database...' AS Progress;
+SELECT '📁 Setting up database...' AS Progress;
 
--- Drop and recreate database for clean setup
 DROP DATABASE IF EXISTS eventhub_db;
 CREATE DATABASE eventhub_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE eventhub_db;
 
--- Disable foreign key checks during setup
 SET FOREIGN_KEY_CHECKS = 0;
 SET AUTOCOMMIT = 0;
 
 SELECT '✅ Database created successfully!' AS Status;
 
 -- =============================================
--- STEP 2: USER MANAGEMENT TABLES
+-- USER MANAGEMENT TABLES
 -- =============================================
 
-SELECT '👤 Step 2: Creating user management tables...' AS Progress;
+SELECT '👤 Creating user management tables...' AS Progress;
 
--- Users table (for students, organizers, and admins)
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -39,7 +34,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    user_type ENUM('student', 'organizer', 'admin') DEFAULT 'student',
+    user_type ENUM('student', 'organiser', 'admin') DEFAULT 'student',
     profile_picture VARCHAR(500),
     bio TEXT,
     interests JSON,
@@ -54,7 +49,6 @@ CREATE TABLE users (
     INDEX idx_user_type (user_type)
 ) ENGINE=InnoDB;
 
--- Clubs/Organizations table
 CREATE TABLE clubs (
     club_id INT AUTO_INCREMENT PRIMARY KEY,
     club_name VARCHAR(255) NOT NULL,
@@ -70,7 +64,6 @@ CREATE TABLE clubs (
     INDEX idx_club_name (club_name)
 ) ENGINE=InnoDB;
 
--- Club members (organizers)
 CREATE TABLE club_members (
     member_id INT AUTO_INCREMENT PRIMARY KEY,
     club_id INT NOT NULL,
@@ -86,22 +79,20 @@ CREATE TABLE club_members (
 SELECT '✅ User management tables created!' AS Status;
 
 -- =============================================
--- STEP 3: EVENT MANAGEMENT TABLES
+-- EVENT MANAGEMENT TABLES
 -- =============================================
 
-SELECT '🎪 Step 3: Creating event management tables...' AS Progress;
+SELECT '🎪 Creating event management tables...' AS Progress;
 
--- Event categories
 CREATE TABLE event_categories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(100) UNIQUE NOT NULL,
     description TEXT,
     icon VARCHAR(100),
-    color_code VARCHAR(7),
+    colour_code VARCHAR(7),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- Events table
 CREATE TABLE events (
     event_id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -136,7 +127,6 @@ CREATE TABLE events (
     FULLTEXT idx_search (title, description)
 ) ENGINE=InnoDB;
 
--- Event tags
 CREATE TABLE event_tags (
     tag_id INT AUTO_INCREMENT PRIMARY KEY,
     tag_name VARCHAR(50) UNIQUE NOT NULL,
@@ -145,7 +135,6 @@ CREATE TABLE event_tags (
     INDEX idx_tag_name (tag_name)
 ) ENGINE=InnoDB;
 
--- Event tag mappings
 CREATE TABLE event_tag_mappings (
     event_id INT NOT NULL,
     tag_id INT NOT NULL,
@@ -157,12 +146,11 @@ CREATE TABLE event_tag_mappings (
 SELECT '✅ Event management tables created!' AS Status;
 
 -- =============================================
--- STEP 4: USER PARTICIPATION TABLES
+-- USER PARTICIPATION TABLES
 -- =============================================
 
-SELECT '📅 Step 4: Creating user participation tables...' AS Progress;
+SELECT '📅 Creating user participation tables...' AS Progress;
 
--- RSVPs table
 CREATE TABLE rsvps (
     rsvp_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
@@ -180,7 +168,6 @@ CREATE TABLE rsvps (
     INDEX idx_event_rsvps (event_id)
 ) ENGINE=InnoDB;
 
--- Event feedback
 CREATE TABLE event_feedback (
     feedback_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
@@ -196,7 +183,6 @@ CREATE TABLE event_feedback (
     INDEX idx_event_feedback (event_id)
 ) ENGINE=InnoDB;
 
--- Event gallery
 CREATE TABLE event_gallery (
     photo_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
@@ -214,12 +200,11 @@ CREATE TABLE event_gallery (
 SELECT '✅ User participation tables created!' AS Status;
 
 -- =============================================
--- STEP 5: NOTIFICATIONS & SYSTEM TABLES
+-- NOTIFICATIONS & SYSTEM TABLES
 -- =============================================
 
-SELECT '🔔 Step 5: Creating notifications and system tables...' AS Progress;
+SELECT '🔔 Creating notifications and system tables...' AS Progress;
 
--- Notifications table
 CREATE TABLE notifications (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -237,7 +222,6 @@ CREATE TABLE notifications (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB;
 
--- Event reminders
 CREATE TABLE event_reminders (
     reminder_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
@@ -250,7 +234,6 @@ CREATE TABLE event_reminders (
     INDEX idx_event_reminders (event_id)
 ) ENGINE=InnoDB;
 
--- Audit log
 CREATE TABLE audit_log (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     admin_id INT NOT NULL,
@@ -270,12 +253,11 @@ CREATE TABLE audit_log (
 SELECT '✅ Notifications and system tables created!' AS Status;
 
 -- =============================================
--- STEP 6: EXTENSION FEATURES
+-- EXTENSION FEATURES
 -- =============================================
 
-SELECT '💰 Step 6: Creating extension feature tables...' AS Progress;
+SELECT '💰 Creating extension feature tables...' AS Progress;
 
--- Payments
 CREATE TABLE payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -294,7 +276,6 @@ CREATE TABLE payments (
     INDEX idx_transaction (transaction_id)
 ) ENGINE=InnoDB;
 
--- Badges
 CREATE TABLE badges (
     badge_id INT AUTO_INCREMENT PRIMARY KEY,
     badge_name VARCHAR(100) UNIQUE NOT NULL,
@@ -306,7 +287,6 @@ CREATE TABLE badges (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- User badges
 CREATE TABLE user_badges (
     user_badge_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -318,7 +298,6 @@ CREATE TABLE user_badges (
     INDEX idx_user_badges (user_id)
 ) ENGINE=InnoDB;
 
--- API keys
 CREATE TABLE api_keys (
     key_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -335,7 +314,6 @@ CREATE TABLE api_keys (
     INDEX idx_user_keys (user_id)
 ) ENGINE=InnoDB;
 
--- API logs
 CREATE TABLE api_logs (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     api_key VARCHAR(64),
@@ -353,12 +331,11 @@ CREATE TABLE api_logs (
 SELECT '✅ Extension feature tables created!' AS Status;
 
 -- =============================================
--- STEP 7: VIEWS AND STORED PROCEDURES
+-- VIEWS AND STORED PROCEDURES
 -- =============================================
 
-SELECT '📊 Step 7: Creating views and stored procedures...' AS Progress;
+SELECT '📊 Creating views and stored procedures...' AS Progress;
 
--- Upcoming events view
 CREATE VIEW upcoming_events_view AS
 SELECT 
     e.event_id,
@@ -388,7 +365,6 @@ WHERE e.event_date >= CURDATE()
 GROUP BY e.event_id
 ORDER BY e.event_date, e.start_time;
 
--- User participation stats view
 CREATE VIEW user_participation_stats AS
 SELECT 
     u.user_id,
@@ -402,7 +378,6 @@ LEFT JOIN user_badges ub ON u.user_id = ub.user_id
 LEFT JOIN event_feedback f ON u.user_id = f.user_id
 GROUP BY u.user_id;
 
--- Stored procedures
 DELIMITER //
 
 CREATE PROCEDURE update_event_rsvp_count(IN p_event_id INT)
@@ -446,7 +421,6 @@ END//
 
 DELIMITER ;
 
--- Triggers
 DELIMITER //
 
 CREATE TRIGGER after_rsvp_insert
@@ -481,10 +455,10 @@ DELIMITER ;
 SELECT '✅ Views and stored procedures created!' AS Status;
 
 -- =============================================
--- STEP 8: PERFORMANCE INDEXES
+-- PERFORMANCE INDEXES
 -- =============================================
 
-SELECT '⚡ Step 8: Creating performance indexes...' AS Progress;
+SELECT '⚡ Creating performance indexes...' AS Progress;
 
 CREATE INDEX idx_events_date_status ON events(event_date, status);
 CREATE INDEX idx_rsvps_status ON rsvps(rsvp_status, attendance_status);
@@ -493,13 +467,12 @@ CREATE INDEX idx_notifications_unread ON notifications(user_id, is_read, created
 SELECT '✅ Performance indexes created!' AS Status;
 
 -- =============================================
--- STEP 9: INITIAL DATA
+-- INITIAL DATA
 -- =============================================
 
-SELECT '📝 Step 9: Inserting initial data...' AS Progress;
+SELECT '📝 Inserting initial data...' AS Progress;
 
--- Event categories
-INSERT INTO event_categories (category_name, description, color_code) VALUES
+INSERT INTO event_categories (category_name, description, colour_code) VALUES
 ('Academic', 'Lectures, workshops, and study sessions', '#4CAF50'),
 ('Social', 'Parties, gatherings, and social events', '#2196F3'),
 ('Sports', 'Sports events and competitions', '#FF9800'),
@@ -509,7 +482,6 @@ INSERT INTO event_categories (category_name, description, color_code) VALUES
 ('Music', 'Concerts, performances, and music events', '#FFC107'),
 ('Volunteer', 'Community service and volunteer opportunities', '#8BC34A');
 
--- Default badges
 INSERT INTO badges (badge_name, description, badge_type, points) VALUES
 ('First Timer', 'Attended your first event', 'milestone', 10),
 ('Frequent Attendee', 'Attended 10 events', 'attendance', 50),
@@ -519,44 +491,30 @@ INSERT INTO badges (badge_name, description, badge_type, points) VALUES
 ('Feedback Champion', 'Provided feedback for 10 events', 'participation', 40),
 ('Early Bird', 'RSVP to 5 events more than a week in advance', 'special', 25);
 
--- Default admin user (change password in production!)
 INSERT INTO users (email, username, password_hash, first_name, last_name, user_type, email_verified) 
 VALUES ('admin@eventhub.edu', 'admin', '$2y$10$example_hash_change_in_production', 'System', 'Administrator', 'admin', TRUE);
 
 SELECT '✅ Initial data inserted!' AS Status;
 
 -- =============================================
--- STEP 10: FINAL SETUP
+-- FINAL SETUP
 -- =============================================
 
-SELECT '🔧 Step 10: Finalizing setup...' AS Progress;
+SELECT '🔧 Finalising setup...' AS Progress;
 
--- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
-
--- =============================================
--- SETUP COMPLETE!
--- =============================================
 
 SELECT 'EventHub Database Setup Complete!' AS Status;
 SELECT NOW() AS Completed_At;
 SELECT DATABASE() AS Current_Database;
 SELECT COUNT(*) AS Total_Tables FROM information_schema.tables WHERE table_schema = 'eventhub_db';
 
--- Verification queries
 SELECT 'Database Summary:' AS Info;
 SELECT 'Event Categories:' AS Type, COUNT(*) AS Count FROM event_categories
 UNION ALL
 SELECT 'Default Badges:', COUNT(*) FROM badges
 UNION ALL
 SELECT 'Admin Users:', COUNT(*) FROM users WHERE user_type = 'admin';
-
--- Quick test queries
-SELECT 'Sample Categories:' AS Info;
-SELECT category_name, color_code FROM event_categories LIMIT 3;
-
-SELECT 'Sample Badges:' AS Info;
-SELECT badge_name, badge_type, points FROM badges LIMIT 3;
 
 SELECT 'Ready for development!' AS Final_Status;
