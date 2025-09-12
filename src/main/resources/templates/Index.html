@@ -7,13 +7,13 @@
 <body>
     <nav class="nav"> 
         <div class="left-nav">
-            <a class="logo" th:href="@{/Index}">EVENTHUB</a>
+            <a class="logo" th:href="@{/Index}" style="color: red ; font-weight:bold; border-color: black;">EVENTHUB</a>
         </div>
         <div class ="mid-nav">
             <a class="home" th:href="@{/Index}">Home</a> 
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
-            <a class="rsvp" th:href="@{/rspv}">RSPV</a> 
+            <a class="rsvp" th:href="@{/rspv}">RSVP</a> 
         </div> 
         <div class="right-nav">
             <a class="noti" th:href="@{/noti}">Notification</a>  
@@ -55,7 +55,7 @@
             </div>
             <h2>Date Range</h2>
             <input type="date" id="date_from" name="date_from">
-            <input type="date" id="date_to" name="date_to">
+            <input style="margin-top: 10px;" type="date" id="date_to" name="date_to">
             <h2>Location</h2>
             <div>
             <input type="checkbox" id="Main Campus" name="Main Campus" value="Main Campus"> 
