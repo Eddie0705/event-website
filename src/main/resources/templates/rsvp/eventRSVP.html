@@ -7,21 +7,29 @@
 </head>
 
 <body>
+    <!-- navigation bar from index page -->
     <nav class="nav"> 
+        <div class="left-nav">
+            <a class="logo" th:href="@{/Index}" style="color: red ; font-weight:bold; border-color: black;">EVENTHUB</a>
+        </div>
         <div class ="mid-nav">
-            <a class="home" th:href="@{/}">Home</a> 
+            <a class="home" th:href="@{/Index}">Home</a> 
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
-            <a class="rsvp" th:href="@{/eventRSVP}">RSVP</a> 
-            <a class="noti" th:href="@{/noti}">Notification</a> 
-        </div>  
-        <a class="profile" th:href="@{/profile}">Profile</a> 
+            <a class="rsvp" th:href="@{/rspv}">RSVP</a> 
+        </div> 
+        <div class="right-nav">
+            <a class="noti" th:href="@{/noti}">Notification</a>  
+            <a class="profile" th:href="@{/profile}">Profile</a> 
+        </div>
     </nav>
+    <!-- RSVP Page code starts here -->
     <div id="rsvpPage">
+        <!-- header and subtitle -->
         <div class="header">
             <div class="content">
                 <h1 class="page-title">My events</h1>
-                <p>Manage all your Event RSVP</p>
+                <p class="page-subtitle">Manage all your Event RSVP</p>
             </div>
         </div>
         
