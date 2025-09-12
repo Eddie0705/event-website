@@ -94,7 +94,7 @@ a:link {
     flex-direction: row;
     margin-left: 50px;
     margin-right: 50px;
-    gap: 40px;
+    column-gap: 40px;
     
 }
 
