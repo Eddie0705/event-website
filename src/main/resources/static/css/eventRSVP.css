@@ -48,9 +48,36 @@
     margin-bottom: 0.5rem;
 }
 
-        .summary-label {
+.summary-label {
     font-size: 0.9rem;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.filters {
+    display:flex;
+    gap: 1srem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.7rem 1.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.filter-btn.active {
+    background: #ff8c42;
+    border-color: #ff8c42;
+    color: white;
+}
+
+.filter-btn:hover:not(.active) {
+    border-color: #ff8c42;
+    color: #ff8c42;
 }
