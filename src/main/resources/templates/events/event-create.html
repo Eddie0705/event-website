@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create Event</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        :root { --accent: #FFDE21; --black: #000000; --white: #FFFFFF; --peach: #FFF1E6; }
+        html, body { background: var(--peach); color: var(--black); font-family: Calibri, Arial, Helvetica, sans-serif; }
+        .container { background: transparent; }
+        .form-card {
+            background: var(--white);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+        }
+        h1 { margin: 0 0 1rem 0; font-size: 1.75rem; }
+        .badge-title {
+            display: inline-block;
+            padding: .25rem .6rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .form-group { margin-bottom: 1rem; }
+        label { display: inline-block; font-weight: 600; margin-bottom: .4rem; }
+        button, input, select, textarea { font-family: inherit; }
+        .req { color: var(--black); }
+        input[type=text], input[type=date], input[type=time], textarea, select {
+            width: 100%;
+            border: 1px solid rgba(0,0,0,0.2);
+            background: var(--white);
+            color: var(--black);
+            border-radius: 8px;
+            padding: .6rem .7rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06) inset;
+        }
+        textarea { resize: vertical; }
+        input:focus, textarea:focus, select:focus { outline: 3px solid var(--accent); outline-offset: 0; }
+        .row { display: flex; gap: 1rem; }
+        .col { flex: 1; }
+        .actions { display: flex; gap: .75rem; }
+        /* Drag & drop image upload */
+        .dropzone {
+            border: 2px dashed rgba(0,0,0,0.35);
+            border-radius: 12px;
+            background: var(--white);
+            padding: 1rem;
+            text-align: center;
+            transition: background 120ms ease, border-color 120ms ease;
+        }
+        .dropzone:hover { background: #fffdf2; }
+        .dropzone.dragover {
+            background: #fff9cc;
+            border-color: var(--accent);
+        }
+        .dropzone .dz-instructions { margin: .25rem 0 .5rem 0; font-size: .95rem; }
+        .dropzone .dz-hint { font-size: .8rem; opacity: .75; }
+        .image-preview {
+            margin-top: .75rem;
+            display: none;
+        }
+        .image-preview img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--black);
+            border: none;
+            border-radius: 10px;
+            padding: .8rem 1rem;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+        }
+        .btn-secondary {
+            color: var(--black);
+            border: none;
+            border-radius: 10px;
+            padding: .8rem 1rem;
+            text-decoration: none;
+            background: var(--white);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset;
+        }
+        .btn-primary:hover { background: var(--black); color: var(--white); }
+        .btn-secondary:hover { background: var(--accent); }
+        .banner-success {
+            background: var(--accent);
+            color: var(--black);
+            border: none;
+            padding: .75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .error-text { color: var(--black); font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="container" style="max-width: 760px; margin: 2rem auto; padding: 1rem;">
+    <div class="form-card">
+        <h1><span class="badge-title">Create Event</span></h1>
+
+        <div th:if="${success}" class="banner-success">
+            Event created successfully.
+        </div>
+
+        <form th:action="@{/events}" th:object="${eventForm}" method="post" novalidate enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">Title <span class="req">*</span></label>
+                <input id="title" type="text" th:field="*{title}" required minlength="5" maxlength="80" placeholder="e.g., RMIT Tech Talk: Modern Java"/>
+                <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description <span class="req">*</span></label>
+                <textarea id="description" th:field="*{description}" required minlength="10" maxlength="1000" placeholder="Briefly describe your event" rows="5"></textarea>
+                <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="error-text"></div>
+            </div>
+
+            <div class="row">
+                <div class="col form-group">
+                    <label for="date">Date <span class="req">*</span></label>
+                    <input id="date" type="date" th:field="*{date}" required th:attr="min=${today}"/>
+                    <div th:if="${#fields.hasErrors('date')}" th:errors="*{date}" class="error-text"></div>
+                </div>
+                <div class="col form-group">
+                    <label for="time">Time <span class="req">*</span></label>
+                    <input id="time" type="time" th:field="*{time}" required/>
+                    <div th:if="${#fields.hasErrors('time')}" th:errors="*{time}" class="error-text"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location <span class="req">*</span></label>
+                <input id="location" type="text" th:field="*{location}" required placeholder="e.g., RMIT Building 80"/>
+                <div th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category <span class="req">*</span></label>
+                <select id="category" th:field="*{category}" required>
+                    <option value="" disabled selected>Select a category</option>
+                    <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}"></option>
+                </select>
+                <div th:if="${#fields.hasErrors('category')}" th:errors="*{category}" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input id="tags" type="text" th:field="*{tags}" placeholder="Comma separated, e.g., Java, Spring, Career"/>
+                <small>Separate multiple tags with commas.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Cover image (optional)</label>
+                <div id="dropzone" class="dropzone" tabindex="0">
+                    <strong>Drag & drop</strong> an image here, or <label for="image" style="text-decoration: underline; cursor: pointer;">click to upload</label>
+                    <div class="dz-instructions">PNG, JPG, or WEBP. Max ~5MB.</div>
+                    <input id="image" name="image" type="file" accept="image/*" style="display:none;" />
+                    <div class="image-preview" id="imagePreview">
+                        <img id="previewImg" alt="Selected image preview" />
+                        <div id="previewName" class="dz-hint"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">Create Event</button>
+                <a href="#" class="btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const dropzone = document.getElementById('dropzone');
+        const input = document.getElementById('image');
+        const previewWrap = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const previewName = document.getElementById('previewName');
+
+        function showPreview(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewImg.src = e.target.result;
+                previewName.textContent = file.name;
+                previewWrap.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) {
+                // Reflect into hidden input so it submits with the form
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                showPreview(file);
+            }
+        });
+        // Click-to-upload
+        dropzone.addEventListener('click', () => input.click());
+        dropzone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                input.click();
+            }
+        });
+        input.addEventListener('change', () => {
+            const file = input.files && input.files[0];
+            showPreview(file);
+        });
+    })();
+</script>
+</body>
+</html>
+
+
