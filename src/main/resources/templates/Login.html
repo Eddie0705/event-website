@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>EventHub - Login</title>
+    <link rel="stylesheet" th:href="@{/css/Login.css}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>EVENTHUB</h1>
+            <p>Discover Amazing Events</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username or Email</label>
+                <input type="text" id="username" placeholder="Enter your username or email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+                <button type="button" class="password-toggle" onclick="togglePassword()">👁</button>
+            </div>
+
+            <div class="forgot-password">
+                <a href="#forgot">Forgot your password?</a>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Sign In to EventHub
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <div class="signup-link">
+            Don't have an account? <a href="#signup">Create one here</a>
+        </div>
+    </div>
+</body>
+</html>
