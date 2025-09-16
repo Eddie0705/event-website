@@ -57,7 +57,7 @@
 
 .filters {
     display:flex;
-    gap: 1srem;
+    gap: 1rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
