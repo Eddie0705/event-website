@@ -57,69 +57,69 @@ class AdminControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // // test for redirection if not admin
-    // @Test
-    // void adminDashboardNonAdminRedirectsToLogin() {
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(false);
+    // test for redirection if not admin
+    @Test
+    void adminDashboardNonAdminRedirectsToLogin() {
+        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+            sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(false);
 
-    //         String view = adminController.adminDashboard(session, model);
+            String view = adminController.adminDashboard(session, model);
 
-    //         assertEquals("redirect:/auth/login", view);
-    //     }
-    // }
+            assertEquals("redirect:/auth/login", view);
+        }
+    }
 
-    // // test for admin dashboard 
-    // @Test
-    // void adminDashboardAdminReturnsDashboardView() {
-    //     User adminUser = new User("admin@test.com", "admin", "password", "Admin", "User");
+    // test for admin dashboard 
+    @Test
+    void adminDashboardAdminReturnsDashboardView() {
+        User adminUser = new User("admin@test.com", "admin", "password", "Admin", "User");
 
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(true);
-    //         sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(adminUser);
+        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+            sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(true);
+            sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(adminUser);
 
-    //         // Mock UserStats
-    //         UserService.UserStats stats = mock(UserService.UserStats.class);
-    //         when(userService.getUserStats()).thenReturn(stats);
+            // Mock UserStats
+            UserService.UserStats stats = mock(UserService.UserStats.class);
+            when(userService.getUserStats()).thenReturn(stats);
 
-    //         String view = adminController.adminDashboard(session, model);
+            String view = adminController.adminDashboard(session, model);
 
-    //         assertEquals("admin/dashboard", view);
-    //         verify(model).addAttribute("currentUser", adminUser);
-    //         verify(model).addAttribute("userStats", stats);
-    //     }
-    // }
+            assertEquals("admin/dashboard", view);
+            verify(model).addAttribute("currentUser", adminUser);
+            verify(model).addAttribute("userStats", stats);
+        }
+    }
 
-    // // test for redirecting to login if not admin
-    // @Test
-    // void userManagementNonAdminRedirectsToLogin() {
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(false);
+    // test for redirecting to login if not admin
+    @Test
+    void userManagementNonAdminRedirectsToLogin() {
+        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+            sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(false);
 
-    //         String view = adminController.userManagement(session, model);
+            String view = adminController.userManagement(session, model);
 
-    //         assertEquals("redirect:/auth/login", view);
-    //     }
-    // }
+            assertEquals("redirect:/auth/login", view);
+        }
+    }
 
-    // // test for user management request 
-    // @Test
-    // void userManagementReturnsUsersView() {
-    //     User adminUser = new User("admin@test.com", "admin", "password", "Admin", "User");
+    // test for user management request 
+    @Test
+    void userManagementReturnsUsersView() {
+        User adminUser = new User("admin@test.com", "admin", "password", "Admin", "User");
 
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(true);
-    //         sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(adminUser);
+        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+            sessionUtils.when(() -> SessionUtils.isAdmin(session)).thenReturn(true);
+            sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(adminUser);
 
-    //         // Mock UserStats
-    //         UserService.UserStats stats = mock(UserService.UserStats.class);
-    //         when(userService.getUserStats()).thenReturn(stats);
+            // Mock UserStats
+            UserService.UserStats stats = mock(UserService.UserStats.class);
+            when(userService.getUserStats()).thenReturn(stats);
 
-    //         String view = adminController.userManagement(session, model);
+            String view = adminController.userManagement(session, model);
 
-    //         assertEquals("admin/users", view);
-    //         verify(model).addAttribute("currentUser", adminUser);
-    //         verify(model).addAttribute("userStats", stats);
-    //     }
-    // }
+            assertEquals("admin/users", view);
+            verify(model).addAttribute("currentUser", adminUser);
+            verify(model).addAttribute("userStats", stats);
+        }
+    }
 }
