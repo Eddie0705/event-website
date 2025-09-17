@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Landing Page</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="nav"> 
+        <div class ="mid-nav">
+            <a class="home" th:href="@{/}">Home</a> 
+            <a class="explore" th:href="@{/explore}">Explore</a> 
+            <a class="calendar" th:href="@{/calendar}">Calendar</a> 
+            <a class="rsvp" th:href="@{/rspv}">RSPV</a> 
+            <a class="noti" th:href="@{/noti}">Notification</a> 
+        </div>  
+        <a class="profile" th:href="@{/profile}">Profile</a> 
+    </nav>
+    <div class="search_area">
+        <input type="text" placeholder="Search...">
+        <select name="category" id="category">
+            <option value="all">All</option>
+            <option value="events">Events</option>
+            <option value="users">Users</option>
+            <option value="groups">Groups</option>
+        </select>
+        <input type="date" id="date_preferred" name="date_preferred">
+        <select name="location" id="location">
+            <option value="any">Any Location</option>
+            <option value="newyork">New York</option>
+            <option value="losangeles">Los Angeles</option>
+            <option value="chicago">Chicago</option>
+        </select>
+        <input type="submit"/>
+    </div>
+
+        <div class="filter">
+            <h1>Filters</h1>
+            <h2>Category</h2>
+            <input type="checkbox" id="Academic" name="Academic" value="Academic">
+            <label for="Academic">Academic</label>
+            <input type="checkbox" id="Social" name="Social" value="Social">
+            <label for="Social">Social</label>
+            <input type="checkbox" id="Sport" name="Sport" value="Sport">
+            <label for="Sport">Sport</label>
+            <h2>Date Range</h2>
+            <input type="date" id="date_from" name="date_from">
+            <input type="date" id="date_to" name="date_to">
+            <h2>Location</h2>
+            <input type="checkbox" id="Main Campus" name="Main Campus" value="Main Campus"> 
+            <label for="Main Campus">Main Campus</label>
+            <input type="checkbox" id="Student Center" name="Student Center" value="Student Center">
+            <label for="Student Center">Student Center</label>
+            <h2>Price</h2>
+            <input type="radio" id="free" name="Free" value="free">
+            <label for="free">Free</label>
+            <input type="radio" id="paid" name="Paid" value="paid">
+            <label for="paid">Paid</label>
+            <h2>Organizer</h2>
+            <select name="organizer" id="organizer">
+                <option value="any">Any Organizer</option>
+                <option value="org1">Organizer 1</option>
+                <option value="org2">Organizer 2</option>
+                <option value="org3">Organizer 3</option>
+            </select>   
+        </div>
+        <div class="events_card">
+            <!--Example of event card-->
+            <h3> Title</h3>
+            <p> Date | Time </p>
+            <p> Location </p>
+            <p> Description </p>
+            <button>RSVP</button>
+        </div>
+    
+        <footer>
+            <p>&copy; 2024 Your Company. All rights reserved.</p>
+        </footer>
+</body>
+</html>
