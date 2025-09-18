@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - EventHub">EventHub</title>
+    
+    <!-- Common CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e40af 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Navigation - Using your exact styling */
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fbbf24 !important;
+            text-decoration: none;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mid-nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .mid-nav a, .right-nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mid-nav a:hover, .right-nav a:hover {
+            background: #6366f1;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .right-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* User type indicator */
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            color: #374151;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .user-type-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .user-type-organiser {
+            background: #fbbf24;
+            color: #1f2937;
+        }
+
+        .user-type-admin {
+            background: #ef4444;
+            color: white;
+        }
+
+        .user-type-student {
+            background: #10b981;
+            color: white;
+        }
+
+        /* Main content area */
+        .main-content {
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .mid-nav {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        /* Alerts and notifications */
+        .alert {
+            padding: 1rem 1.5rem;
+            margin: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        /* Animation for page load */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
+    
+    <!-- Page-specific CSS -->
+    <th:block layout:fragment="css"></th:block>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav"> 
+        <div class="left-nav">
+            <a class="logo" th:href="@{/Index}">EVENTHUB</a>
+        </div>
+        <div class="mid-nav">
+            <a class="home" th:href="@{/Index}">Home</a> 
+            <a class="explore" th:href="@{/explore}">Explore</a> 
+            <a class="calendar" th:href="@{/calendar}">Calendar</a> 
+            <a class="rsvp" th:href="@{/rspv}">RSVP</a>
+            
+            <!-- Organiser-only navigation -->
+            <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'organiser' or currentUser.userType.name() == 'admin')}">
+                <a th:href="@{/organiser/dashboard}">Dashboard</a>
+                <a th:href="@{/organiser/events}">My Events</a>
+                <a th:href="@{/organiser/events/create}">Create Event</a>
+            </th:block>
+        </div> 
+        <div class="right-nav">
+            <th:block th:if="${currentUser != null}">
+                <!-- User info with type badge -->
+                <div class="nav-user-info">
+                    <span th:text="${currentUser.firstName}">User</span>
+                    <span class="user-type-badge" 
+                          th:class="'user-type-badge user-type-' + ${currentUser.userType.name()}"
+                          th:text="${currentUser.userType.name()}">
+                        Student
+                    </span>
+                </div>
+                <a class="noti" th:href="@{/noti}">Notification</a>  
+                <a class="profile" th:href="@{/profile}">Profile</a>
+            </th:block>
+            <th:block th:unless="${currentUser != null}">
+                <a th:href="@{/auth/login}">Login</a>
+                <a th:href="@{/auth/register}">Register</a>
+            </th:block>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div layout:fragment="content">
+            <!-- Page content will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 EventHub. All rights reserved.</p>
+    </footer>
+
+    <!-- Page-specific JavaScript -->
+    <th:block layout:fragment="javascript"></th:block>
+</body>
+</html>
