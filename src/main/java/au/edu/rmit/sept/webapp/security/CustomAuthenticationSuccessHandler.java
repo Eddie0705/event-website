@@ -28,9 +28,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
         // Redirect based on user type
         if ("ADMIN".equals(userType)) {
-            response.sendRedirect("/admin/dashboard");
+            response.sendRedirect("/");
         } else if ("ORGANISER".equals(userType)) {
-            response.sendRedirect("/organiser/dashboard");
+            response.sendRedirect("/");
         } else {
             // Default redirect for students
             response.sendRedirect("/");
