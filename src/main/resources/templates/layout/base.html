@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$CONTENT_TITLE - EventHub">EventHub</title>
     
-    <!-- Common CSS -->
+    <!-- Common CSS from your existing style.css -->
     <style>
         * {
             margin: 0;
@@ -73,17 +73,45 @@
             gap: 1rem;
         }
 
-        /* User type indicator */
-        .nav-user-info {
+        /* User greeting and navigation */
+        .welcome-greeting {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             padding: 0.5rem 1rem;
-            background: rgba(99, 102, 241, 0.1);
+            background: linear-gradient(45deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
             border-radius: 8px;
             color: #374151;
             font-weight: 500;
-            text-decoration: none;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .profile-btn {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b) !important;
+            color: #1f2937 !important;
+            font-weight: 600 !important;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .profile-btn:hover {
+            background: linear-gradient(45deg, #f59e0b, #d97706) !important;
+            color: #1f2937 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4) !important;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #dc2626 !important;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .logout-btn:hover {
+            background: #dc2626 !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
         }
 
         .user-type-badge {
@@ -109,12 +137,46 @@
             color: white;
         }
 
+        /* Debug user type display */
+        .debug-user-type {
+            color: #dc2626;
+            font-weight: bold;
+            font-size: 0.9rem;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        /* Logout button styling */
+        .logout-btn {
+            background: none;
+            border: none;
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .logout-btn:hover {
+            background: #6366f1;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
         /* Main content area */
         .main-content {
             min-height: calc(100vh - 140px);
         }
 
-        /* Footer */
+        /* Footer - Using your exact styling */
         footer {
             background: rgba(31, 41, 55, 0.95);
             backdrop-filter: blur(10px);
@@ -124,7 +186,7 @@
             margin-top: 4rem;
         }
 
-        /* Responsive Design */
+        /* Responsive Design - Your exact styles */
         @media (max-width: 768px) {
             .nav {
                 flex-direction: column;
@@ -188,37 +250,24 @@
     <th:block layout:fragment="css"></th:block>
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- Navigation - Using your exact structure -->
     <nav class="nav"> 
         <div class="left-nav">
-            <a class="logo" th:href="@{/Index}">EVENTHUB</a>
+            <a class="logo" th:href="@{/}">EVENTHUB</a>
         </div>
         <div class="mid-nav">
-            <a class="home" th:href="@{/Index}">Home</a> 
+            <a class="home" th:href="@{/}">Home</a> 
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
             <a class="rsvp" th:href="@{/rspv}">RSVP</a>
-            
-            <!-- Organiser-only navigation -->
-            <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'organiser' or currentUser.userType.name() == 'admin')}">
-                <a th:href="@{/organiser/dashboard}">Dashboard</a>
-                <a th:href="@{/organiser/events}">My Events</a>
-                <a th:href="@{/organiser/events/create}">Create Event</a>
-            </th:block>
         </div> 
         <div class="right-nav">
             <th:block th:if="${currentUser != null}">
-                <!-- User info with type badge -->
-                <div class="nav-user-info">
-                    <span th:text="${currentUser.firstName}">User</span>
-                    <span class="user-type-badge" 
-                          th:class="'user-type-badge user-type-' + ${currentUser.userType.name()}"
-                          th:text="${currentUser.userType.name()}">
-                        Student
-                    </span>
-                </div>
-                <a class="noti" th:href="@{/noti}">Notification</a>  
-                <a class="profile" th:href="@{/profile}">Profile</a>
+                <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
+                    <a th:href="@{/organiser/events}" class="profile-btn">My Events</a>
+                </th:block>
+                <a class="profile-btn" th:href="@{/profile}">Profile</a>
+                <a class="logout-btn" th:href="@{/auth/logout}">Logout</a>
             </th:block>
             <th:block th:unless="${currentUser != null}">
                 <a th:href="@{/auth/login}">Login</a>
@@ -239,9 +288,9 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Footer - Using your exact structure -->
     <footer>
-        <p>&copy; 2024 EventHub. All rights reserved.</p>
+        <p>&copy; 2024 EventHub. All rights reserved.</p> 
     </footer>
 
     <!-- Page-specific JavaScript -->
