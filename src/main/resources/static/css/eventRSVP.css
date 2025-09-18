@@ -57,13 +57,19 @@
 
 .filters {
     display:flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
     flex-wrap: wrap;
 }
 
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
 .filter-btn {
-    padding: 0.7rem 1.5rem;
+    padding: 0.8rem 1.5rem;
     border: 2px solid #e0e0e0;
     border-radius: 25px;
     cursor: pointer;
@@ -80,4 +86,10 @@
 .filter-btn:hover:not(.active) {
     border-color: #ff8c42;
     color: #ff8c42;
+}
+
+.event-section{
+
+
+
 }
