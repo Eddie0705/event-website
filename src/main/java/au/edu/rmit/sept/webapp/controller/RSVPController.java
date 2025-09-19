@@ -30,51 +30,53 @@ public class RSVPController {
         this.rsvpService = rsvpService;
     }
 
-    // Show test form
     @GetMapping("/test")
     public String showTestPage(Model model) {
-        model.addAttribute("rsvp", new RSVP());
+        RSVP rsvp = new RSVP();
+        rsvp.setUser(new User()); // avoids null in template
+        rsvp.setEvent(new Event());
+        model.addAttribute("rsvp", rsvp);
         return "rsvp/rsvp-test";
     }
 
     @PostMapping("/submit")
-    public String submitRsvp(
-            @RequestParam Long userId,
-            @RequestParam Long eventId,
-            @RequestParam RSVP.RSVPStatus rsvpStatus,
-            @RequestParam(required = false) RSVP.AttendanceStatus attendanceStatus,
-            Model model) {
+    public String submitRsvp(@RequestParam Long userId,
+                            @RequestParam Long eventId,
+                            @RequestParam String rsvpStatus,
+                            @RequestParam(required = false) String attendanceStatus,
+                            Model model) {
 
         User user = userRepository.findById(userId).orElse(null);
         Event event = eventRepository.findById(eventId).orElse(null);
 
+        RSVP rsvp = new RSVP(); // default non-null object
+        rsvp.setUser(user);
+        rsvp.setEvent(event);
+
         if (user == null || event == null) {
-            model.addAttribute("message", "Invalid User or Event ID!");
+            model.addAttribute("message", "Invalid User ID or Event ID!");
+            model.addAttribute("rsvp", rsvp);
             return "rsvp/rsvp-test";
         }
 
-        RSVP existingRsvp = rsvpRepository.findByEventAndUser(event, user).orElse(null);
-
-        if (existingRsvp != null) {
-            existingRsvp.setRSVPStatus(rsvpStatus);
-            if (attendanceStatus != null) existingRsvp.setAttendanceStatus(attendanceStatus);
-            rsvpRepository.save(existingRsvp);
-            model.addAttribute("message", "RSVP updated successfully!");
-            model.addAttribute("rsvp", existingRsvp);
-        } else {
-            RSVP newRsvp = new RSVP();
-            newRsvp.setUser(user);
-            newRsvp.setEvent(event);
-            newRsvp.setRSVPStatus(rsvpStatus);
-            if (attendanceStatus != null) newRsvp.setAttendanceStatus(attendanceStatus);
-            rsvpRepository.save(newRsvp);
-            model.addAttribute("message", "RSVP created successfully!");
-            model.addAttribute("rsvp", newRsvp);
+        // Convert Strings to enums safely
+        RSVP.RSVPStatus rsvpEnum = null;
+        RSVP.AttendanceStatus attendanceEnum = null;
+        try {
+            rsvpEnum = RSVP.RSVPStatus.valueOf(rsvpStatus.toLowerCase());
+        } catch (IllegalArgumentException ignored) {}
+        if (attendanceStatus != null && !attendanceStatus.isEmpty()) {
+            try {
+                attendanceEnum = RSVP.AttendanceStatus.valueOf(attendanceStatus.toLowerCase());
+            } catch (IllegalArgumentException ignored) {}
         }
+
+        RSVP savedRsvp = rsvpService.createOrUpdateRsvp(user, event, rsvpEnum, attendanceEnum);
+        model.addAttribute("message", "RSVP saved successfully!");
+        model.addAttribute("rsvp", savedRsvp);
 
         return "rsvp/rsvp-test";
     }
-
     // Check a user's RSVP status for an event
     public String checkUserRsvp(Event event, User user) {
         return rsvpRepository.getRsvpStatus(event, user)

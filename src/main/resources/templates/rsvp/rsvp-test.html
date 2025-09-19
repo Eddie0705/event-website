@@ -34,11 +34,18 @@
 
 <div th:if="${message}">
     <h3 th:text="${message}"></h3>
-    <p>Saved RSVP:</p>
-    <p>User ID: <span th:text="${rsvp.user.userId}"></span></p>
-    <p>Event ID: <span th:text="${rsvp.event.eventId}"></span></p>
-    <p>Status: <span th:text="${rsvp.rsvpStatus}"></span></p>
-    <p>Attendance: <span th:text="${rsvp.attendanceStatus}"></span></p>
+
+    <div th:if="${rsvp.user != null and rsvp.event != null}">
+        <p>Saved RSVP:</p>
+        <p>User ID: <span th:text="${rsvp.user.userId}"></span></p>
+        <p>Event ID: <span th:text="${rsvp.event.eventId}"></span></p>
+        <p>Status: <span th:text="${rsvp.rsvpStatus != null ? rsvp.rsvpStatus : 'N/A'}"></span></p>
+        <p>Attendance: <span th:text="${rsvp.attendanceStatus != null ? rsvp.attendanceStatus : 'N/A'}"></span></p>
+    </div>
+
+    <div th:if="${rsvp.user == null or rsvp.event == null}">
+        <p>No valid RSVP found (invalid User ID or Event ID).</p>
+    </div>
 </div>
 </body>
 </html>

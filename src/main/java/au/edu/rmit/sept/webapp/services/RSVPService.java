@@ -1,7 +1,6 @@
 package au.edu.rmit.sept.webapp.services;
 
 import au.edu.rmit.sept.webapp.models.*;
-import au.edu.rmit.sept.webapp.models.RSVP.RSVPStatus;
 import au.edu.rmit.sept.webapp.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,70 +23,56 @@ public class RSVPService {
 
     @Transactional
     public RSVP rsvpToEvent(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        Optional<RSVP> existing = rsvpRepository.findByEventAndUser(event, user);
-        if (existing.isPresent()) {
-            RSVP rsvp = existing.get();
-            rsvp.setRSVPStatus(RSVPStatus.yes);
-            return rsvpRepository.save(rsvp);
-        }
-
-        RSVP rsvp = new RSVP();
-        rsvp.setEvent(event);
-        rsvp.setUser(user);
-        rsvp.setRSVPStatus(RSVPStatus.yes);
-        return rsvpRepository.save(rsvp);
+        return createOrUpdateRsvp(user, event, RSVP.RSVPStatus.yes, null);
     }
 
     @Transactional
     public void cancelRSVP(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
-                .orElseThrow(() -> new IllegalArgumentException("RSVP not found"));
+                .orElseGet(() -> {
+                    RSVP newRsvp = new RSVP();
+                    newRsvp.setEvent(event);
+                    newRsvp.setUser(user);
+                    return newRsvp;
+                });
 
-        rsvp.setRSVPStatus(RSVPStatus.cancelled);
+        rsvp.setRSVPStatus(RSVP.RSVPStatus.cancelled);
         rsvpRepository.save(rsvp);
     }
 
     public boolean hasRSVP(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Optional<Event> event = eventRepository.findById(eventId);
+        Optional<User> user = userRepository.findById(userId);
 
-        return rsvpRepository.existsByEventAndUser(event, user);
+        return event.isPresent() && user.isPresent() &&
+               rsvpRepository.existsByEventAndUser(event.get(), user.get());
     }
-    
-    
+
+    @Transactional
     public RSVP createOrUpdateRsvp(User user, Event event,
                                    RSVP.RSVPStatus rsvpStatus,
                                    RSVP.AttendanceStatus attendanceStatus) {
 
-        RSVP existing = rsvpRepository.findByEventAndUser(event, user).orElse(null);
+        RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
+                .orElseGet(() -> {
+                    RSVP newRsvp = new RSVP();
+                    newRsvp.setUser(user);
+                    newRsvp.setEvent(event);
+                    newRsvp.setAttendanceStatus(RSVP.AttendanceStatus.not_checked);
+                    return newRsvp;
+                });
 
-        if (existing != null) {
-            existing.setRSVPStatus(rsvpStatus);
-            if (attendanceStatus != null) {
-                existing.setAttendanceStatus(attendanceStatus);
-            }
-            return rsvpRepository.save(existing);
-        } else {
-            RSVP rsvp = new RSVP();
-            rsvp.setUser(user);
-            rsvp.setEvent(event);
-            rsvp.setRSVPStatus(rsvpStatus);
-            rsvp.setAttendanceStatus(attendanceStatus != null ? attendanceStatus : RSVP.AttendanceStatus.not_checked);
-            return rsvpRepository.save(rsvp);
+        rsvp.setRSVPStatus(rsvpStatus);
+        if (attendanceStatus != null) {
+            rsvp.setAttendanceStatus(attendanceStatus);
         }
-    }
 
-    
+        return rsvpRepository.save(rsvp);
+    }
 }
