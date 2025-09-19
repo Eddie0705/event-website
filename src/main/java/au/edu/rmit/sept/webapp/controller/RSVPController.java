@@ -5,6 +5,7 @@ import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.repository.UserRepository;
+import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,12 +19,15 @@ public class RSVPController {
     private final RSVPRepository rsvpRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final RSVPService rsvpService;
+    
 
     @Autowired
-    public RSVPController(RSVPRepository rsvpRepository, UserRepository userRepository, EventRepository eventRepository) {
+    public RSVPController(RSVPRepository rsvpRepository, UserRepository userRepository, EventRepository eventRepository, RSVPService rsvpService) {
         this.rsvpRepository = rsvpRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
+        this.rsvpService = rsvpService;
     }
 
     // Show test form
@@ -33,35 +37,39 @@ public class RSVPController {
         return "rsvp/rsvp-test";
     }
 
-    // Handle form submission (create or update RSVP)
     @PostMapping("/submit")
-    public String submitRsvp(@ModelAttribute RSVP rsvp, Model model) {
+    public String submitRsvp(
+            @RequestParam Long userId,
+            @RequestParam Long eventId,
+            @RequestParam RSVP.RSVPStatus rsvpStatus,
+            @RequestParam(required = false) RSVP.AttendanceStatus attendanceStatus,
+            Model model) {
 
-        // Fetch actual User and Event objects
-        User user = userRepository.findById(rsvp.getUser().getUserId()).orElse(null);
-        Event event = eventRepository.findById(rsvp.getEvent().getEventId()).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
+        Event event = eventRepository.findById(eventId).orElse(null);
 
         if (user == null || event == null) {
             model.addAttribute("message", "Invalid User or Event ID!");
             return "rsvp/rsvp-test";
         }
 
-        // Check if RSVP already exists
         RSVP existingRsvp = rsvpRepository.findByEventAndUser(event, user).orElse(null);
 
         if (existingRsvp != null) {
-            // Update existing RSVP
-            existingRsvp.setRSVPStatus(rsvp.getRsvpStatus());
+            existingRsvp.setRSVPStatus(rsvpStatus);
+            if (attendanceStatus != null) existingRsvp.setAttendanceStatus(attendanceStatus);
             rsvpRepository.save(existingRsvp);
             model.addAttribute("message", "RSVP updated successfully!");
             model.addAttribute("rsvp", existingRsvp);
         } else {
-            // Create new RSVP
-            rsvp.setUser(user);
-            rsvp.setEvent(event);
-            rsvpRepository.save(rsvp);
+            RSVP newRsvp = new RSVP();
+            newRsvp.setUser(user);
+            newRsvp.setEvent(event);
+            newRsvp.setRSVPStatus(rsvpStatus);
+            if (attendanceStatus != null) newRsvp.setAttendanceStatus(attendanceStatus);
+            rsvpRepository.save(newRsvp);
             model.addAttribute("message", "RSVP created successfully!");
-            model.addAttribute("rsvp", rsvp);
+            model.addAttribute("rsvp", newRsvp);
         }
 
         return "rsvp/rsvp-test";

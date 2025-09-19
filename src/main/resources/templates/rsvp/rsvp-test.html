@@ -6,19 +6,27 @@
 <body>
 <h1>RSVP Test</h1>
 
-<form th:action="@{/rsvp/submit}" th:object="${rsvp}" method="post">
-    <label>User ID:</label>
-    <input type="number" th:field="*{user.userId}" /><br/>
+<form th:action="@{/rsvp/submit}" method="post">
+    <label for="userId">User ID:</label>
+    <input type="number" id="userId" name="userId" required /><br/>
 
-    <label>Event ID:</label>
-    <input type="number" th:field="*{event.eventId}" /><br/>
+    <label for="eventId">Event ID:</label>
+    <input type="number" id="eventId" name="eventId" required /><br/>
 
-    <label>Status:</label>
-    <select th:field="*{rsvpStatus}">
-        <option th:value="yes">YES</option>
-        <option th:value="maybe">MAYBE</option>
-        <option th:value="no">NO</option>
-        <option th:value="cancelled">CANCELLED</option>
+    <label for="rsvpStatus">RSVP Status:</label>
+    <select id="rsvpStatus" name="rsvpStatus" required>
+        <option value="yes">YES</option>
+        <option value="maybe">MAYBE</option>
+        <option value="no">NO</option>
+        <option value="cancelled">CANCELLED</option>
+    </select><br/>
+
+    <label for="attendanceStatus">Attendance Status (optional):</label>
+    <select id="attendanceStatus" name="attendanceStatus">
+        <option value="">--None--</option>
+        <option value="not_checked">Not Checked</option>
+        <option value="checked_in">Checked In</option>
+        <option value="no_show">No Show</option>
     </select><br/>
 
     <button type="submit">Submit RSVP</button>
@@ -30,6 +38,7 @@
     <p>User ID: <span th:text="${rsvp.user.userId}"></span></p>
     <p>Event ID: <span th:text="${rsvp.event.eventId}"></span></p>
     <p>Status: <span th:text="${rsvp.rsvpStatus}"></span></p>
+    <p>Attendance: <span th:text="${rsvp.attendanceStatus}"></span></p>
 </div>
 </body>
 </html>
