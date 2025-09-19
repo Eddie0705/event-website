@@ -65,4 +65,29 @@ public class RSVPService {
 
         return rsvpRepository.existsByEventAndUser(event, user);
     }
+    
+    
+    public RSVP createOrUpdateRsvp(User user, Event event,
+                                   RSVP.RSVPStatus rsvpStatus,
+                                   RSVP.AttendanceStatus attendanceStatus) {
+
+        RSVP existing = rsvpRepository.findByEventAndUser(event, user).orElse(null);
+
+        if (existing != null) {
+            existing.setRSVPStatus(rsvpStatus);
+            if (attendanceStatus != null) {
+                existing.setAttendanceStatus(attendanceStatus);
+            }
+            return rsvpRepository.save(existing);
+        } else {
+            RSVP rsvp = new RSVP();
+            rsvp.setUser(user);
+            rsvp.setEvent(event);
+            rsvp.setRSVPStatus(rsvpStatus);
+            rsvp.setAttendanceStatus(attendanceStatus != null ? attendanceStatus : RSVP.AttendanceStatus.not_checked);
+            return rsvpRepository.save(rsvp);
+        }
+    }
+
+    
 }
