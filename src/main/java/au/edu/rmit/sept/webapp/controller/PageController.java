@@ -42,12 +42,12 @@ public class PageController {
     }
 
     // Your existing mappings
-    @GetMapping("/Index")
-    public String home(Model model) {
+    @GetMapping("/")
+    public String root(Model model) {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "Index";
+        return "Index"; // This will use the same template as /Index
     }
 
     @GetMapping("/explore")
@@ -137,65 +137,6 @@ public class PageController {
             response.put("lastLogin", currentUser.getLastLogin());
         } else {
             response.put("authenticated", false);
-        }
-
-        return response;
-    }
-
-    // Test endpoint to check database user types
-    @GetMapping("/db-users-test")
-    @ResponseBody
-    public Map<String, Object> testDatabaseUsers() {
-        Map<String, Object> response = new HashMap<>();
-
-        try (Connection connection = dataSource.getConnection()) {
-            var statement = connection.createStatement();
-            var resultSet = statement.executeQuery("SELECT user_id, email, username, user_type FROM users LIMIT 5");
-
-            var users = new java.util.ArrayList<Map<String, Object>>();
-            while (resultSet.next()) {
-                var user = new java.util.HashMap<String, Object>();
-                user.put("userId", resultSet.getLong("user_id"));
-                user.put("email", resultSet.getString("email"));
-                user.put("username", resultSet.getString("username"));
-                user.put("userType", resultSet.getString("user_type"));
-                users.add(user);
-            }
-
-            response.put("status", "SUCCESS");
-            response.put("users", users);
-            return response;
-        } catch (Exception e) {
-            response.put("status", "ERROR");
-            response.put("message", e.getMessage());
-            return response;
-        }
-    }
-
-    // Test endpoint to check if we can load a user
-    @GetMapping("/test-user-load")
-    @ResponseBody
-    public Map<String, Object> testUserLoad() {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            Optional<User> userOpt = userService.findByEmail("test@test.com");
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                response.put("status", "SUCCESS");
-                response.put("userId", user.getUserId());
-                response.put("email", user.getEmail());
-                response.put("username", user.getUsername());
-                response.put("userType", user.getUserType().name());
-                response.put("userTypeValue", user.getUserType().getValue());
-            } else {
-                response.put("status", "NOT_FOUND");
-                response.put("message", "User not found");
-            }
-        } catch (Exception e) {
-            response.put("status", "ERROR");
-            response.put("message", e.getMessage());
-            response.put("errorType", e.getClass().getSimpleName());
         }
 
         return response;

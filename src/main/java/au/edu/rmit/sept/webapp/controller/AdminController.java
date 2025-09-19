@@ -18,44 +18,6 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/admin")
 public class AdminController {
 
-    @Autowired
-    private UserService userService;
+    // for admin dash and admin specific tools
 
-    /**
-     * Display admin dashboard
-     */
-    @GetMapping("/dashboard")
-    public String adminDashboard(HttpSession session, Model model) {
-        // Check if user is admin
-        if (!SessionUtils.isAdmin(session)) {
-            return "redirect:/auth/login";
-        }
-
-        User currentUser = SessionUtils.getCurrentUser(session);
-        UserService.UserStats userStats = userService.getUserStats();
-
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("userStats", userStats);
-
-        return "admin/dashboard";
-    }
-
-    /**
-     * Display user management page
-     */
-    @GetMapping("/users")
-    public String userManagement(HttpSession session, Model model) {
-        // Check if user is admin
-        if (!SessionUtils.isAdmin(session)) {
-            return "redirect:/auth/login";
-        }
-
-        User currentUser = SessionUtils.getCurrentUser(session);
-        UserService.UserStats userStats = userService.getUserStats();
-
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("userStats", userStats);
-
-        return "admin/users";
-    }
 }
