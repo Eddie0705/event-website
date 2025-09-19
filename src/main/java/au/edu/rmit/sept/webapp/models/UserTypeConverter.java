@@ -10,13 +10,13 @@ import jakarta.persistence.Converter;
 @Converter(autoApply = true)
 public class UserTypeConverter implements AttributeConverter<UserType, String> {
 
-    @Override
-    public String convertToDatabaseColumn(UserType userType) {
-        if (userType == null) {
-            return null;
-        }
-        return userType.getValue();
-    }
+    // @Override
+    // public String convertToDatabaseColumn(UserType userType) {
+    // if (userType == null) {
+    // return null;
+    // }
+    // return userType.getValue();
+    // }
 
     @Override
     public UserType convertToEntityAttribute(String dbData) {
@@ -24,5 +24,20 @@ public class UserTypeConverter implements AttributeConverter<UserType, String> {
             return null;
         }
         return UserType.fromValue(dbData);
+    }
+
+    @Override
+    public String convertToDatabaseColumn(UserType userType) {
+        System.out.println("=== SAVING TO DATABASE ===");
+        System.out.println("UserType being saved: " + userType);
+
+        if (userType == null) {
+            System.out.println("UserType is null, saving null");
+            return null;
+        }
+
+        String dbValue = userType.getValue();
+        System.out.println("Database value: '" + dbValue + "'");
+        return dbValue;
     }
 }

@@ -51,7 +51,6 @@ public class UserService {
         user.setIsActive(true);
         user.setIsBanned(false);
         user.setEmailVerified(false);
-        user.setUserType(UserType.STUDENT); // Default to student
 
         return userRepository.save(user);
     }
