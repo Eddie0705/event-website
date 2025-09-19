@@ -1,6 +1,9 @@
 package au.edu.rmit.sept.webapp.controller;
 
 import au.edu.rmit.sept.webapp.models.User;
+
+import au.edu.rmit.sept.webapp.models.Event;
+
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +58,7 @@ public class PageController {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "events/event-explore";
+        return "Index";
     }
 
     @GetMapping("/calendar")

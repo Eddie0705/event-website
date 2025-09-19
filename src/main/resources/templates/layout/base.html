@@ -373,27 +373,27 @@
             </th:block>
         </div> 
         <div class="right-nav">
-            <a class="noti" href="/noti">Notifications</a>  
+            <a class="noti" th:href="@{/noti}">Notifications</a>  
             <div class="profile-dropdown">
-                <a class="profile" href="#" onclick="toggleDropdown(event)">
+                <a class="profile" th:href="@{#}" onclick="toggleDropdown(event)">
                     Profile <span class="dropdown-arrow">▼</span>
                 </a>
                 <div class="dropdown-menu" id="profileDropdown">
-                    <a href="user/profile" class="dropdown-item">
+                    <a th:href="@{user/profile}" class="dropdown-item">
                         <span class="dropdown-icon">👤</span>
                         <span th:text="${currentUser != null ? currentUser.firstName + ' ' + currentUser.lastName: 'Log In'}"></span>
                     </a>
                     <div class="dropdown-divider"></div>
-                    <a href="/rsvp" class="dropdown-item">
+                    <a th:href="@{/rsvp}" class="dropdown-item">
                         <span class="dropdown-icon">📅</span>
                         RSVP
                     </a> 
-                    <a href="/myevents" class="dropdown-item">
+                    <a th:href="@{/myevents}" class="dropdown-item">
                         <span class="dropdown-icon">🎯</span>
                         My Events
                     </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="/logout" class="dropdown-item logout">
+                    <div class="dropdown-divider" th:if="${currentUser!=null}"></div>
+                    <a th:if="${currentUser!= null}" th:href="@{/logout}" class="dropdown-item logout">
                         <span class="dropdown-icon">🚪</span>
                         Logout
                     </a>
