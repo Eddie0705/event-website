@@ -32,14 +32,14 @@ public class RSVPService {
         Optional<RSVP> existing = rsvpRepository.findByEventAndUser(event, user);
         if (existing.isPresent()) {
             RSVP rsvp = existing.get();
-            rsvp.setRSVPStatus(RSVPStatus.YES);
+            rsvp.setRSVPStatus(RSVPStatus.yes);
             return rsvpRepository.save(rsvp);
         }
 
         RSVP rsvp = new RSVP();
         rsvp.setEvent(event);
         rsvp.setUser(user);
-        rsvp.setRSVPStatus(RSVPStatus.YES);
+        rsvp.setRSVPStatus(RSVPStatus.yes);
         return rsvpRepository.save(rsvp);
     }
 
@@ -53,7 +53,7 @@ public class RSVPService {
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
                 .orElseThrow(() -> new IllegalArgumentException("RSVP not found"));
 
-        rsvp.setRSVPStatus(RSVPStatus.CANCELLED);
+        rsvp.setRSVPStatus(RSVPStatus.cancelled);
         rsvpRepository.save(rsvp);
     }
 

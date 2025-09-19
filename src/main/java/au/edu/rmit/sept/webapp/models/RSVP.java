@@ -23,11 +23,11 @@ public class RSVP {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rsvp_status", nullable = false)
-    private RSVPStatus rsvpStatus = RSVPStatus.YES;
+    private RSVPStatus rsvpStatus = RSVPStatus.yes;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "attendance_status", nullable = false)
-    private AttendanceStatus attendanceStatus = AttendanceStatus.NOT_CHECKED;
+    private AttendanceStatus attendanceStatus = AttendanceStatus.not_checked;
 
     private LocalDateTime checkInTime;
     private String qrCode;
@@ -120,18 +120,20 @@ public class RSVP {
         this.event = event;
         this.user = user;
         this.rsvpStatus = rsvpStatus;
-        this.attendanceStatus = AttendanceStatus.NOT_CHECKED;
+        this.attendanceStatus = AttendanceStatus.not_checked;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     // enums
     public enum RSVPStatus {
-        YES, NO, MAYBE, CANCELLED
+        yes, no, maybe, cancelled
     }
 
     public enum AttendanceStatus {
-        NOT_CHECKED, CHECKED_IN, NO_SHOW
+        not_checked,
+        checked_in,
+        no_show
     }
 
 }
