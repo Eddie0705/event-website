@@ -88,9 +88,20 @@ public class PageController {
         if (currentUser == null) {
             return "redirect:/auth/login";
         }
+        model.addAttribute("user", currentUser);
+        model.addAttribute("isAuthenticated", true);
+        return "user/profile";
+    }
+
+    @GetMapping("/myevents")
+    public String myEvents(Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "user/profile";
+        return "myevents";
     }
 
     // Database test endpoint
