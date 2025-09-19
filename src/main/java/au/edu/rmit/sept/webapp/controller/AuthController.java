@@ -1,8 +1,11 @@
 package au.edu.rmit.sept.webapp.controller;
 
 import au.edu.rmit.sept.webapp.models.User;
+import au.edu.rmit.sept.webapp.models.UserType;
+
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.UserService;
+
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,40 +67,40 @@ public class AuthController {
         return "auth/register";
     }
 
-    /**
-     * Process registration request
-     */
     @PostMapping("/register")
     public String processRegistration(
             @Valid @ModelAttribute("user") User user,
             BindingResult bindingResult,
             @RequestParam String confirmPassword,
+            @RequestParam String userType,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        // Check for validation errors
+        // Set userType manually
+        if ("organiser".equals(userType)) {
+            user.setUserType(UserType.ORGANISER);
+            System.out.println("Set to ORGANISER");
+        } else {
+            user.setUserType(UserType.STUDENT);
+            System.out.println("Set to STUDENT");
+        }
+
+        System.out.println("User userType after setting: " + user.getUserType());
+
         if (bindingResult.hasErrors()) {
             return "auth/register";
         }
 
-        // Check password confirmation
         if (!user.getPasswordHash().equals(confirmPassword)) {
             model.addAttribute("errorMessage", "Passwords do not match");
             return "auth/register";
         }
 
         try {
-            // Register the user
             User savedUser = userService.registerUser(user);
-
             redirectAttributes.addFlashAttribute("successMessage",
                     "Registration successful! Welcome to EventHub, " + savedUser.getFirstName() + "!");
-
             return "redirect:/auth/login";
-
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "auth/register";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Registration failed: " + e.getMessage());
             return "auth/register";
@@ -245,53 +248,5 @@ public class AuthController {
         }
 
         return "redirect:/auth/profile";
-    }
-
-    /**
-     * API endpoint to check if email exists
-     */
-    @GetMapping("/check-email")
-    @ResponseBody
-    public Map<String, Object> checkEmail(@RequestParam String email) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("exists", userService.emailExists(email));
-        return response;
-    }
-
-    /**
-     * API endpoint to check if username exists
-     */
-    @GetMapping("/check-username")
-    @ResponseBody
-    public Map<String, Object> checkUsername(@RequestParam String username) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("exists", userService.usernameExists(username));
-        return response;
-    }
-
-    /**
-     * API endpoint to get current user info
-     */
-    @GetMapping("/current-user")
-    @ResponseBody
-    public Map<String, Object> getCurrentUserInfo() {
-        Map<String, Object> response = new HashMap<>();
-        User user = getCurrentUser();
-
-        if (user != null) {
-            response.put("authenticated", true);
-            response.put("userId", user.getUserId());
-            response.put("username", user.getUsername());
-            response.put("email", user.getEmail());
-            response.put("firstName", user.getFirstName());
-            response.put("lastName", user.getLastName());
-            response.put("userType", user.getUserType().toString());
-            response.put("isActive", user.getIsActive());
-            response.put("emailVerified", user.getEmailVerified());
-        } else {
-            response.put("authenticated", false);
-        }
-
-        return response;
     }
 }
