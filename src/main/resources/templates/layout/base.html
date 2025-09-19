@@ -250,7 +250,7 @@
     <th:block layout:fragment="css"></th:block>
 </head>
 <body>
-    <!-- Navigation - Using your exact structure -->
+    <!-- Navigation -->
     <nav class="nav"> 
         <div class="left-nav">
             <a class="logo" th:href="@{/}">EVENTHUB</a>
@@ -260,12 +260,12 @@
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
             <a class="rsvp" th:href="@{/rspv}">RSVP</a>
+            <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
+                <a th:href="@{/organiser/events}" class="profile-btn">My Events</a>
+            </th:block>
         </div> 
         <div class="right-nav">
             <th:block th:if="${currentUser != null}">
-                <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
-                    <a th:href="@{/organiser/events}" class="profile-btn">My Events</a>
-                </th:block>
                 <a class="profile-btn" th:href="@{/profile}">Profile</a>
                 <a class="logout-btn" th:href="@{/auth/logout}">Logout</a>
             </th:block>
@@ -288,7 +288,7 @@
         </div>
     </div>
 
-    <!-- Footer - Using your exact structure -->
+    <!-- Footer -->
     <footer>
         <p>&copy; 2024 EventHub. All rights reserved.</p> 
     </footer>
