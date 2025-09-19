@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RSVP Test Page</title>
+</head>
+<body>
+<h1>RSVP Test</h1>
+
+<form th:action="@{/rsvp/submit}" th:object="${rsvp}" method="post">
+    <label>User ID:</label>
+    <input type="number" th:field="*{user.userId}" /><br/>
+
+    <label>Event ID:</label>
+    <input type="number" th:field="*{event.eventId}" /><br/>
+
+    <label>Status:</label>
+    <select th:field="*{rsvpStatus}">
+        <option th:value="YES">YES</option>
+        <option th:value="MAYBE">MAYBE</option>
+        <option th:value="NO">NO</option>
+        <option th:value="CANCELLED">CANCELLED</option>
+    </select><br/>
+
+    <button type="submit">Submit RSVP</button>
+</form>
+
+<div th:if="${message}">
+    <h3 th:text="${message}"></h3>
+    <p>Saved RSVP:</p>
+    <p>User ID: <span th:text="${rsvp.user.userId}"></span></p>
+    <p>Event ID: <span th:text="${rsvp.event.eventId}"></span></p>
+    <p>Status: <span th:text="${rsvp.rsvpStatus}"></span></p>
+</div>
+</body>
+</html>
