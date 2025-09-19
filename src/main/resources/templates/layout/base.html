@@ -261,7 +261,7 @@
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
             <a class="rsvp" th:href="@{/rspv}">RSVP</a>
             <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
-                <a th:href="@{/organiser/events}" class="profile-btn">My Events</a>
+                <a th:href="@{/organiser/create-event}" class="profile-btn">Create Event</a>
             </th:block>
         </div> 
         <div class="right-nav">
