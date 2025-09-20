@@ -1,10 +1,12 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
+import au.edu.rmit.sept.webapp.services.EventService;
 import au.edu.rmit.sept.webapp.services.UserService;
 import au.edu.rmit.sept.webapp.services.EventService;
 import au.edu.rmit.sept.webapp.services.RSVPService;
@@ -23,6 +25,7 @@ import jakarta.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
@@ -35,6 +38,8 @@ public class PageController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private EventService eventService;
 
     @Autowired
     private EventService eventService;
@@ -57,11 +62,12 @@ public class PageController {
     }
 
     // Your existing mappings
-    @GetMapping("/")
+    @GetMapping({ "/", "/explore" })
     public String root(Model model) {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
+
         List<Event> events = eventService.getPublishedEvents();
         // Map<Long, String> rsvpStatusMap = new HashMap<>();
 
@@ -71,15 +77,18 @@ public class PageController {
         // }
         model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
-        return "Index"; 
-    }
+        return "Index;
+//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
+//         // Fetch organizer name for each event
+//         Map<Long, String> organizerNames = new HashMap<>();
+//         for (Event event : events) {
+//             organizerNames.put(event.getEventId(),
+//                     userService.getUserFullNameById(event.getCreatedBy()));
+//         }
+//         model.addAttribute("events", events);
+//         model.addAttribute("organizerNames", organizerNames);
+//         return "Index"; // This will use the same template as /Index
 
-    @GetMapping("/explore")
-    public String explore(Model model) {
-        User currentUser = getCurrentUser();
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", currentUser != null);
-        return "Index";
     }
 
     @GetMapping("/calendar")
@@ -166,7 +175,6 @@ public class PageController {
         return response;
     }
 
-
     @Autowired
     private RSVPRepository rsvpRepository;
 
@@ -177,12 +185,10 @@ public class PageController {
         return "rsvp-test";
     }
 
-    
-
     // Handle form submission
     @PostMapping("/submit")
     public String submitRsvp(@ModelAttribute RSVP rsvp, Model model) {
-        
+
         rsvpRepository.save(rsvp);
         model.addAttribute("message", "RSVP saved successfully!");
         model.addAttribute("rsvp", rsvp);
