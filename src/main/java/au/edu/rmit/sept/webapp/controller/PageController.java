@@ -3,8 +3,9 @@ package au.edu.rmit.sept.webapp.controller;
 import au.edu.rmit.sept.webapp.models.User;
 
 import au.edu.rmit.sept.webapp.models.Event;
-
+import au.edu.rmit.sept.webapp.models.Event.EventStatus;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
+import au.edu.rmit.sept.webapp.services.EventService;
 import au.edu.rmit.sept.webapp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,6 +31,12 @@ public class PageController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private EventService eventService;
+
+    public PageController() {
+        System.out.println("PageController created!");
+    }
 
     /**
      * Get current authenticated user
@@ -45,19 +53,26 @@ public class PageController {
     }
 
     // Your existing mappings
-    @GetMapping("/")
-    public String root(Model model) {
+    @GetMapping({ "/", "/explore" })
+    public String index(Model model) {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "Index"; // This will use the same template as /Index
-    }
 
-    @GetMapping("/explore")
-    public String explore(Model model) {
-        User currentUser = getCurrentUser();
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", currentUser != null);
+        // if (eventService == null) {
+        // System.out.println("eventService is null!");
+        // } else {
+        // System.out.println("eventService is ready");
+        // }
+
+        // try {
+        // List<Event> events = eventService.getPublishedEvents();
+        // System.out.println("Loaded events: " + events.size());
+        // model.addAttribute("events", events);
+        // } catch (Exception e) {
+        // e.printStackTrace();
+        // }
+
         return "Index";
     }
 
@@ -119,6 +134,7 @@ public class PageController {
             response.put("message", "Database connection working!");
             return response;
         } catch (Exception e) {
+
             response.put("status", "ERROR");
             response.put("message", e.getMessage());
             return response;

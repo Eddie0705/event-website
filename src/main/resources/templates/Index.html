@@ -357,30 +357,17 @@
 
         <!-- Events Container -->
         <div class="events_container">
-            <!-- Example Event Card -->
-            <div class="events_card">
-                <h3>Sample Event</h3>
-                <p>12 Sept 2024 | 10:00 AM</p>
-                <p>Main Campus</p>
-                <p>This is a sample event description to show how the layout works.</p>
-                <button>RSVP</button>
-            </div>
-
-            <!-- Add more event cards here or populate dynamically -->
-            <div class="events_card">
-                <h3>Another Event</h3>
-                <p>15 Sept 2024 | 2:00 PM</p>
-                <p>Student Center</p>
-                <p>Another sample event with different details.</p>
-                <button>RSVP</button>
-            </div>
-
-            <div class="events_card">
-                <h3>Third Event</h3>
-                <p>20 Sept 2024 | 6:00 PM</p>
-                <p>Auditorium</p>
-                <p>A third sample event for demonstration.</p>
-                <button>RSVP</button>
+            <div th:each="event : ${events}" class="events_card">
+                <h3 th:text="${event.title}">Event Title</h3>
+                <p>
+                    <span th:text="${event.eventDate}"></span> |
+                    <span th:text="${event.startTime}"></span>
+                </p>
+                <p th:text="${event.location}">Location</p>
+                <p th:text="${event.description}">Description</p>
+                <a th:href="@{'/events/' + ${event.id}}">
+                    <button>RSVP</button>
+                </a>
             </div>
         </div>
     </div>
