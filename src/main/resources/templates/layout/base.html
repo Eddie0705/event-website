@@ -35,6 +35,12 @@
             z-index: 100;
         }
 
+        .right-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
         .logo {
             font-size: 1.8rem;
             font-weight: bold;
@@ -72,6 +78,108 @@
             display: flex;
             gap: 1rem;
         }
+
+        /* Profile Dropdown Styles */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-dropdown .profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .dropdown-arrow {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-dropdown.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 12px 16px;
+            color: #374151;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 4px;
+        }
+
+        .dropdown-item:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+            transform: translateX(4px);
+        }
+
+        .dropdown-item:first-child {
+            font-weight: 600;
+            color: #1f2937;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dropdown-item:first-child:hover {
+            background: #fef3c7;
+            -webkit-text-fill-color: #1f2937;
+        }
+
+        .dropdown-item.logout {
+            color: #dc2626;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .dropdown-icon {
+            font-size: 1.1rem;
+            width: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 4px 8px;
+        }
+
 
         /* User greeting and navigation */
         .welcome-greeting {
@@ -261,18 +369,36 @@
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
             <a class="rsvp" th:href="@{/rspv}">RSVP</a>
             <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
-                <a th:href="@{/organiser/events}" class="profile-btn">My Events</a>
+                <a th:href="@{/organiser/create-event}" class="profile-btn">Create Event</a>
             </th:block>
         </div> 
         <div class="right-nav">
-            <th:block th:if="${currentUser != null}">
-                <a class="profile-btn" th:href="@{/profile}">Profile</a>
-                <a class="logout-btn" th:href="@{/auth/logout}">Logout</a>
-            </th:block>
-            <th:block th:unless="${currentUser != null}">
-                <a th:href="@{/auth/login}">Login</a>
-                <a th:href="@{/auth/register}">Register</a>
-            </th:block>
+            <a class="noti" href="/noti">Notifications</a>  
+            <div class="profile-dropdown">
+                <a class="profile" href="#" onclick="toggleDropdown(event)">
+                    Profile <span class="dropdown-arrow">▼</span>
+                </a>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="user/profile" class="dropdown-item">
+                        <span class="dropdown-icon">👤</span>
+                        <span th:text="${currentUser != null ? currentUser.firstName + ' ' + currentUser.lastName: 'Log In'}"></span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="/rsvp" class="dropdown-item">
+                        <span class="dropdown-icon">📅</span>
+                        RSVP
+                    </a> 
+                    <a href="/myevents" class="dropdown-item">
+                        <span class="dropdown-icon">🎯</span>
+                        My Events
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="/logout" class="dropdown-item logout">
+                        <span class="dropdown-icon">🚪</span>
+                        Logout
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -294,6 +420,31 @@
     </footer>
 
     <!-- Page-specific JavaScript -->
-    <th:block layout:fragment="javascript"></th:block>
+    <th:block layout:fragment="javascript">
+         <script>
+            // Profile dropdown functionality
+            function toggleDropdown(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const dropdown = document.getElementById('profileDropdown');
+                const profileDropdown = document.querySelector('.profile-dropdown');
+                
+                dropdown.classList.toggle('show');
+                profileDropdown.classList.toggle('active');
+            }
+    
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('profileDropdown');
+                const profileDropdown = document.querySelector('.profile-dropdown');
+                
+                if (!profileDropdown.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                    profileDropdown.classList.remove('active');
+                }
+            });    
+        </script>
+    </th:block>
 </body>
 </html>
