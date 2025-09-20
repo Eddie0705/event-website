@@ -9,8 +9,6 @@ import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.EventService;
 import au.edu.rmit.sept.webapp.services.UserService;
 import au.edu.rmit.sept.webapp.services.EventService;
-import au.edu.rmit.sept.webapp.services.RSVPService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,6 +39,9 @@ public class PageController {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private EventService eventService;
+
     /**
      * Get current authenticated user
      */
@@ -67,32 +68,11 @@ public class PageController {
 
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-
-        List<Event> events = eventService.getPublishedEvents();
-        // Map<Long, String> rsvpStatusMap = new HashMap<>();
-
-        // for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event,
-        // currentUser) : "No RSVP yet";
-        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
-        // }
-        model.addAttribute("rsvpService", rsvpService);
+         List<Event> events = eventService.getPublishedEvents();
+        System.out.println("Events fetched: " + events.size());
+        events.forEach(e -> System.out.println(e.getTitle()));
         model.addAttribute("events", events);
-        return "Index";
-        // List<Event> events = eventService.getPublishedEvents(); // Make sure this
-        // returns events
-        // // Fetch organizer name for each event
-        // Map<Long, String> organizerNames = new HashMap<>();
-        // for (Event event : events) {
-        // organizerNames.put(event.getEventId(),
-        // userService.getUserFullNameById(event.getCreatedBy()));
-        // }
-        // model.addAttribute("events", events);
-        // model.addAttribute("organizerNames", organizerNames);
-        // return "Index"; // This will use the same template as /Index
-
-        // return "Index"; // This will use the same template as /Index
-
+        return "Index"; // This will use the same template as /Index
     }
 
     // Your existing mappings
