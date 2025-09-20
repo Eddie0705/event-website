@@ -16,7 +16,7 @@
             <a class="home" th:href="@{/Index}">Home</a> 
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
-            <a class="rsvp" th:href="@{/rspv}">RSVP</a> 
+            <a class="rsvp" th:href="@{/eventRSVP}">RSVP</a> 
         </div> 
         <div class="right-nav">
             <a class="noti" th:href="@{/noti}">Notification</a>  
@@ -28,7 +28,7 @@
         <!-- header and subtitle -->
         <div class="header">
             <div class="content">
-                <h1 class="page-title">My events</h1>
+                <h1 class="page-title">My events RSVP</h1>
                 <p class="page-subtitle">Manage all your Event RSVP</p>
                 <!-- summary card -->
                 <div class="summary-cards">
@@ -37,12 +37,12 @@
                         <div class="summary-label">Upcoming events</div>
                     </div>
 
-                    <div class="summary-card card">
+                    <div class="summary-card card-going">
                         <div class="summary-number">2</div>
                         <div class="sumary-label">Confirmed</div>
                     </div>
 
-                    <div class="summary-card card">
+                    <div class="summary-card card-maybe">
                         <div class="summary-number">2</div>
                         <div class="sumary-label">Declined</div>
                     </div>
@@ -70,7 +70,7 @@
 
          <!-- event card section rsvp -->
         <div class="events-section">
-            <h2> Upcoming events</h2>
+            <h2 class="events-section-title">Upcoming events</h2> 
             <div class ="event-grid">
                 <div class ="event-card">
                     <div class="event-content">
@@ -97,7 +97,7 @@
                 </div>
             </div>
 
-            <h2>Confirmed</h2>
+            <h2 class="events-section-title">Confirmed</h2>
             <div class ="event-grid">
                 <div class ="event-card">
                     <div class="event-content">
@@ -124,7 +124,7 @@
                 </div>
             </div>
 
-            <h2>Declined</h2>
+            <h2 class="events-section-title">Declined</h2>
             <div class ="event-grid">
                 <div class ="event-card">
                     <div class="event-content">
@@ -151,7 +151,7 @@
                 </div>
             </div>
 
-            <h2>Recent past events</h2>
+            <h2 class="events-section-title">Recent past events</h2>
             <div class ="event-grid">
                 <div class ="event-card">
                     <div class="event-content">
