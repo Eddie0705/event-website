@@ -25,25 +25,12 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.List;
 
 @Controller
 public class PageController {
 
     @Autowired
     private DataSource dataSource;
-
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private RSVPService rsvpService;
-    @Autowired
-    private EventService eventService;
-
-
-    @Autowired
-    private RSVPService rsvpService;
 
     /**
      * Get current authenticated user
@@ -63,6 +50,16 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
+        
+        // Redirect organizers to their dashboard
+        if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
+            return "redirect:/organiser/dashboard";
+        }
+        
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("isAuthenticated", currentUser != null);
+        return "Index"; // This will use the same template as /Index
+    }
 
         // Redirect organizers to their dashboard
         if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
