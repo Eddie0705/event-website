@@ -407,19 +407,30 @@
                     <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
                     <input type="hidden" name="eventId" th:value="${event.eventId}" />
                     <input type="hidden" name="rsvpStatus" value="yes" />
+                    <!-- redirect to login -->
+                    <button type="button"
+                        th:if="${currentUser == null}"
+                            onclick="window.location.href='/auth/login'">
+                        RSVP
+                    </button>
+
                     <!-- Button if user has not RSVPed -->
+                     <div th:if="${currentUser != null}">
                     <button type="button"
                             th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                            th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + ')'">
+                            th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
                         RSVP
                     </button>
 
                     <!-- Button if user already RSVPed -->
                     <button type="button"
                             th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                            disabled>
-                        RSVP'd
+                            th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
+                        Cancel RSVP
                     </button>
+                    <!-- end of button -->
+                    <!-- for future: add dropdown for yes no maybe cancelled and make button dynamic -->
+                </div>
                 </form>
             </div>
 
@@ -438,4 +449,17 @@ function submitRsvp(eventId, userId) {
         alert('RSVP submitted!');
     });
 }
+
+function submitRsvpCancelled(eventId, userId) {
+    fetch('/rsvp/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
+    }).then(() => {
+        alert('RSVP Cancelled!');
+    });
+}
+
+
+
 </script>
