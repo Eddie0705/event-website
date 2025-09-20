@@ -11,21 +11,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import jakarta.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 public class PageController {
 
     @Autowired
     private DataSource dataSource;
-
-    @Autowired
-    private UserService userService;
 
     /**
      * Get current authenticated user
@@ -45,6 +40,12 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
+        
+        // Redirect organizers to their dashboard
+        if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
+            return "redirect:/organiser/dashboard";
+        }
+        
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
         return "Index"; // This will use the same template as /Index
