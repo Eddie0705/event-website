@@ -44,5 +44,5 @@ Other tools will be required to complete the project (e.g., Docker)
 mysql -u root -p < docs/Database-Setup/eventhub_setup.sql
 ```
 
-Now the database should be ready to go
+Now the database should be ready to go. For more info see the full pdf guide at docs/Database-Setup/
 
