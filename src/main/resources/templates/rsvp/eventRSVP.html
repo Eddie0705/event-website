@@ -1,28 +1,25 @@
+
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"></html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
 <head>
-    <title>Landing Page</title>
+<title>PAGE_TITLE</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
      <link rel="stylesheet" th:href="@{/css/eventRSVP.css}">
 </head>
-
+ 
+<th:block layout:fragment="css">
+<style>
+        /* Page-specific styles */
+        
+</style>
+</th:block>
+ 
+<div layout:fragment="content">
+<!-- Your page content here -->
 <body>
-    <!-- navigation bar from index page -->
-    <nav class="nav"> 
-        <div class="left-nav">
-            <a class="logo" th:href="@{/Index}" style="color: red ; font-weight:bold; border-color: black;">EVENTHUB</a>
-        </div>
-        <div class ="mid-nav">
-            <a class="home" th:href="@{/Index}">Home</a> 
-            <a class="explore" th:href="@{/explore}">Explore</a> 
-            <a class="calendar" th:href="@{/calendar}">Calendar</a> 
-            <a class="rsvp" th:href="@{/eventRSVP}">RSVP</a> 
-        </div> 
-        <div class="right-nav">
-            <a class="noti" th:href="@{/noti}">Notification</a>  
-            <a class="profile" th:href="@{/profile}">Profile</a> 
-        </div>
-    </nav>
+    
     <!-- RSVP Page code starts here -->
     <div id="rsvpPage">
         <!-- header and subtitle -->
@@ -183,10 +180,12 @@
         <footer>
             <p>&copy; 2024 Your Company. All rights reserved.</p>
         </footer>
-
     </div>
-    
-
-</body>
-
+</div>
+ 
+<th:block layout:fragment="javascript">
+<script>
+        // Page-specific JavaScript
+</script>
+</th:block>
 </html>
