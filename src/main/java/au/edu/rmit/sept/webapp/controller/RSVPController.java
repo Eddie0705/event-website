@@ -75,7 +75,7 @@ public class RSVPController {
         model.addAttribute("message", "RSVP saved successfully!");
         model.addAttribute("rsvp", savedRsvp);
 
-        return "rsvp/rsvp-test";
+        return "Index";
     }
     // Check a user's RSVP status for an event
     public String checkUserRsvp(Event event, User user) {

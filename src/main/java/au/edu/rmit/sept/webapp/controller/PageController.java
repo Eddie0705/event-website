@@ -7,6 +7,8 @@ import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.UserService;
 import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.RSVPService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +39,9 @@ public class PageController {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private RSVPService rsvpService;
+
     /**
      * Get current authenticated user
      */
@@ -57,11 +62,16 @@ public class PageController {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-         List<Event> events = eventService.getPublishedEvents();
-        System.out.println("Events fetched: " + events.size());
-        events.forEach(e -> System.out.println(e.getTitle()));
+        List<Event> events = eventService.getPublishedEvents();
+        // Map<Long, String> rsvpStatusMap = new HashMap<>();
+
+        //  for (Event event : events) {
+        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
+        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
+        // }
+        model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
-        return "Index"; // This will use the same template as /Index
+        return "Index"; 
     }
 
     @GetMapping("/explore")
