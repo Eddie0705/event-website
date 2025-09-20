@@ -66,12 +66,12 @@ public class PageController {
         return "Calendar";
     }
 
-    @GetMapping("/rspv")
+    @GetMapping("/eventRSVP")
     public String rspv(Model model) {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "Rspv";
+        return "rsvp/eventRSVP";
     }
 
     @GetMapping("/noti")
