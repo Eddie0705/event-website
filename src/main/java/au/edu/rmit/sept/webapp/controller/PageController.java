@@ -2,9 +2,11 @@ package au.edu.rmit.sept.webapp.controller;
 
 import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
+import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.UserService;
+import au.edu.rmit.sept.webapp.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +23,7 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
 
 @Controller
 public class PageController {
@@ -30,6 +33,9 @@ public class PageController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EventService eventService;
 
     /**
      * Get current authenticated user
@@ -51,6 +57,10 @@ public class PageController {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
+         List<Event> events = eventService.getPublishedEvents();
+        System.out.println("Events fetched: " + events.size());
+        events.forEach(e -> System.out.println(e.getTitle()));
+        model.addAttribute("events", events);
         return "Index"; // This will use the same template as /Index
     }
 
@@ -168,4 +178,5 @@ public class PageController {
         model.addAttribute("rsvp", rsvp);
         return "rsvp/rsvp-test";
     }
+
 }
