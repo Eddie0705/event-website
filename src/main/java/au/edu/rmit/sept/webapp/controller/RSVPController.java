@@ -46,15 +46,18 @@ public class RSVPController {
             @RequestParam(required = false) String attendanceStatus,
             Model model) {
 
+
         User user = userRepository.findById(userId).orElse(null);
         Event event = eventRepository.findById(eventId).orElse(null);
-
+      
         if (user == null) {
             return "redirect:/auth/login";
         }
         RSVP rsvp = new RSVP(); // default non-null object
         rsvp.setUser(user);
         rsvp.setEvent(event);
+
+        
 
         if (user == null || event == null) {
             model.addAttribute("message", "Invalid User ID or Event ID!");
@@ -80,7 +83,7 @@ public class RSVPController {
         model.addAttribute("message", "RSVP saved successfully!");
         model.addAttribute("rsvp", savedRsvp);
 
-        return "Index";
+        return "redirect:/";
     }
 
     // Check a user's RSVP status for an event
