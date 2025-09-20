@@ -357,7 +357,7 @@
         </div>
 
        <!-- Events Container -->
-       <div class="events_container">
+       <!-- <div class="events_container">
             <div class="events_card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p>
@@ -372,28 +372,10 @@
                     <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
                     <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
                 <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p>
-                </div>
+                </div> -->
 
 
-            <div class="events_card">
-                <h3>Third Event</h3>
-                <p>20 Sept 2024 | 6:00 PM</p>
-                <p>Auditorium</p>
-                <p>A third sample event for demonstration.</p>
-                <!-- RSVP button -->
-                <form th:action="@{/rsvp/submit}" method="post">
-                    <input type="hidden" name="userId" th:value="${currentUser != null} ? ${currentUser.userId} : 0" />
-                    <input type="hidden" name="eventId" th:value="${event != null} ? ${event.eventId} : 0" />
-                    <input type="hidden" name="rsvpStatus" value="yes" />
-                    <button type="submit">RSVP</button>
-                </form>
-
-                <button>RSVP</button>
-
-            </div>
-            
-
-
+           
             <!-- Loop over events -->
             <div class="events_card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
@@ -401,7 +383,14 @@
                     <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
  |
                     <span th:text="${event.startTime}">Start Time</span>
+                    <p th:text="${event.description} ?: 'No Description'">Event Description</p>
+                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
+                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
+                <!-- <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p> -->
                 </p>
+
+                 <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
+                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
                 <p th:text="${event.location}">Location</p>
                 <p th:text="${event.description}">Event Description</p>
 

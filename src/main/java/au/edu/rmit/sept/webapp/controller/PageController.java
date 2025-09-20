@@ -41,8 +41,6 @@ public class PageController {
     @Autowired
     private EventService eventService;
 
-    @Autowired
-    private EventService eventService;
 
     @Autowired
     private RSVPService rsvpService;
@@ -77,7 +75,7 @@ public class PageController {
         // }
         model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
-        return "Index;
+        return "Index";
 //         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
 //         // Fetch organizer name for each event
 //         Map<Long, String> organizerNames = new HashMap<>();
