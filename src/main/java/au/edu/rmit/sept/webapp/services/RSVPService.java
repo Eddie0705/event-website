@@ -78,6 +78,7 @@ public class RSVPService {
         return rsvpRepository.save(rsvp);
     }
 
+
     @Transactional
     public String checkUserRsvp(Event event, User user) {
         return rsvpRepository.getRsvpStatus(event, user)
@@ -90,11 +91,10 @@ public class RSVPService {
         Optional<Event> event = eventRepository.findById(eventId);
         Optional<User> user = userRepository.findById(userId);
 
-        if (event.isEmpty() || user.isEmpty())
-            return "no";
+        if (event.isEmpty() || user.isEmpty()) return "no";
 
         return rsvpRepository.getRsvpStatus(event.get(), user.get())
                 .map(RSVP.RSVPStatus::name)
                 .orElse("No RSVP yet");
-    }
+        }
 }

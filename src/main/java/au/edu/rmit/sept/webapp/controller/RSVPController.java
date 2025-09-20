@@ -80,7 +80,7 @@ public class RSVPController {
         model.addAttribute("message", "RSVP saved successfully!");
         model.addAttribute("rsvp", savedRsvp);
 
-        return "redirect:/";
+        return "Index";
     }
 
     // Check a user's RSVP status for an event
