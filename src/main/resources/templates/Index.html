@@ -1,20 +1,289 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
 <head>
-    <title>Landing Page</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title>Home</title>
 </head>
+<!-- Page-specific CSS -->
+<th:block layout:fragment="css">
+    <style>
+        /* Search Area */
+        .search_area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            margin: 2rem;
+            padding: 2rem;
+            border-radius: 20px;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .search_area input[type="text"] {
+            flex: 2;
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .search_area input[type="text"]:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search_area select {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search_area select:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .search_area input[type="date"] {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .search_area input[type="submit"] {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search_area input[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .search_area input[type="submit"]:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .search_area input[type="submit"]:hover:before {
+            left: 100%;
+        }
+
+        /* Main Content Layout */
+        .main_content {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem;
+            align-items: flex-start;
+        }
+
+        /* Filter Sidebar */
+        .filter {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 300px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 120px;
+        }
+
+        .filter h1 {
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .filter h2 {
+            color: #374151;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 0.5rem;
+        }
+
+        .filter-group {
+            margin: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter input[type="checkbox"], .filter input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #6366f1;
+        }
+
+        .filter label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .filter input[type="date"], .filter select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Events Container */
+        .events_container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .events_card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .events_card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        }
+
+        .events_card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .events_card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .events_card p {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .events_card p:last-of-type {
+            margin-bottom: 1.5rem;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .events_card button {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #1f2937;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .events_card button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .search_area {
+                flex-direction: column;
+                align-items: stretch;
+                margin: 1rem;
+            }
+
+            .search_area input[type="text"] {
+                min-width: auto;
+            }
+
+            .main_content {
+                flex-direction: column;
+                margin: 1rem;
+            }
+
+            .filter {
+                width: 100%;
+                position: static;
+            }
+
+            .events_container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation for page load */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .events_card {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .events_card:nth-child(2) { animation-delay: 0.1s; }
+        .events_card:nth-child(3) { animation-delay: 0.2s; }
+        .events_card:nth-child(4) { animation-delay: 0.3s; }
+    </style>
+</th:block>
+
+<!-- Page Content (Navigation and Footer are handled by the layout) -->
+<div layout:fragment="content">
+    <!-- Search Area -->
 <body>
-    <nav class="nav"> 
-        <div class ="mid-nav">
-            <a class="home" th:href="@{/}">Home</a> 
-            <a class="explore" th:href="@{/explore}">Explore</a> 
-            <a class="calendar" th:href="@{/calendar}">Calendar</a> 
-            <a class="rsvp" th:href="@{/rspv}">RSPV</a> 
-            <a class="noti" th:href="@{/noti}">Notification</a> 
-        </div>  
-        <a class="profile" th:href="@{/profile}">Profile</a> 
-    </nav>
     <div class="search_area">
         <input type="text" placeholder="Search...">
         <select name="category" id="category">
@@ -30,50 +299,117 @@
             <option value="losangeles">Los Angeles</option>
             <option value="chicago">Chicago</option>
         </select>
-        <input type="submit"/>
+        <input type="submit" value="Search"/>
     </div>
 
+    <!-- Main Content Area -->
+    <div class="main_content">
+        <!-- Filter Sidebar -->
         <div class="filter">
             <h1>Filters</h1>
+            
             <h2>Category</h2>
-            <input type="checkbox" id="Academic" name="Academic" value="Academic">
-            <label for="Academic">Academic</label>
-            <input type="checkbox" id="Social" name="Social" value="Social">
-            <label for="Social">Social</label>
-            <input type="checkbox" id="Sport" name="Sport" value="Sport">
-            <label for="Sport">Sport</label>
+            <div class="filter-group">
+                <input type="checkbox" id="Academic" name="Academic" value="Academic">
+                <label for="Academic">Academic</label>
+            </div>
+            <div class="filter-group">
+                <input type="checkbox" id="Social" name="Social" value="Social">
+                <label for="Social">Social</label>
+            </div>
+            <div class="filter-group">
+                <input type="checkbox" id="Sport" name="Sport" value="Sport">
+                <label for="Sport">Sport</label>
+            </div>
+            
             <h2>Date Range</h2>
             <input type="date" id="date_from" name="date_from">
             <input type="date" id="date_to" name="date_to">
+            
             <h2>Location</h2>
-            <input type="checkbox" id="Main Campus" name="Main Campus" value="Main Campus"> 
-            <label for="Main Campus">Main Campus</label>
-            <input type="checkbox" id="Student Center" name="Student Center" value="Student Center">
-            <label for="Student Center">Student Center</label>
+            <div class="filter-group">
+                <input type="checkbox" id="Main Campus" name="Main Campus" value="Main Campus">
+                <label for="Main Campus">Main Campus</label>
+            </div>
+            <div class="filter-group">
+                <input type="checkbox" id="Student Center" name="Student Center" value="Student Center">
+                <label for="Student Center">Student Center</label>
+            </div>
+            
             <h2>Price</h2>
-            <input type="radio" id="free" name="Free" value="free">
-            <label for="free">Free</label>
-            <input type="radio" id="paid" name="Paid" value="paid">
-            <label for="paid">Paid</label>
+            <div class="filter-group">
+                <input type="radio" id="free" name="price" value="free">
+                <label for="free">Free</label>
+            </div>
+            <div class="filter-group">
+                <input type="radio" id="paid" name="price" value="paid">
+                <label for="paid">Paid</label>
+            </div>
+            
             <h2>Organizer</h2>
             <select name="organizer" id="organizer">
                 <option value="any">Any Organizer</option>
                 <option value="org1">Organizer 1</option>
                 <option value="org2">Organizer 2</option>
                 <option value="org3">Organizer 3</option>
-            </select>   
+            </select>
         </div>
-        <div class="events_card">
-            <!--Example of event card-->
-            <h3> Title</h3>
-            <p> Date | Time </p>
-            <p> Location </p>
-            <p> Description </p>
-            <button>RSVP</button>
+
+        <!-- Events Container -->
+        <div class="events_container">
+            <!-- Example Event Card -->
+            <div class="events_card">
+                <h3>Sample Event</h3>
+                <p>12 Sept 2024 | 10:00 AM</p>
+                <p>Main Campus</p>
+                <p>This is a sample event description to show how the layout works.</p>
+                <button>RSVP</button>
+            </div>
+
+            <!-- Add more event cards here or populate dynamically -->
+            <div class="events_card">
+                <h3>Another Event</h3>
+                <p>15 Sept 2024 | 2:00 PM</p>
+                <p>Student Center</p>
+                <p>Another sample event with different details.</p>
+                <button>RSVP</button>
+            </div>
+
+            <div class="events_card">
+                <h3>Third Event</h3>
+                <p>20 Sept 2024 | 6:00 PM</p>
+                <p>Auditorium</p>
+                <p>A third sample event for demonstration.</p>
+                <!-- RSVP button -->
+                <form th:action="@{/rsvp/submit}" method="post">
+                    <input type="hidden" name="userId" th:value="${currentUser != null} ? ${currentUser.userId} : 0" />
+                    <input type="hidden" name="eventId" th:value="${event != null} ? ${event.eventId} : 0" />
+                    <input type="hidden" name="rsvpStatus" value="yes" />
+                    <button type="submit">RSVP</button>
+                </form>
+            </div>
+            
+            <!-- Loop over events -->
+            <div class="events_card" th:each="event : ${events}">
+                <h3 th:text="${event.title}">Event Title</h3>
+                <p>
+                    <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
+ |
+                    <span th:text="${event.startTime}">Start Time</span>
+                </p>
+                <p th:text="${event.location}">Location</p>
+                <p th:text="${event.description}">Event Description</p>
+
+                <!-- RSVP form -->
+                <form th:action="@{/rsvp/submit}" method="post">
+                    <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
+                    <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                    <input type="hidden" name="rsvpStatus" value="yes" />
+                    <button type="submit">RSVP</button>
+                </form>
+            </div>
+
         </div>
-    
-        <footer>
-            <p>&copy; 2024 Your Company. All rights reserved.</p>
-        </footer>
-</body>
+    </div>
+</div>
 </html>
