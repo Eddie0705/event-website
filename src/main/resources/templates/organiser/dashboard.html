@@ -489,7 +489,7 @@
                             <div class="label">Available</div>
                             <div class="value" th:text="${event.maxCapacity - event.currentRsvpCount}">0</div>
                         </div>
-                        <div class="stat-item" th:if="${event.isPaid}">
+                        <div class="stat-item" th:if="${event.isPaid != null and event.isPaid}">
                             <div class="label">Price</div>
                             <div class="value" th:text="${event.currency} + ' ' + ${#numbers.formatDecimal(event.price, 1, 2)}">Free</div>
                         </div>
