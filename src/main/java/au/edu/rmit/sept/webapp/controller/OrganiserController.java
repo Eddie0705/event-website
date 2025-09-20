@@ -5,11 +5,11 @@ import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.time.LocalDate;
 
 @Controller
 @RequestMapping("/organiser")
@@ -26,6 +25,9 @@ public class OrganiserController {
     @Autowired
     private EventService eventService;
 
+
+    @Autowired
+    private EventService eventService;
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -66,7 +68,7 @@ public class OrganiserController {
                 eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
                 // Filter only published events
                 List<Event> publishedEvents = eventsPage.getContent().stream()
-                    .filter(event -> event.getStatus() == Event.EventStatus.published)
+                    .filter(event -> event.getStatus() == Event.EventStatus.PUBLISHED)
                     .toList();
                 model.addAttribute("events", publishedEvents);
                 break;
@@ -74,23 +76,23 @@ public class OrganiserController {
                 eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
                 // Filter only draft events
                 List<Event> draftEvents = eventsPage.getContent().stream()
-                    .filter(event -> event.getStatus() == Event.EventStatus.draft)
+                    .filter(event -> event.getStatus() == Event.EventStatus.DRAFT)
                     .toList();
                 model.addAttribute("events", draftEvents);
                 break;
             case "upcoming":
                 List<Event> upcomingEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
                     .stream()
-                    .filter(event -> event.getEventDate().isAfter(LocalDate.now()) && 
-                                   event.getStatus() == Event.EventStatus.published)
+                    .filter(event -> event.getEventDate().isAfter(java.time.LocalDate.now()) && 
+                                   event.getStatus() == Event.EventStatus.PUBLISHED)
                     .toList();
                 model.addAttribute("events", upcomingEvents);
                 break;
             case "past":
                 List<Event> pastEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
                     .stream()
-                    .filter(event -> event.getEventDate().isBefore(LocalDate.now()) || 
-                                   event.getStatus() == Event.EventStatus.completed)
+                    .filter(event -> event.getEventDate().isBefore(java.time.LocalDate.now()) || 
+                                   event.getStatus() == Event.EventStatus.COMPLETED)
                     .toList();
                 model.addAttribute("events", pastEvents);
                 break;
@@ -121,78 +123,6 @@ public class OrganiserController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
         return "organiser/create-event";
-    }
-
-    /**
-     * Create a new event
-     */
-    @PostMapping("/create-event")
-    public String createEvent(@RequestParam String title,
-                             @RequestParam String description,
-                             @RequestParam String eventDate,
-                             @RequestParam String startTime,
-                             @RequestParam String endTime,
-                             @RequestParam String location,
-                             @RequestParam Integer maxCapacity,
-                             @RequestParam(required = false) String venueDetails,
-                             RedirectAttributes redirectAttributes) {
-
-        User currentUser = getCurrentUser();
-        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/auth/login";
-        }
-
-        try {
-            LocalDate date = LocalDate.parse(eventDate);
-            java.time.LocalTime start = java.time.LocalTime.parse(startTime);
-            java.time.LocalTime end = java.time.LocalTime.parse(endTime);
-
-            if (date.isBefore(LocalDate.now())) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Event date must be in the future");
-                return "redirect:/organiser/create-event";
-            }
-
-            if (!end.isAfter(start)) {
-                redirectAttributes.addFlashAttribute("errorMessage", "End time must be after start time");
-                return "redirect:/organiser/create-event";
-            }
-
-            if (maxCapacity <= 0) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Maximum capacity must be greater than 0");
-                return "redirect:/organiser/create-event";
-            }
-
-            Event event = new Event();
-            event.setTitle(title);
-            event.setDescription(description);
-            event.setEventDate(date);
-            event.setStartTime(start);
-            event.setEndTime(end);
-            event.setLocation(location);
-            event.setMaxCapacity(maxCapacity);
-            event.setCurrentRsvpCount(0);
-
-            if (venueDetails != null && !venueDetails.trim().isEmpty()) {
-                event.setVenueDetails(venueDetails);
-            }
-
-            event.setCreatedBy(currentUser.getUserId());
-            event.setClubId(1L); // Set to default club ID of 1
-            event.setStatus(Event.EventStatus.draft); // Start as draft
-            event.setIsPaid(false);
-            event.setIsFeatured(false);
-
-            eventService.createEvent(event);
-
-            redirectAttributes.addFlashAttribute("successMessage", "Event '" + title + "' created successfully!");
-            return "redirect:/organiser/dashboard";
-
-        } catch (Exception e) {
-            System.out.println("Error creating event: " + e.getMessage());
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Error creating event: " + e.getMessage());
-            return "redirect:/organiser/create-event";
-        }
     }
 
     /**
