@@ -1,6 +1,8 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
+import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpSession;
@@ -55,7 +59,7 @@ public class PageController {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "events/event-explore";
+        return "Index";
     }
 
     @GetMapping("/calendar")
@@ -140,5 +144,28 @@ public class PageController {
         }
 
         return response;
+    }
+
+
+    @Autowired
+    private RSVPRepository rsvpRepository;
+
+    // Show test page
+    @GetMapping("/test")
+    public String showTestPage(Model model) {
+        model.addAttribute("rsvp", new RSVP());
+        return "rsvp-test";
+    }
+
+    
+
+    // Handle form submission
+    @PostMapping("/submit")
+    public String submitRsvp(@ModelAttribute RSVP rsvp, Model model) {
+        
+        rsvpRepository.save(rsvp);
+        model.addAttribute("message", "RSVP saved successfully!");
+        model.addAttribute("rsvp", rsvp);
+        return "rsvp/rsvp-test";
     }
 }
