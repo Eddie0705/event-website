@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -56,6 +57,9 @@ public class SecurityConfig {
 
                                                 // Organiser endpoints
                                                 .requestMatchers("/organiser/**").hasAnyRole("ORGANISER", "ADMIN")
+                                                .requestMatchers("/events/create").hasAnyRole("ORGANISER", "ADMIN")
+                                                .requestMatchers("/events/*/edit").hasAnyRole("ORGANISER", "ADMIN")
+                                                .requestMatchers("/events/*/delete").hasAnyRole("ORGANISER", "ADMIN")
 
                                                 // User endpoints (authenticated users)
                                                 .requestMatchers("/auth/profile", "/auth/change-password")
@@ -83,10 +87,14 @@ public class SecurityConfig {
                                                 .deleteCookies("JSESSIONID")
                                                 .permitAll())
 
-                                // Configure session management
+                                // Configure session management - FIXED
                                 .sessionManagement(session -> session
-                                                .maximumSessions(1)
-                                                .maxSessionsPreventsLogin(false));
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                                .maximumSessions(5) // Allow multiple sessions per user
+                                                .maxSessionsPreventsLogin(false)
+                                                .and()
+                                                .invalidSessionUrl("/auth/login")
+                                                .sessionFixation().migrateSession());
 
                 return http.build();
         }

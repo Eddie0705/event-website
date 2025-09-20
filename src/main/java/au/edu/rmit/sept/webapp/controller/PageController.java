@@ -1,14 +1,22 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
+import au.edu.rmit.sept.webapp.models.Event;
+import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.UserService;
+import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.RSVPService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpSession;
@@ -17,6 +25,7 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
 
 @Controller
 public class PageController {
@@ -26,6 +35,12 @@ public class PageController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EventService eventService;
+
+    @Autowired
+    private RSVPService rsvpService;
 
     /**
      * Get current authenticated user
@@ -42,12 +57,21 @@ public class PageController {
     }
 
     // Your existing mappings
-    @GetMapping("/Index")
-    public String home(Model model) {
+    @GetMapping("/")
+    public String root(Model model) {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "Index";
+        List<Event> events = eventService.getPublishedEvents();
+        // Map<Long, String> rsvpStatusMap = new HashMap<>();
+
+        //  for (Event event : events) {
+        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
+        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
+        // }
+        model.addAttribute("rsvpService", rsvpService);
+        model.addAttribute("events", events);
+        return "Index"; 
     }
 
     @GetMapping("/explore")
@@ -55,7 +79,7 @@ public class PageController {
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "events/event-explore";
+        return "Index";
     }
 
     @GetMapping("/calendar")
@@ -88,9 +112,20 @@ public class PageController {
         if (currentUser == null) {
             return "redirect:/auth/login";
         }
+        model.addAttribute("user", currentUser);
+        model.addAttribute("isAuthenticated", true);
+        return "user/profile";
+    }
+
+    @GetMapping("/myevents")
+    public String myEvents(Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-        return "user/profile";
+        return "myevents";
     }
 
     // Database test endpoint
@@ -131,62 +166,27 @@ public class PageController {
         return response;
     }
 
-    // Test endpoint to check database user types
-    @GetMapping("/db-users-test")
-    @ResponseBody
-    public Map<String, Object> testDatabaseUsers() {
-        Map<String, Object> response = new HashMap<>();
 
-        try (Connection connection = dataSource.getConnection()) {
-            var statement = connection.createStatement();
-            var resultSet = statement.executeQuery("SELECT user_id, email, username, user_type FROM users LIMIT 5");
+    @Autowired
+    private RSVPRepository rsvpRepository;
 
-            var users = new java.util.ArrayList<Map<String, Object>>();
-            while (resultSet.next()) {
-                var user = new java.util.HashMap<String, Object>();
-                user.put("userId", resultSet.getLong("user_id"));
-                user.put("email", resultSet.getString("email"));
-                user.put("username", resultSet.getString("username"));
-                user.put("userType", resultSet.getString("user_type"));
-                users.add(user);
-            }
-
-            response.put("status", "SUCCESS");
-            response.put("users", users);
-            return response;
-        } catch (Exception e) {
-            response.put("status", "ERROR");
-            response.put("message", e.getMessage());
-            return response;
-        }
+    // Show test page
+    @GetMapping("/test")
+    public String showTestPage(Model model) {
+        model.addAttribute("rsvp", new RSVP());
+        return "rsvp-test";
     }
 
-    // Test endpoint to check if we can load a user
-    @GetMapping("/test-user-load")
-    @ResponseBody
-    public Map<String, Object> testUserLoad() {
-        Map<String, Object> response = new HashMap<>();
+    
 
-        try {
-            Optional<User> userOpt = userService.findByEmail("test@test.com");
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                response.put("status", "SUCCESS");
-                response.put("userId", user.getUserId());
-                response.put("email", user.getEmail());
-                response.put("username", user.getUsername());
-                response.put("userType", user.getUserType().name());
-                response.put("userTypeValue", user.getUserType().getValue());
-            } else {
-                response.put("status", "NOT_FOUND");
-                response.put("message", "User not found");
-            }
-        } catch (Exception e) {
-            response.put("status", "ERROR");
-            response.put("message", e.getMessage());
-            response.put("errorType", e.getClass().getSimpleName());
-        }
-
-        return response;
+    // Handle form submission
+    @PostMapping("/submit")
+    public String submitRsvp(@ModelAttribute RSVP rsvp, Model model) {
+        
+        rsvpRepository.save(rsvp);
+        model.addAttribute("message", "RSVP saved successfully!");
+        model.addAttribute("rsvp", rsvp);
+        return "rsvp/rsvp-test";
     }
+
 }
