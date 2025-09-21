@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>PAGE_TITLE</title>
+</head>
+
+<th:block layout:fragment="css">
+    <style>
+        /* Page-specific styles */
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <!-- Your page content here -->
+</div>
+
+<th:block layout:fragment="javascript">
+    <script>
+        // Page-specific JavaScript
+    </script>
+</th:block>
+</html>
