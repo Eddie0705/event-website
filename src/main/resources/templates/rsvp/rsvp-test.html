@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RSVP Test Page</title>
+</head>
+<body>
+<h1>RSVP Test</h1>
+
+<form th:action="@{/rsvp/submit}" method="post">
+    <label for="userId">User ID:</label>
+    <input type="number" id="userId" name="userId" required /><br/>
+
+    <label for="eventId">Event ID:</label>
+    <input type="number" id="eventId" name="eventId" required /><br/>
+
+    <label for="rsvpStatus">RSVP Status:</label>
+    <select id="rsvpStatus" name="rsvpStatus" required>
+        <option value="yes">YES</option>
+        <option value="maybe">MAYBE</option>
+        <option value="no">NO</option>
+        <option value="cancelled">CANCELLED</option>
+    </select><br/>
+
+    <label for="attendanceStatus">Attendance Status (optional):</label>
+    <select id="attendanceStatus" name="attendanceStatus">
+        <option value="">--None--</option>
+        <option value="not_checked">Not Checked</option>
+        <option value="checked_in">Checked In</option>
+        <option value="no_show">No Show</option>
+    </select><br/>
+
+    <button type="submit">Submit RSVP</button>
+</form>
+
+<div th:if="${message}">
+    <h3 th:text="${message}"></h3>
+
+    <div th:if="${rsvp.user != null and rsvp.event != null}">
+        <p>Saved RSVP:</p>
+        <p>User ID: <span th:text="${rsvp.user.userId}"></span></p>
+        <p>Event ID: <span th:text="${rsvp.event.eventId}"></span></p>
+        <p>Status: <span th:text="${rsvp.rsvpStatus != null ? rsvp.rsvpStatus : 'N/A'}"></span></p>
+        <p>Attendance: <span th:text="${rsvp.attendanceStatus != null ? rsvp.attendanceStatus : 'N/A'}"></span></p>
+    </div>
+
+    <div th:if="${rsvp.user == null or rsvp.event == null}">
+        <p>No valid RSVP found (invalid User ID or Event ID).</p>
+    </div>
+</div>
+</body>
+</html>
