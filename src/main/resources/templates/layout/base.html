@@ -368,6 +368,7 @@
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
             <a class="rsvp" th:href="@{/eventRSVP}">RSVP</a>
+
             <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
                 <a th:href="@{/organiser/create-event}" class="profile-btn">Create Event</a>
             </th:block>
@@ -426,6 +427,7 @@
         </a>
     </div>  
 </footer>
+
 
     <!-- Page-specific JavaScript -->
     <th:block layout:fragment="javascript">

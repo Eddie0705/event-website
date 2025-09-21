@@ -93,6 +93,9 @@ public class PageController {
 //         model.addAttribute("organizerNames", organizerNames);
 //         return "Index"; // This will use the same template as /Index
 
+
+        return "Index"; // This will use the same template as /Index
+
     }
 
     // Your existing mappings
@@ -229,5 +232,6 @@ public class PageController {
         model.addAttribute("rsvp", rsvp);
         return "rsvp/rsvp-test";
     }
+
 
 }
