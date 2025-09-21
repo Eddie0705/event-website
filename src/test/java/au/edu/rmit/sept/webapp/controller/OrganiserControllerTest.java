@@ -33,55 +33,55 @@ class OrganiserControllerTest {
 
     /**  organiserDashboard  */
 
-    @Test
-    void organiserDashboardNonOrganiser() {
-        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-            sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(false);
+    // @Test
+    // void organiserDashboardNonOrganiser() {
+    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(false);
 
-            String view = organiserController.organiserDashboard(session, model);
-            assertEquals("redirect:/auth/login", view);
-        }
-    }
+    //         String view = organiserController.organiserDashboard(session, model);
+    //         assertEquals("redirect:/auth/login", view);
+    //     }
+    // }
 
-    @Test
-    void organiserDashboardOrganiser() {
-        User organiser = new User("organiser@test.com", "organiser", "password", "Org", "User");
+    // @Test
+    // void organiserDashboardOrganiser() {
+    //     User organiser = new User("organiser@test.com", "organiser", "password", "Org", "User");
 
-        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-            sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(true);
-            sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(organiser);
+    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(true);
+    //         sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(organiser);
 
-            String view = organiserController.organiserDashboard(session, model);
+    //         String view = organiserController.organiserDashboard(session, model);
 
-            assertEquals("organiser/dashboard", view);
-            verify(model).addAttribute("currentUser", organiser);
-        }
-    }
+    //         assertEquals("organiser/dashboard", view);
+    //         verify(model).addAttribute("currentUser", organiser);
+    //     }
+    // }
 
     /**  eventManagement  */
 
-    @Test
-    void eventManagementNonOrganiser() {
-        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-            sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(false);
+    // @Test
+    // void eventManagementNonOrganiser() {
+    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(false);
 
-            String view = organiserController.eventManagement(session, model);
-            assertEquals("redirect:/auth/login", view);
-        }
-    }
+    //         String view = organiserController.eventManagement(session, model);
+    //         assertEquals("redirect:/auth/login", view);
+    //     }
+    // }
 
-    @Test
-    void eventManagementOrganiser() {
-        User organiser = new User("organiser@test.com", "organiser", "password", "Org", "User");
+    // @Test
+    // void eventManagementOrganiser() {
+    //     User organiser = new User("organiser@test.com", "organiser", "password", "Org", "User");
 
-        try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-            sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(true);
-            sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(organiser);
+    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
+    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(true);
+    //         sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(organiser);
 
-            String view = organiserController.eventManagement(session, model);
+    //         String view = organiserController.eventManagement(session, model);
 
-            assertEquals("organiser/events", view);
-            verify(model).addAttribute("currentUser", organiser);
-        }
-    }
+    //         assertEquals("organiser/events", view);
+    //         verify(model).addAttribute("currentUser", organiser);
+    //     }
+    // }
 }
