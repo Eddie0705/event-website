@@ -120,12 +120,12 @@ public class Event {
         completed
     }
 
+
     // Default constructor
     public Event() {
     }
 
-    // Constructors
-    public Event(String title, String description, LocalDate eventDate,
+
             LocalTime startTime, LocalTime endTime, String location,
             Integer maxCapacity, Long createdBy) {
         this.title = title;
@@ -369,6 +369,7 @@ public class Event {
 
     public boolean isRegistrationOpen() {
         if (registrationDeadline == null) {
+            return status == EventStatus.published;
             return status == EventStatus.published;
         }
         return status == EventStatus.published &&

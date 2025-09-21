@@ -223,9 +223,11 @@ public class EventService {
 
         // Check if event is not already cancelled or completed
         if (event.getStatus() == EventStatus.cancelled) {
+        if (event.getStatus() == EventStatus.cancelled) {
             throw new RuntimeException("Event is already cancelled");
         }
 
+        if (event.getStatus() == EventStatus.completed) {
         if (event.getStatus() == EventStatus.completed) {
             throw new RuntimeException("Cannot cancel a completed event");
         }
@@ -244,6 +246,7 @@ public class EventService {
             throw new RuntimeException("You can only publish your own events");
         }
 
+        event.setStatus(EventStatus.published);
         event.setStatus(EventStatus.published);
         Event savedEvent = eventRepository.save(event);
 
@@ -297,9 +300,8 @@ public class EventService {
         // Check if duplicate event exists (same title, date, and organiser)
         if (event.getEventId() == null) { // Only check for new events
             boolean exists = eventRepository.existsByTitleAndEventDateAndCreatedBy(
-                    event.getTitle(), event.getEventDate(), event.getCreatedBy());
-            if (exists) {
-                throw new RuntimeException("An event with the same title already exists on this date");
+                    event.getTitle(), event.getEventDat
+
             }
         }
     }
@@ -366,6 +368,7 @@ public class EventService {
     // Batch update past events to completed status
     public void updatePastEventsToCompleted() {
         List<Event> pastEvents = eventRepository.findEventsByDateRange(
+                EventStatus.published, LocalDate.of(2000, 1, 1), LocalDate.now().minusDays(1));
                 EventStatus.published, LocalDate.of(2000, 1, 1), LocalDate.now().minusDays(1));
 
         for (Event event : pastEvents) {
