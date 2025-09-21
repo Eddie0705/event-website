@@ -350,6 +350,12 @@ public class UserService {
         return new UserStats(totalUsers, activeUsers, verifiedUsers, students, organisers, admins);
     }
 
+    public String getUserFullNameById(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getFullName()) // Assuming your User entity has a getFullName() method
+                .orElse("Unknown Organizer");
+    }
+
     /**
      * Inner class for user statistics
      */
