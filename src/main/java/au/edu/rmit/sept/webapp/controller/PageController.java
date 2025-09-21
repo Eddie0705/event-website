@@ -94,7 +94,7 @@ public class PageController {
 //         return "Index"; // This will use the same template as /Index
 
 
-        return "Index"; // This will use the same template as /Index
+        // return "Index"; // This will use the same template as /Index
 
     }
 
