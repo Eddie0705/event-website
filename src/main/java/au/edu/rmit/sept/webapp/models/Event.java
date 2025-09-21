@@ -89,6 +89,7 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
+
     private EventStatus status = EventStatus.draft;
 
     @Column(name = "is_featured", nullable = false)
@@ -112,12 +113,12 @@ public class Event {
 
     // Enum for event status
     public enum EventStatus {
+
             draft,
         published,
         cancelled,
         completed
     }
-
 
     // Default constructor
     public Event() {
@@ -371,6 +372,7 @@ public class Event {
             return status == EventStatus.published;
         }
         return status == EventStatus.published &&
+
                 LocalDateTime.now().isBefore(registrationDeadline);
     }
 

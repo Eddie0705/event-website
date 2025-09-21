@@ -34,7 +34,9 @@ public class EventService {
         }
 
         if (event.getStatus() == null) {
+
             event.setStatus(EventStatus.draft);
+
         }
 
         if (event.getIsPaid() == null) {
@@ -48,7 +50,9 @@ public class EventService {
         Event savedEvent = eventRepository.save(event);
 
         // Generate QR code if event is published
+
         if (savedEvent.getStatus() == EventStatus.published) {
+
             generateQrCodeData(savedEvent);
         }
 
@@ -88,7 +92,9 @@ public class EventService {
         Event savedEvent = eventRepository.save(existingEvent);
 
         // Generate QR code if status changed to published and QR code doesn't exist
+
         if (savedEvent.getStatus() == EventStatus.published &&
+
                 (savedEvent.getQrCodeData() == null || savedEvent.getQrCodeData().isEmpty())) {
             generateQrCodeData(savedEvent);
         }
@@ -113,64 +119,78 @@ public class EventService {
 
     // Get published events
     public List<Event> getPublishedEvents() {
+
         return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.published);
     }
 
     public Page<Event> getPublishedEvents(Pageable pageable) {
         return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.published, pageable);
+
     }
 
     // Get upcoming events
     public List<Event> getUpcomingEvents() {
+
         return eventRepository.findUpcomingEvents(EventStatus.published, LocalDate.now());
     }
 
     public Page<Event> getUpcomingEvents(Pageable pageable) {
         return eventRepository.findUpcomingEvents(EventStatus.published, LocalDate.now(), pageable);
+
     }
 
     // Get featured events
     public List<Event> getFeaturedEvents() {
+
         return eventRepository.findByIsFeaturedTrueAndStatusOrderByEventDateAsc(EventStatus.published);
+
     }
 
     // Search events
     public List<Event> searchEvents(String searchTerm) {
+
         return eventRepository.searchEvents(EventStatus.published, searchTerm);
     }
 
     public Page<Event> searchEvents(String searchTerm, Pageable pageable) {
         return eventRepository.searchEvents(EventStatus.published, searchTerm, pageable);
+
     }
 
     // Get events by category
     public List<Event> getEventsByCategory(Long categoryId) {
         return eventRepository.findByCategoryIdAndStatusOrderByEventDateAsc(categoryId, EventStatus.published);
+
     }
 
     // Get events by club
     public List<Event> getEventsByClub(Long clubId) {
         return eventRepository.findByClubIdAndStatusOrderByEventDateAsc(clubId, EventStatus.published);
+
     }
 
     // Get events by date range
     public List<Event> getEventsByDateRange(LocalDate startDate, LocalDate endDate) {
         return eventRepository.findEventsByDateRange(EventStatus.published, startDate, endDate);
+
     }
 
     // Get events with available spots
     public List<Event> getEventsWithAvailableSpots() {
         return eventRepository.findEventsWithAvailableSpots(EventStatus.published);
+
     }
 
     // Get free events
     public List<Event> getFreeEvents() {
         return eventRepository.findFreeEvents(EventStatus.published);
+
     }
 
     // Get paid events
     public List<Event> getPaidEvents() {
         return eventRepository.findPaidEvents(EventStatus.published);
+
     }
 
     // Delete event (only if no RSVPs)
@@ -211,6 +231,7 @@ public class EventService {
         }
 
         event.setStatus(EventStatus.cancelled);
+
         return eventRepository.save(event);
     }
 
@@ -224,7 +245,7 @@ public class EventService {
         }
 
         event.setStatus(EventStatus.published);
-        Event savedEvent = eventRepository.save(event);
+
 
         // Generate QR code
         generateQrCodeData(savedEvent);
@@ -320,6 +341,7 @@ public class EventService {
     public List<Event> getTodaysEvents() {
         return eventRepository.findByEventDateAndStatusOrderByStartTimeAsc(
                 LocalDate.now(), EventStatus.published);
+
     }
 
     // Get events with upcoming registration deadlines
@@ -327,6 +349,7 @@ public class EventService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime deadline = now.plusDays(days);
         return eventRepository.findEventsWithUpcomingDeadline(EventStatus.published, now, deadline);
+
     }
 
     // Mark event as completed (for past events)
@@ -334,6 +357,7 @@ public class EventService {
         Event event = getEventById(eventId);
         if (event.getEventDate().isBefore(LocalDate.now())) {
             event.setStatus(EventStatus.completed);
+
             eventRepository.save(event);
         }
     }
@@ -345,6 +369,7 @@ public class EventService {
 
         for (Event event : pastEvents) {
             event.setStatus(EventStatus.completed);
+
         }
         eventRepository.saveAll(pastEvents);
     }
@@ -355,6 +380,7 @@ public class EventService {
         return event.getCreatedBy().equals(userId) &&
                 event.getStatus() != EventStatus.completed &&
                 event.getStatus() != EventStatus.cancelled;
+
     }
 
     // Get events count by status for organiser
