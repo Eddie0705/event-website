@@ -245,6 +245,7 @@ public class EventService {
         }
 
         event.setStatus(EventStatus.published);
+        Event savedEvent = eventRepository.save(event);
 
 
         // Generate QR code
