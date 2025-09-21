@@ -89,7 +89,8 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private EventStatus status = EventStatus.DRAFT;
+
+    private EventStatus status = EventStatus.draft;
 
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;
@@ -112,20 +113,11 @@ public class Event {
 
     // Enum for event status
     public enum EventStatus {
-        DRAFT("draft"),
-        PUBLISHED("published"),
-        CANCELLED("cancelled"),
-        COMPLETED("completed");
 
-        private final String value;
-
-        EventStatus(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
+            draft,
+        published,
+        cancelled,
+        completed
     }
 
     // Default constructor
@@ -377,9 +369,10 @@ public class Event {
 
     public boolean isRegistrationOpen() {
         if (registrationDeadline == null) {
-            return status == EventStatus.PUBLISHED;
+            return status == EventStatus.published;
         }
-        return status == EventStatus.PUBLISHED &&
+        return status == EventStatus.published &&
+
                 LocalDateTime.now().isBefore(registrationDeadline);
     }
 
