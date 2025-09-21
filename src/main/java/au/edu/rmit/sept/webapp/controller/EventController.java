@@ -97,7 +97,6 @@ public class EventController {
             event.setCreatedBy(currentUser.getUserId());
             event.setClubId(1L); // Set to default club ID of 1
             event.setStatus(Event.EventStatus.published);
-
             event.setIsPaid(false);
             event.setIsFeatured(false);
 
