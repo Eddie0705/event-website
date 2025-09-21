@@ -1,52 +1,236 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.User;
-import au.edu.rmit.sept.webapp.utils.SessionUtils;
+import au.edu.rmit.sept.webapp.models.UserType;
+import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
+import au.edu.rmit.sept.webapp.services.EventService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
+import java.util.List;
+import java.time.LocalDate;
 
-/**
- * Controller for organiser dashboard and organiser-specific functions
- */
 @Controller
 @RequestMapping("/organiser")
 public class OrganiserController {
 
-    /**
-     * Display organiser dashboard
-     */
-    @GetMapping("/dashboard")
-    public String organiserDashboard(HttpSession session, Model model) {
-        // Check if user is organiser or admin
-        if (!SessionUtils.canAccessOrganiser(session)) {
-            return "redirect:/auth/login";
+    @Autowired
+    private EventService eventService;
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+                && authentication.getPrincipal() instanceof CustomUserDetailsService.CustomUserPrincipal) {
+            CustomUserDetailsService.CustomUserPrincipal userPrincipal = (CustomUserDetailsService.CustomUserPrincipal) authentication
+                    .getPrincipal();
+            return userPrincipal.getUser();
         }
-        
-        User currentUser = SessionUtils.getCurrentUser(session);
-        
-        model.addAttribute("currentUser", currentUser);
-        
-        return "organiser/dashboard";
+        return null;
     }
 
     /**
-     * Display event management page
+     * Display organizer dashboard with all events and statistics
      */
-    @GetMapping("/events")
-    public String eventManagement(HttpSession session, Model model) {
-        // Check if user is organiser or admin
-        if (!SessionUtils.canAccessOrganiser(session)) {
+    @GetMapping("/dashboard")
+    public String showDashboard(Model model, 
+                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "10") int size,
+                               @RequestParam(defaultValue = "all") String filter) {
+        User currentUser = getCurrentUser();
+
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
             return "redirect:/auth/login";
         }
-        
-        User currentUser = SessionUtils.getCurrentUser(session);
-        
+
+        // Get event statistics
+        EventService.EventStatistics stats = eventService.getEventStatistics(currentUser.getUserId());
+        model.addAttribute("stats", stats);
+
+        // Get events with pagination
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPage = null;
+
+        // Filter events based on status
+        switch (filter.toLowerCase()) {
+            case "published":
+                eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
+                // Filter only published events
+                List<Event> publishedEvents = eventsPage.getContent().stream()
+                    .filter(event -> event.getStatus() == Event.EventStatus.published)
+                    .toList();
+                model.addAttribute("events", publishedEvents);
+                break;
+            case "draft":
+                eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
+                // Filter only draft events
+                List<Event> draftEvents = eventsPage.getContent().stream()
+                    .filter(event -> event.getStatus() == Event.EventStatus.draft)
+                    .toList();
+                model.addAttribute("events", draftEvents);
+                break;
+            case "upcoming":
+                List<Event> upcomingEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
+                    .stream()
+                    .filter(event -> event.getEventDate().isAfter(LocalDate.now()) && 
+                                   event.getStatus() == Event.EventStatus.published)
+                    .toList();
+                model.addAttribute("events", upcomingEvents);
+                break;
+            case "past":
+                List<Event> pastEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
+                    .stream()
+                    .filter(event -> event.getEventDate().isBefore(LocalDate.now()) || 
+                                   event.getStatus() == Event.EventStatus.completed)
+                    .toList();
+                model.addAttribute("events", pastEvents);
+                break;
+            default:
+                // All events
+                eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
+                model.addAttribute("events", eventsPage.getContent());
+                break;
+        }
+
         model.addAttribute("currentUser", currentUser);
-        
-        return "organiser/events";
+        model.addAttribute("currentFilter", filter);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", eventsPage != null ? eventsPage.getTotalPages() : 1);
+        model.addAttribute("totalElements", eventsPage != null ? eventsPage.getTotalElements() : 0);
+
+        return "organiser/dashboard";
+    }
+
+    @GetMapping("/create-event")
+    public String showCreateEventForm(Model model) {
+        User currentUser = getCurrentUser();
+
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+            return "redirect:/auth/login";
+        }
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("isAuthenticated", currentUser != null);
+        return "organiser/create-event";
+    }
+
+    /**
+     * Create a new event
+     */
+    @PostMapping("/create-event")
+    public String createEvent(@RequestParam String title,
+                             @RequestParam String description,
+                             @RequestParam String eventDate,
+                             @RequestParam String startTime,
+                             @RequestParam String endTime,
+                             @RequestParam String location,
+                             @RequestParam Integer maxCapacity,
+                             @RequestParam(required = false) String venueDetails,
+                             RedirectAttributes redirectAttributes) {
+
+        User currentUser = getCurrentUser();
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(eventDate);
+            java.time.LocalTime start = java.time.LocalTime.parse(startTime);
+            java.time.LocalTime end = java.time.LocalTime.parse(endTime);
+
+            if (date.isBefore(LocalDate.now())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Event date must be in the future");
+                return "redirect:/organiser/create-event";
+            }
+
+            if (!end.isAfter(start)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "End time must be after start time");
+                return "redirect:/organiser/create-event";
+            }
+
+            if (maxCapacity <= 0) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Maximum capacity must be greater than 0");
+                return "redirect:/organiser/create-event";
+            }
+
+            Event event = new Event();
+            event.setTitle(title);
+            event.setDescription(description);
+            event.setEventDate(date);
+            event.setStartTime(start);
+            event.setEndTime(end);
+            event.setLocation(location);
+            event.setMaxCapacity(maxCapacity);
+            event.setCurrentRsvpCount(0);
+
+            if (venueDetails != null && !venueDetails.trim().isEmpty()) {
+                event.setVenueDetails(venueDetails);
+            }
+
+            event.setCreatedBy(currentUser.getUserId());
+            event.setClubId(1L); // Set to default club ID of 1
+            event.setStatus(Event.EventStatus.draft); // Start as draft
+            event.setIsPaid(false);
+            event.setIsFeatured(false);
+
+            eventService.createEvent(event);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Event '" + title + "' created successfully!");
+            return "redirect:/organiser/dashboard";
+
+        } catch (Exception e) {
+            System.out.println("Error creating event: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Error creating event: " + e.getMessage());
+            return "redirect:/organiser/create-event";
+        }
+    }
+
+    /**
+     * Publish an event
+     */
+    @PostMapping("/events/{id}/publish")
+    public String publishEvent(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            eventService.publishEvent(id, currentUser.getUserId());
+            redirectAttributes.addFlashAttribute("successMessage", "Event published successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to publish event: " + e.getMessage());
+        }
+
+        return "redirect:/organiser/dashboard";
+    }
+
+    /**
+     * Cancel an event
+     */
+    @PostMapping("/events/{id}/cancel")
+    public String cancelEvent(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            eventService.cancelEvent(id, currentUser.getUserId());
+            redirectAttributes.addFlashAttribute("successMessage", "Event cancelled successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to cancel event: " + e.getMessage());
+        }
+
+        return "redirect:/organiser/dashboard";
     }
 }

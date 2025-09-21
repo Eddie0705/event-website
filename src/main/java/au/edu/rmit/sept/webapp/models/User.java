@@ -50,7 +50,7 @@ public class User {
 
     @Convert(converter = UserTypeConverter.class)
     @Column(name = "user_type", nullable = false)
-    private UserType userType = UserType.STUDENT;
+    private UserType userType;
 
     @Column(name = "profile_picture")
     private String profilePicture;
