@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
@@ -37,13 +36,10 @@ public class PageController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private EventService eventService;
-
-
     @Autowired
     private RSVPService rsvpService;
+    @Autowired
+    private EventService eventService;
 
     /**
      * Get current authenticated user
@@ -60,73 +56,37 @@ public class PageController {
     }
 
     // Your existing mappings
-    @GetMapping("/")
+    @GetMapping({ "/", "/explore" })
     public String root(Model model) {
         User currentUser = getCurrentUser();
-        
+
         // Redirect organizers to their dashboard
         if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
             return "redirect:/organiser/dashboard";
         }
-        
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-
-        List<Event> events = eventService.getPublishedEvents();
-        // Map<Long, String> rsvpStatusMap = new HashMap<>();
-
-        //  for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
-        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
-        // }
-        model.addAttribute("rsvpService", rsvpService);
+        List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
+        // Fetch organizer name for each event
+        Map<Long, String> organizerNames = new HashMap<>();
+        for (Event event : events) {
+            organizerNames.put(event.getEventId(),
+                    userService.getUserFullNameById(event.getCreatedBy()));
+        }
         model.addAttribute("events", events);
+        model.addAttribute("organizerNames", organizerNames);
+        model.addAttribute("rsvpService", rsvpService);
         return "Index";
-//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
-//         // Fetch organizer name for each event
-//         Map<Long, String> organizerNames = new HashMap<>();
-//         for (Event event : events) {
-//             organizerNames.put(event.getEventId(),
-//                     userService.getUserFullNameById(event.getCreatedBy()));
-//         }
-//         model.addAttribute("events", events);
-//         model.addAttribute("organizerNames", organizerNames);
-//         return "Index"; // This will use the same template as /Index
-
-
-        // return "Index"; // This will use the same template as /Index
 
     }
 
-    // Your existing mappings
     @GetMapping("/explore")
     public String explore(Model model) {
         User currentUser = getCurrentUser();
-        
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
-
-        List<Event> events = eventService.getPublishedEvents();
-        // Map<Long, String> rsvpStatusMap = new HashMap<>();
-
-        //  for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
-        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
-        // }
-        model.addAttribute("rsvpService", rsvpService);
-        model.addAttribute("events", events);
-        return "Index";
-//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
-//         // Fetch organizer name for each event
-//         Map<Long, String> organizerNames = new HashMap<>();
-//         for (Event event : events) {
-//             organizerNames.put(event.getEventId(),
-//                     userService.getUserFullNameById(event.getCreatedBy()));
-//         }
-//         model.addAttribute("events", events);
-//         model.addAttribute("organizerNames", organizerNames);
-//         return "Index"; // This will use the same template as /Index
-
+        return "events/event-explore";
     }
 
     @GetMapping("/calendar")
@@ -173,6 +133,11 @@ public class PageController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
         return "myevents";
+    }
+
+    @GetMapping("/logout")
+    public String Logout(Model model) {
+        return "/auth/login";
     }
 
     // Database test endpoint
@@ -232,6 +197,5 @@ public class PageController {
         model.addAttribute("rsvp", rsvp);
         return "rsvp/rsvp-test";
     }
-
 
 }

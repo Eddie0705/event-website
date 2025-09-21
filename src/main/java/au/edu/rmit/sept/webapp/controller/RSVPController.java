@@ -20,10 +20,10 @@ public class RSVPController {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final RSVPService rsvpService;
-    
 
     @Autowired
-    public RSVPController(RSVPRepository rsvpRepository, UserRepository userRepository, EventRepository eventRepository, RSVPService rsvpService) {
+    public RSVPController(RSVPRepository rsvpRepository, UserRepository userRepository, EventRepository eventRepository,
+            RSVPService rsvpService) {
         this.rsvpRepository = rsvpRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
@@ -41,23 +41,20 @@ public class RSVPController {
 
     @PostMapping("/submit")
     public String submitRsvp(@RequestParam Long userId,
-                            @RequestParam Long eventId,
-                            @RequestParam String rsvpStatus,
-                            @RequestParam(required = false) String attendanceStatus,
-                            Model model) {
-
+            @RequestParam Long eventId,
+            @RequestParam String rsvpStatus,
+            @RequestParam(required = false) String attendanceStatus,
+            Model model) {
 
         User user = userRepository.findById(userId).orElse(null);
         Event event = eventRepository.findById(eventId).orElse(null);
-      
+
         if (user == null) {
             return "redirect:/auth/login";
         }
         RSVP rsvp = new RSVP(); // default non-null object
         rsvp.setUser(user);
         rsvp.setEvent(event);
-
-        
 
         if (user == null || event == null) {
             model.addAttribute("message", "Invalid User ID or Event ID!");
@@ -70,11 +67,13 @@ public class RSVPController {
         RSVP.AttendanceStatus attendanceEnum = null;
         try {
             rsvpEnum = RSVP.RSVPStatus.valueOf(rsvpStatus.toLowerCase());
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         if (attendanceStatus != null && !attendanceStatus.isEmpty()) {
             try {
                 attendanceEnum = RSVP.AttendanceStatus.valueOf(attendanceStatus.toLowerCase());
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException ignored) {
+            }
         }
 
         RSVP savedRsvp = rsvpService.createOrUpdateRsvp(user, event, rsvpEnum, attendanceEnum);
@@ -83,6 +82,7 @@ public class RSVPController {
 
         return "redirect:/";
     }
+
     // Check a user's RSVP status for an event
     public String checkUserRsvp(Event event, User user) {
         return rsvpRepository.getRsvpStatus(event, user)
