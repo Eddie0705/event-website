@@ -14,8 +14,8 @@ public class RSVPService {
     private final UserRepository userRepository;
 
     public RSVPService(RSVPRepository rsvpRepository,
-            EventRepository eventRepository,
-            UserRepository userRepository) {
+                       EventRepository eventRepository,
+                       UserRepository userRepository) {
         this.rsvpRepository = rsvpRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
@@ -23,8 +23,7 @@ public class RSVPService {
 
     @Transactional
     public RSVP rsvpToEvent(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return createOrUpdateRsvp(user, event, RSVP.RSVPStatus.yes, null);
@@ -32,8 +31,7 @@ public class RSVPService {
 
     @Transactional
     public void cancelRSVP(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
@@ -53,13 +51,13 @@ public class RSVPService {
         Optional<User> user = userRepository.findById(userId);
 
         return event.isPresent() && user.isPresent() &&
-                rsvpRepository.existsByEventAndUser(event.get(), user.get());
+               rsvpRepository.existsByEventAndUser(event.get(), user.get());
     }
 
     @Transactional
     public RSVP createOrUpdateRsvp(User user, Event event,
-            RSVP.RSVPStatus rsvpStatus,
-            RSVP.AttendanceStatus attendanceStatus) {
+                                   RSVP.RSVPStatus rsvpStatus,
+                                   RSVP.AttendanceStatus attendanceStatus) {
 
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
                 .orElseGet(() -> {
