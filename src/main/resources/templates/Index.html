@@ -284,6 +284,7 @@
 <div layout:fragment="content">
     <!-- Search Area -->
 <body>
+
     <div class="search_area">
         <input type="text" placeholder="Search...">
         <select name="category" id="category">
@@ -355,34 +356,103 @@
             </select>
         </div>
 
-        <!-- Events Container -->
-        <div class="events_container">
-            <!-- Example Event Card -->
-            <div class="events_card">
-                <h3>Sample Event</h3>
-                <p>12 Sept 2024 | 10:00 AM</p>
-                <p>Main Campus</p>
-                <p>This is a sample event description to show how the layout works.</p>
-                <button>RSVP</button>
+
+       <!-- Events Container -->
+       <!-- <div class="events_container">
+            <div class="events_card" th:each="event : ${events}">
+                <h3 th:text="${event.title}">Event Title</h3>
+                <p>
+                    <span th:text="${event.eventDate}">Event Date</span> |
+                    <span th:text="${event.startTime}">Start Time</span>
+                </p>
+                <p th:text="${event.description} ?: 'No Description'">Event Description</p>
+                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
+                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
+
+                <div class="event-info-grid">
+                    <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
+                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
+                <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p>
+                </div> -->
+
+
+           
+            <!-- Loop over events -->
+            <div class="events_card" th:each="event : ${events}">
+                <h3 th:text="${event.title}">Event Title</h3>
+                <p>
+                    <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
+ |
+                    <span th:text="${event.startTime}">Start Time</span>
+                    <p th:text="${event.description} ?: 'No Description'">Event Description</p>
+                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
+                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
+                <!-- <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p> -->
+                </p>
+
+                 <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
+                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
+                <p th:text="${event.location}">Location</p>
+                <p th:text="${event.description}">Event Description</p>
+
+                <!-- RSVP form -->
+                <form>
+                    <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
+                    <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                    <input type="hidden" name="rsvpStatus" value="yes" />
+                    <!-- redirect to login -->
+                    <button type="button"
+                        th:if="${currentUser == null}"
+                            onclick="window.location.href='/auth/login'">
+                        RSVP
+                    </button>
+
+                    <!-- Button if user has not RSVPed -->
+                     <div th:if="${currentUser != null}">
+                    <button type="button"
+                            th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
+                            th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
+                        RSVP
+                    </button>
+
+                    <!-- Button if user already RSVPed -->
+                    <button type="button"
+                            th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
+                            th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
+                        Cancel RSVP
+                    </button>
+                    <!-- end of button -->
+                    <!-- for future: add dropdown for yes no maybe cancelled and make button dynamic -->
+                </div>
+                </form>
             </div>
 
-            <!-- Add more event cards here or populate dynamically -->
-            <div class="events_card">
-                <h3>Another Event</h3>
-                <p>15 Sept 2024 | 2:00 PM</p>
-                <p>Student Center</p>
-                <p>Another sample event with different details.</p>
-                <button>RSVP</button>
-            </div>
-
-            <div class="events_card">
-                <h3>Third Event</h3>
-                <p>20 Sept 2024 | 6:00 PM</p>
-                <p>Auditorium</p>
-                <p>A third sample event for demonstration.</p>
-                <button>RSVP</button>
-            </div>
         </div>
     </div>
 </div>
 </html>
+
+<script>
+function submitRsvp(eventId, userId) {
+    fetch('/rsvp/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
+    }).then(() => {
+        alert('RSVP submitted!');
+    });
+}
+
+function submitRsvpCancelled(eventId, userId) {
+    fetch('/rsvp/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
+    }).then(() => {
+        alert('RSVP Cancelled!');
+    });
+}
+
+
+
+</script>
