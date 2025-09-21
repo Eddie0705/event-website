@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import jakarta.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
@@ -37,13 +38,6 @@ public class PageController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private EventService eventService;
-
-
-    @Autowired
-    private RSVPService rsvpService;
 
     /**
      * Get current authenticated user
@@ -63,43 +57,6 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
-        
-        // Redirect organizers to their dashboard
-        if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
-            return "redirect:/organiser/dashboard";
-        }
-        
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", currentUser != null);
-
-        List<Event> events = eventService.getPublishedEvents();
-        // Map<Long, String> rsvpStatusMap = new HashMap<>();
-
-        //  for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
-        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
-        // }
-        model.addAttribute("rsvpService", rsvpService);
-        model.addAttribute("events", events);
-        return "Index";
-//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
-//         // Fetch organizer name for each event
-//         Map<Long, String> organizerNames = new HashMap<>();
-//         for (Event event : events) {
-//             organizerNames.put(event.getEventId(),
-//                     userService.getUserFullNameById(event.getCreatedBy()));
-//         }
-//         model.addAttribute("events", events);
-//         model.addAttribute("organizerNames", organizerNames);
-//         return "Index"; // This will use the same template as /Index
-
-    }
-
-    // Your existing mappings
-    @GetMapping("/explore")
-    public String explore(Model model) {
-        User currentUser = getCurrentUser();
-        
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
 
