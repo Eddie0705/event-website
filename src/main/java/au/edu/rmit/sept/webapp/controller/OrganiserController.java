@@ -65,7 +65,7 @@ public class OrganiserController {
                 eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
                 // Filter only published events
                 List<Event> publishedEvents = eventsPage.getContent().stream()
-                    .filter(event -> event.getStatus() == Event.EventStatus.PUBLISHED)
+                    .filter(event -> event.getStatus() == Event.EventStatus.published)
                     .toList();
                 model.addAttribute("events", publishedEvents);
                 break;
@@ -73,7 +73,7 @@ public class OrganiserController {
                 eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
                 // Filter only draft events
                 List<Event> draftEvents = eventsPage.getContent().stream()
-                    .filter(event -> event.getStatus() == Event.EventStatus.DRAFT)
+                    .filter(event -> event.getStatus() == Event.EventStatus.draft)
                     .toList();
                 model.addAttribute("events", draftEvents);
                 break;
@@ -81,7 +81,7 @@ public class OrganiserController {
                 List<Event> upcomingEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
                     .stream()
                     .filter(event -> event.getEventDate().isAfter(LocalDate.now()) && 
-                                   event.getStatus() == Event.EventStatus.PUBLISHED)
+                                   event.getStatus() == Event.EventStatus.published)
                     .toList();
                 model.addAttribute("events", upcomingEvents);
                 break;
@@ -89,7 +89,7 @@ public class OrganiserController {
                 List<Event> pastEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
                     .stream()
                     .filter(event -> event.getEventDate().isBefore(LocalDate.now()) || 
-                                   event.getStatus() == Event.EventStatus.COMPLETED)
+                                   event.getStatus() == Event.EventStatus.completed)
                     .toList();
                 model.addAttribute("events", pastEvents);
                 break;
@@ -177,7 +177,7 @@ public class OrganiserController {
 
             event.setCreatedBy(currentUser.getUserId());
             event.setClubId(1L); // Set to default club ID of 1
-            event.setStatus(Event.EventStatus.DRAFT); // Start as draft
+            event.setStatus(Event.EventStatus.draft); // Start as draft
             event.setIsPaid(false);
             event.setIsFeatured(false);
 
