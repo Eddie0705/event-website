@@ -51,7 +51,6 @@ public class UserService {
         user.setIsActive(true);
         user.setIsBanned(false);
         user.setEmailVerified(false);
-        user.setUserType(UserType.STUDENT); // Default to student
 
         return userRepository.save(user);
     }
@@ -349,6 +348,12 @@ public class UserService {
         long admins = userRepository.countByUserType(UserType.ADMIN);
 
         return new UserStats(totalUsers, activeUsers, verifiedUsers, students, organisers, admins);
+    }
+
+    public String getUserFullNameById(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getFullName()) // Assuming your User entity has a getFullName() method
+                .orElse("Unknown Organizer");
     }
 
     /**
