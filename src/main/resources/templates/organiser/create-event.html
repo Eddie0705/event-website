@@ -117,6 +117,183 @@
             min-height: 100px;
         }
 
+        /* Location Autocomplete Styles */
+        .location-input-wrapper {
+            position: relative;
+        }
+
+        .location-input-wrapper input {
+            padding-right: 45px;
+        }
+
+        .location-validation-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            display: none;
+            z-index: 2;
+        }
+
+        .location-validation-icon.valid {
+            color: #10b981;
+            display: block;
+        }
+
+        .location-validation-icon.searching {
+            color: #fbbf24;
+            display: block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Autocomplete Dropdown Styles */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #fffbf0;
+        }
+
+        .autocomplete-item.selected {
+            background-color: #fef3c7;
+        }
+
+        .autocomplete-item-icon {
+            color: #9ca3af;
+            font-size: 18px;
+            margin-top: 2px;
+            min-width: 20px;
+        }
+
+        .autocomplete-item-content {
+            flex: 1;
+        }
+
+        .autocomplete-item-main {
+            color: #1f2937;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .autocomplete-item-secondary {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .autocomplete-no-results {
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .autocomplete-searching {
+            padding: 20px;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .location-helper-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        /* Map Preview */
+        .map-preview-container {
+            margin-top: 1rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .map-preview-container.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .map-preview-header {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #1f2937;
+            padding: 10px 15px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .map-preview-iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+            display: block;
+        }
+
+        .formatted-address {
+            background: #f9fafb;
+            padding: 10px 15px;
+            font-size: 0.875rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* Initial map state */
+        .map-initial-state {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9fafb;
+            color: #9ca3af;
+            font-size: 1rem;
+        }
+
         .form-actions {
             display: flex;
             gap: 1rem;
@@ -245,20 +422,9 @@
             cursor: not-allowed;
         }
 
-        /* Animations */
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .create-event-container {
-            animation: slideInUp 0.6s ease-out;
+        /* Hidden inputs for validated data */
+        .hidden-validated-fields {
+            display: none;
         }
 
         /* Responsive */
@@ -275,6 +441,10 @@
             .btn {
                 width: 100%;
             }
+
+            .map-preview-iframe {
+                height: 250px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -285,6 +455,10 @@
             
             .page-header h1 {
                 font-size: 2rem;
+            }
+
+            .map-preview-iframe {
+                height: 200px;
             }
         }
     </style>
@@ -340,9 +514,45 @@
 
             <div class="form-group full-width">
                 <label for="location">Event Location *</label>
-                <input type="text" id="location" name="location" 
-                       placeholder="Where will your event take place?" 
-                       maxlength="500" required>
+                <div class="location-input-wrapper">
+                    <input type="text" id="location" name="location" 
+                           placeholder="Start typing an address in Victoria..." 
+                           maxlength="500" required autocomplete="off">
+                    <span class="location-validation-icon" id="locationIcon">
+                        <span class="searching">🔍</span>
+                        <span class="valid" style="display:none;">✓</span>
+                    </span>
+                    
+                    <!-- Autocomplete Dropdown -->
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown">
+                        <!-- Suggestions will be dynamically added here -->
+                    </div>
+                </div>
+                <div class="location-helper-text">Type at least 3 characters to see suggestions</div>
+                
+                <!-- Map Preview -->
+                <div class="map-preview-container show" id="mapPreviewContainer">
+                    <div class="map-preview-header">
+                        <span>📍 Location Preview</span>
+                        <span id="coordinatesDisplay">Victoria, Australia</span>
+                    </div>
+                    <div class="formatted-address" id="formattedAddress">Select a location to see it on the map</div>
+                    <iframe class="map-preview-iframe" 
+                            id="mapPreview"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345093746!2d144.9537353!3d-37.8172099!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad65d4c2b349649%3A0xb6899234e561db11!2sVictoria%2C%20Australia!5e0!3m2!1sen!2sus!4v1635959040000!5m2!1sen!2sus"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+
+            <!-- Hidden fields for validated location data -->
+            <div class="hidden-validated-fields">
+                <input type="hidden" id="validatedAddress" name="validatedAddress">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                <input type="hidden" id="placeId" name="placeId">
             </div>
 
             <div class="form-group full-width">
@@ -398,7 +608,590 @@
 
 <th:block layout:fragment="javascript">
     <script>
-        // Set minimum date to today
+        // Fallback for when Google API is not available
+        const ENABLE_GOOGLE_API = false; // Set to true when you have an API key
+        
+        // Mock address data for Victoria, Australia (for demonstration)
+        const victoriaAddresses = [
+            { id: 1, main: "Federation Square", secondary: "Swanston St & Flinders St, Melbourne VIC 3000", lat: -37.8180, lng: 144.9691 },
+            { id: 2, main: "Queen Victoria Market", secondary: "Queen St, Melbourne VIC 3000", lat: -37.8076, lng: 144.9568 },
+            { id: 3, main: "Royal Botanic Gardens", secondary: "Birdwood Ave, Melbourne VIC 3004", lat: -37.8304, lng: 144.9796 },
+            { id: 4, main: "Melbourne Cricket Ground", secondary: "Brunton Ave, Richmond VIC 3002", lat: -37.8200, lng: 144.9834 },
+            { id: 5, main: "St Kilda Beach", secondary: "Jacka Blvd, St Kilda VIC 3182", lat: -37.8679, lng: 144.9740 },
+            { id: 6, main: "Eureka Tower", secondary: "7 Riverside Quay, Southbank VIC 3006", lat: -37.8215, lng: 144.9647 },
+            { id: 7, main: "Melbourne Museum", secondary: "11 Nicholson St, Carlton VIC 3053", lat: -37.8033, lng: 144.9717 },
+            { id: 8, main: "Crown Casino", secondary: "8 Whiteman St, Southbank VIC 3006", lat: -37.8225, lng: 144.9575 },
+            { id: 9, main: "Docklands Stadium", secondary: "740 Bourke St, Docklands VIC 3008", lat: -37.8166, lng: 144.9475 },
+            { id: 10, main: "Melbourne Zoo", secondary: "Elliott Ave, Parkville VIC 3052", lat: -37.7840, lng: 144.9514 }
+        ];
+        
+        // State management for fallback
+        let fallbackSuggestions = [];
+        let fallbackTimeout;
+        let isValidAddressFallback = false;
+        let selectedAddressFallback = null;
+        
+        // Initialize based on API availability
+        if (!ENABLE_GOOGLE_API) {
+            document.addEventListener('DOMContentLoaded', initializeFallbackAutocomplete);
+        }
+        
+        function initializeFallbackAutocomplete() {
+            const locationInput = document.getElementById('location');
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            // Input event for searching
+            locationInput.addEventListener('input', handleFallbackInput);
+            
+            // Keyboard navigation
+            locationInput.addEventListener('keydown', handleFallbackKeyboard);
+            
+            // Click outside to close
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.location-input-wrapper')) {
+                    closeFallbackDropdown();
+                }
+            });
+            
+            // Focus event
+            locationInput.addEventListener('focus', function() {
+                if (fallbackSuggestions.length > 0 && this.value.length >= 3) {
+                    openFallbackDropdown();
+                }
+            });
+        }
+        
+        function handleFallbackInput(e) {
+            const query = e.target.value.trim().toLowerCase();
+            
+            clearTimeout(fallbackTimeout);
+            
+            if (query.length < 3) {
+                closeFallbackDropdown();
+                resetFallbackValidation();
+                return;
+            }
+            
+            // Show searching state
+            showFallbackSearching();
+            
+            // Simulate API delay
+            fallbackTimeout = setTimeout(() => {
+                searchFallbackAddresses(query);
+            }, 300);
+        }
+        
+        function searchFallbackAddresses(query) {
+            // Filter addresses based on query
+            const matches = victoriaAddresses.filter(addr => 
+                addr.main.toLowerCase().includes(query) ||
+                addr.secondary.toLowerCase().includes(query)
+            );
+            
+            // Also allow custom address format
+            if (matches.length === 0 && query.includes(',')) {
+                const customOption = {
+                    id: 'custom',
+                    main: query.split(',')[0].trim(),
+                    secondary: query.split(',').slice(1).join(',').trim() || 'Victoria, Australia',
+                    lat: -37.8136,
+                    lng: 144.9631,
+                    custom: true
+                };
+                matches.push(customOption);
+            }
+            
+            fallbackSuggestions = matches;
+            displayFallbackSuggestions(matches);
+        }
+        
+        function displayFallbackSuggestions(addresses) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = '';
+            
+            if (addresses.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="autocomplete-no-results">
+                        🔍 No addresses found. Try: "Federation Square" or enter a full address with commas.
+                    </div>
+                `;
+                openFallbackDropdown();
+                hideFallbackSearching();
+                return;
+            }
+            
+            addresses.forEach((addr, index) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.dataset.index = index;
+                
+                item.innerHTML = `
+                    <span class="autocomplete-item-icon">📍</span>
+                    <div class="autocomplete-item-content">
+                        <div class="autocomplete-item-main">${addr.main}</div>
+                        <div class="autocomplete-item-secondary">${addr.secondary}</div>
+                        ${addr.custom ? '<div style="color: #f59e0b; font-size: 0.75rem;">Custom address - verify before use</div>' : ''}
+                    </div>
+                `;
+                
+                item.addEventListener('click', () => selectFallbackAddress(addr));
+                dropdown.appendChild(item);
+            });
+            
+            openFallbackDropdown();
+            hideFallbackSearching();
+        }
+        
+        function selectFallbackAddress(address) {
+            const locationInput = document.getElementById('location');
+            const fullAddress = `${address.main}, ${address.secondary}`;
+            
+            // Update input
+            locationInput.value = fullAddress;
+            
+            // Update hidden fields
+            document.getElementById('validatedAddress').value = fullAddress;
+            document.getElementById('latitude').value = address.lat;
+            document.getElementById('longitude').value = address.lng;
+            document.getElementById('placeId').value = address.id;
+            
+            // Update UI
+            showFallbackValid();
+            updateFallbackMap(fullAddress, address.lat, address.lng);
+            
+            // Update state
+            isValidAddressFallback = true;
+            selectedAddressFallback = address;
+            isValidAddress = true; // Set global flag for form validation
+            
+            closeFallbackDropdown();
+        }
+        
+        function updateFallbackMap(address, lat, lng) {
+            const mapIframe = document.getElementById('mapPreview');
+            const formattedAddressDiv = document.getElementById('formattedAddress');
+            const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+            
+            formattedAddressDiv.textContent = address;
+            coordinatesDisplay.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            
+            // Use Google Maps embed without API key
+            const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
+            mapIframe.src = mapUrl;
+        }
+        
+        function handleFallbackKeyboard(e) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            
+            if (!dropdown.classList.contains('show') || items.length === 0) return;
+            
+            let currentIndex = parseInt(dropdown.dataset.selectedIndex || '-1');
+            
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                    updateFallbackSelection(items, currentIndex);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    currentIndex = Math.max(currentIndex - 1, -1);
+                    updateFallbackSelection(items, currentIndex);
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (currentIndex >= 0 && fallbackSuggestions[currentIndex]) {
+                        selectFallbackAddress(fallbackSuggestions[currentIndex]);
+                    }
+                    break;
+                case 'Escape':
+                    closeFallbackDropdown();
+                    break;
+            }
+            
+            dropdown.dataset.selectedIndex = currentIndex;
+        }
+        
+        function updateFallbackSelection(items, index) {
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
+        // UI State functions
+        function showFallbackSearching() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon searching';
+            icon.innerHTML = '🔍';
+        }
+        
+        function hideFallbackSearching() {
+            const icon = document.getElementById('locationIcon');
+            if (!isValidAddressFallback) {
+                icon.className = 'location-validation-icon';
+            }
+        }
+        
+        function showFallbackValid() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon valid';
+            icon.innerHTML = '✓';
+        }
+        
+        function resetFallbackValidation() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon';
+            isValidAddressFallback = false;
+            isValidAddress = false;
+            selectedAddressFallback = null;
+            
+            document.getElementById('validatedAddress').value = '';
+            document.getElementById('latitude').value = '';
+            document.getElementById('longitude').value = '';
+            document.getElementById('placeId').value = '';
+        }
+        
+        function openFallbackDropdown() {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.classList.add('show');
+            dropdown.dataset.selectedIndex = '-1';
+        }
+        
+        function closeFallbackDropdown() {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.classList.remove('show');
+            fallbackSuggestions = [];
+        }
+    </script>
+    
+    <script>
+        // State management
+        let autocompleteService;
+        let placesService;
+        let sessionToken;
+        let searchTimeout;
+        let selectedPlaceId = null;
+        let isValidAddress = false;
+        let currentSelectedIndex = -1;
+        let suggestions = [];
+
+        // Initialize Google Places Autocomplete
+        function initializeAutocomplete() {
+            // Create autocomplete service
+            autocompleteService = new google.maps.places.AutocompleteService();
+            
+            // Create a hidden map div for Places Service (required by Google)
+            const hiddenMap = new google.maps.Map(document.createElement('div'));
+            placesService = new google.maps.places.PlacesService(hiddenMap);
+            
+            // Create session token for billing optimization
+            sessionToken = new google.maps.places.AutocompleteSessionToken();
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const locationInput = document.getElementById('location');
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            // Input event for searching
+            locationInput.addEventListener('input', handleLocationInput);
+            
+            // Keyboard navigation
+            locationInput.addEventListener('keydown', handleKeyboardNavigation);
+            
+            // Click outside to close dropdown
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.location-input-wrapper')) {
+                    closeDropdown();
+                }
+            });
+            
+            // Focus event
+            locationInput.addEventListener('focus', function() {
+                if (suggestions.length > 0 && this.value.length >= 3) {
+                    openDropdown();
+                }
+            });
+        }
+
+        // Handle location input
+        function handleLocationInput(e) {
+            const query = e.target.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 3) {
+                closeDropdown();
+                resetValidation();
+                return;
+            }
+            
+            // Show searching state
+            showSearchingState();
+            
+            // Debounce search
+            searchTimeout = setTimeout(() => {
+                searchPlaces(query);
+            }, 300);
+        }
+
+        // Search for places
+        function searchPlaces(query) {
+            // Request configuration with Victoria, Australia bounds
+            const request = {
+                input: query,
+                sessionToken: sessionToken,
+                componentRestrictions: { country: 'au' },
+                bounds: new google.maps.LatLngBounds(
+                    new google.maps.LatLng(-39.1992, 140.9617), // Southwest Victoria
+                    new google.maps.LatLng(-33.9806, 149.9767)  // Northeast Victoria
+                ),
+                types: ['address', 'establishment', 'geocode']
+            };
+            
+            autocompleteService.getPlacePredictions(request, handlePredictions);
+        }
+
+        // Handle predictions from Google
+        function handlePredictions(predictions, status) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+                showNoResults();
+                return;
+            }
+            
+            // Filter for Victoria addresses
+            const victoriaPlaces = predictions.filter(place => 
+                place.description.includes('Victoria') || 
+                place.description.includes('VIC') ||
+                place.description.includes('Melbourne')
+            );
+            
+            if (victoriaPlaces.length === 0) {
+                showNoResults('No addresses found in Victoria. Try being more specific.');
+                return;
+            }
+            
+            suggestions = victoriaPlaces;
+            displaySuggestions(victoriaPlaces);
+        }
+
+        // Display suggestions in dropdown
+        function displaySuggestions(places) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = '';
+            
+            places.forEach((place, index) => {
+                const item = createSuggestionItem(place, index);
+                dropdown.appendChild(item);
+            });
+            
+            openDropdown();
+            hideSearchingState();
+        }
+
+        // Create suggestion item
+        function createSuggestionItem(place, index) {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.dataset.placeId = place.place_id;
+            item.dataset.index = index;
+            
+            // Parse the description
+            const parts = place.description.split(',');
+            const mainText = parts[0];
+            const secondaryText = parts.slice(1).join(',').trim();
+            
+            item.innerHTML = `
+                <span class="autocomplete-item-icon">📍</span>
+                <div class="autocomplete-item-content">
+                    <div class="autocomplete-item-main">${mainText}</div>
+                    <div class="autocomplete-item-secondary">${secondaryText}</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => selectPlace(place));
+            
+            return item;
+        }
+
+        // Select a place
+        function selectPlace(place) {
+            const locationInput = document.getElementById('location');
+            
+            // Update input value
+            locationInput.value = place.description;
+            
+            // Get place details
+            const request = {
+                placeId: place.place_id,
+                fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+                sessionToken: sessionToken
+            };
+            
+            placesService.getDetails(request, (details, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    handlePlaceDetails(details);
+                    // Reset session token after selection
+                    sessionToken = new google.maps.places.AutocompleteSessionToken();
+                }
+            });
+            
+            closeDropdown();
+        }
+
+        // Handle place details
+        function handlePlaceDetails(place) {
+            const location = place.geometry.location;
+            const formattedAddress = place.formatted_address || place.name;
+            
+            // Update hidden fields
+            document.getElementById('validatedAddress').value = formattedAddress;
+            document.getElementById('latitude').value = location.lat();
+            document.getElementById('longitude').value = location.lng();
+            document.getElementById('placeId').value = place.place_id;
+            
+            // Update UI
+            showValidState();
+            updateMapPreview(formattedAddress, location.lat(), location.lng());
+            
+            // Update state
+            isValidAddress = true;
+            selectedPlaceId = place.place_id;
+        }
+
+        // Keyboard navigation
+        function handleKeyboardNavigation(e) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            
+            if (!dropdown.classList.contains('show') || items.length === 0) {
+                return;
+            }
+            
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    currentSelectedIndex = Math.min(currentSelectedIndex + 1, items.length - 1);
+                    updateSelectedItem(items);
+                    break;
+                    
+                case 'ArrowUp':
+                    e.preventDefault();
+                    currentSelectedIndex = Math.max(currentSelectedIndex - 1, -1);
+                    updateSelectedItem(items);
+                    break;
+                    
+                case 'Enter':
+                    e.preventDefault();
+                    if (currentSelectedIndex >= 0 && suggestions[currentSelectedIndex]) {
+                        selectPlace(suggestions[currentSelectedIndex]);
+                    }
+                    break;
+                    
+                case 'Escape':
+                    closeDropdown();
+                    break;
+            }
+        }
+
+        // Update selected item visual state
+        function updateSelectedItem(items) {
+            items.forEach((item, index) => {
+                if (index === currentSelectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // UI State Management
+        function showSearchingState() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon searching';
+            icon.innerHTML = '🔍';
+        }
+
+        function hideSearchingState() {
+            const icon = document.getElementById('locationIcon');
+            if (!isValidAddress) {
+                icon.className = 'location-validation-icon';
+            }
+        }
+
+        function showValidState() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon valid';
+            icon.innerHTML = '✓';
+        }
+
+        function resetValidation() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon';
+            isValidAddress = false;
+            selectedPlaceId = null;
+            
+            // Clear hidden fields
+            document.getElementById('validatedAddress').value = '';
+            document.getElementById('latitude').value = '';
+            document.getElementById('longitude').value = '';
+            document.getElementById('placeId').value = '';
+        }
+
+        function openDropdown() {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.classList.add('show');
+            currentSelectedIndex = -1;
+        }
+
+        function closeDropdown() {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.classList.remove('show');
+            currentSelectedIndex = -1;
+            suggestions = [];
+        }
+
+        function showNoResults(message = 'No results found. Try a different search.') {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = `
+                <div class="autocomplete-no-results">
+                    <span>🔍</span> ${message}
+                </div>
+            `;
+            openDropdown();
+            hideSearchingState();
+        }
+
+        // Map Preview Functions
+        function updateMapPreview(address, lat, lng) {
+            const mapIframe = document.getElementById('mapPreview');
+            const formattedAddressDiv = document.getElementById('formattedAddress');
+            const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+            
+            // Update formatted address
+            formattedAddressDiv.textContent = address;
+            
+            // Update coordinates display
+            coordinatesDisplay.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            
+            // Update iframe with embedded map
+            const mapUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM!5e0!3m2!1sen!2sau!4v${Date.now()}!5m2!1sen!2sau&q=${encodeURIComponent(address)}`;
+            mapIframe.src = mapUrl;
+        }
+
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             const dateInput = document.getElementById('eventDate');
             const today = new Date().toISOString().split('T')[0];
@@ -457,7 +1250,10 @@
 
         // Add event listeners for live preview
         ['title', 'description', 'eventDate', 'startTime', 'endTime', 'location', 'maxCapacity'].forEach(id => {
-            document.getElementById(id).addEventListener('input', updatePreview);
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', updatePreview);
+            }
         });
 
         // Time validation
@@ -477,7 +1273,29 @@
         document.getElementById('endTime').addEventListener('change', validateTimes);
 
         // Form submission handling
-        document.getElementById('eventForm').addEventListener('submit', function() {
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            // Check if address is validated
+            if (!isValidAddress) {
+                e.preventDefault();
+                const locationInput = document.getElementById('location');
+                locationInput.focus();
+                
+                // Show error message
+                const dropdown = document.getElementById('autocompleteDropdown');
+                dropdown.innerHTML = `
+                    <div class="autocomplete-no-results" style="background: #fee2e2; color: #991b1b;">
+                        ⚠️ Please select a valid address from the dropdown suggestions
+                    </div>
+                `;
+                dropdown.classList.add('show');
+                
+                setTimeout(() => {
+                    dropdown.classList.remove('show');
+                }, 3000);
+                
+                return false;
+            }
+            
             const submitBtn = document.getElementById('submitBtn');
             const form = document.getElementById('eventForm');
             
@@ -488,6 +1306,3 @@
 
         // Auto-focus first field
         document.getElementById('title').focus();
-    </script>
-</th:block>
-</html>
