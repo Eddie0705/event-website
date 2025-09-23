@@ -457,29 +457,25 @@
                     </div>
 
                     <div th:if="${currentUser != null}">
-                        <form style="margin: 0;">
-                            <input type="hidden" name="userId" th:value="${currentUser.userId}" />
-                            <input type="hidden" name="eventId" th:value="${event.eventId}" />
-                            
-                            <!-- Check if user has already RSVP'd -->
-                            <div th:if="${userRsvpStatus == null or userRsvpStatus == 'No RSVP yet'}">
-                                <button type="button" class="rsvp-button"
-                                        th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.reload();'">
+                        <!-- Show RSVP button if user hasn't RSVP'd OR if they cancelled -->
+                        <div th:if="${userRsvpStatus == null or userRsvpStatus == 'No RSVP yet' or userRsvpStatus == 'cancelled'}">
+                            <form th:action="@{'/events/' + ${event.eventId} + '/rsvp'}" method="post" style="margin: 0;">
+                                <input type="hidden" name="action" value="rsvp" />
+                                <button type="submit" class="rsvp-button">
                                     RSVP to Event
                                 </button>
-                            </div>
-                            
-                            <!-- If user has already RSVP'd -->
-                            <div th:if="${userRsvpStatus != null and userRsvpStatus != 'No RSVP yet'}">
-                                <button type="button" class="rsvp-button rsvped"
-                                        th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.reload();'">
+                            </form>
+                        </div>
+                        
+                        <!-- Show Cancel button only if user has active RSVP (status = "yes") -->
+                        <div th:if="${userRsvpStatus == 'yes'}">
+                            <form th:action="@{'/events/' + ${event.eventId} + '/rsvp'}" method="post" style="margin: 0;">
+                                <input type="hidden" name="action" value="cancel" />
+                                <button type="submit" class="rsvp-button rsvped">
                                     Cancel RSVP
                                 </button>
-                                <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #6b7280;">
-                                    Current status: <span th:text="${userRsvpStatus}">Status</span>
-                                </p>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -505,41 +501,7 @@
     </div>
 
     <script>
-        function submitRsvp(eventId, userId) {
-            fetch('/rsvp/submit', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
-            }).then(response => {
-                if (response.ok) {
-                    alert('RSVP submitted successfully!');
-                    window.location.reload();
-                } else {
-                    alert('Error submitting RSVP. Please try again.');
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('Error submitting RSVP. Please try again.');
-            });
-        }
 
-        function submitRsvpCancelled(eventId, userId) {
-            fetch('/rsvp/submit', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
-            }).then(response => {
-                if (response.ok) {
-                    alert('RSVP cancelled successfully!');
-                    window.location.reload();
-                } else {
-                    alert('Error cancelling RSVP. Please try again.');
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('Error cancelling RSVP. Please try again.');
-            });
-        }
     </script>
 </div>
 

@@ -39,6 +39,9 @@ public class EventController {
     @Autowired
     private RSVPRepository rsvpRepository;
 
+    @Autowired
+    private RSVPController rsvpController;
+
     /**
      * Get current authenticated user from Spring Security
      */
@@ -131,18 +134,47 @@ public class EventController {
             model.addAttribute("event", event);
             model.addAttribute("currentUser", currentUser);
 
-            // Check user's RSVP status
+            // Use the RSVP controller's method to check status
             if (currentUser != null) {
-                String userRsvpStatus = rsvpRepository.getRsvpStatus(event, currentUser)
-                        .map(RSVP.RSVPStatus::name)
-                        .orElse("No RSVP yet");
+                String userRsvpStatus = rsvpController.checkUserRsvp(event, currentUser);
                 model.addAttribute("userRsvpStatus", userRsvpStatus);
+
+                // Add a simple boolean for easier template logic
+                boolean hasRsvped = !userRsvpStatus.equals("No RSVP yet");
+                model.addAttribute("hasRsvped", hasRsvped);
             }
 
             return "events/event-details";
         } catch (RuntimeException e) {
             return "redirect:/";
         }
+    }
+
+    // Add RSVP endpoints to this controller
+    @PostMapping("/{id}/rsvp")
+    public String rsvpToEvent(@PathVariable Long id,
+            @RequestParam String action, // "rsvp" or "cancel"
+            RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+
+            if ("rsvp".equals(action)) {
+                rsvpService.createOrUpdateRsvp(currentUser, event, RSVP.RSVPStatus.yes, null);
+                redirectAttributes.addFlashAttribute("success", "RSVP submitted successfully!");
+            } else if ("cancel".equals(action)) {
+                rsvpService.createOrUpdateRsvp(currentUser, event, RSVP.RSVPStatus.cancelled, null);
+                redirectAttributes.addFlashAttribute("success", "RSVP cancelled successfully!");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error processing RSVP. Please try again.");
+        }
+
+        return "redirect:/events/" + id;
     }
 
     @GetMapping("/{id}/edit")
