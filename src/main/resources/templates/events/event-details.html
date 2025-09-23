@@ -453,7 +453,7 @@
 
                     <!-- RSVP Buttons -->
                     <div th:if="${currentUser == null}">
-                        <a href="/auth/login" class="login-prompt">Login to RSVP</a>
+                        <a th:href="@{/auth/login(redirect='/events/' + ${event.eventId})}" class="login-prompt">Login to RSVP</a>
                     </div>
 
                     <div th:if="${currentUser != null}">
