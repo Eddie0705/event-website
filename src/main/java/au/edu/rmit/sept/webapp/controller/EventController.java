@@ -118,7 +118,7 @@ public class EventController {
         try {
             Event event = eventService.getEventById(id);
             model.addAttribute("event", event);
-            return "events/view";
+            return "events/event-details";
         } catch (RuntimeException e) {
             return "redirect:/events";
         }
