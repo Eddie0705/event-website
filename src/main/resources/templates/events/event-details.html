@@ -5,7 +5,6 @@
 <head>
     <title th:text="${event.title} + ' - Event Details'">Event Details</title>
 </head>
-
 <th:block layout:fragment="css">
     <style>
         .event-details-container {
@@ -13,7 +12,6 @@
             margin: 2rem auto;
             padding: 0 2rem;
         }
-
         .event-header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -25,7 +23,6 @@
             overflow: hidden;
             border-top: 4px solid #fbbf24;
         }
-
         .event-header::before {
             content: '';
             position: absolute;
@@ -36,7 +33,6 @@
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(251,191,36,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(251,191,36,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(251,191,36,0.1)"/></svg>');
             opacity: 0.3;
         }
-
         .event-title {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             background-clip: text;
@@ -48,21 +44,18 @@
             position: relative;
             z-index: 1;
         }
-
         .event-subtitle {
             font-size: 1.2rem;
             color: #6b7280;
             position: relative;
             z-index: 1;
         }
-
         .event-content {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
             margin-bottom: 2rem;
         }
-
         .event-main-info {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -71,7 +64,6 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-
         .event-sidebar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -83,11 +75,9 @@
             position: sticky;
             top: 120px;
         }
-
         .info-section {
             margin-bottom: 2rem;
         }
-
         .info-section h3 {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             background-clip: text;
@@ -99,13 +89,11 @@
             border-bottom: 2px solid #f59e0b;
             padding-bottom: 0.5rem;
         }
-
         .info-section p {
             color: #6b7280;
             line-height: 1.6;
             margin-bottom: 0.5rem;
         }
-
         .event-meta {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -113,7 +101,6 @@
             gap: 1rem;
             margin-bottom: 2rem;
         }
-
         .meta-item {
             background: #3b4bc4;
             color: white;
@@ -124,26 +111,22 @@
             transition: transform 0.3s ease;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         }
-
         .meta-item:hover {
             transform: translateY(-2px);
             background: #3240a8;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
         }
-
         .meta-label {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.8);
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
-
         .meta-value {
             font-size: 1.1rem;
             color: white;
             font-weight: 600;
         }
-
         .rsvp-section {
             background: rgba(251, 191, 36, 0.1);
             backdrop-filter: blur(10px);
@@ -152,7 +135,6 @@
             border: 2px solid rgba(251, 191, 36, 0.2);
             margin-bottom: 1.5rem;
         }
-
         .rsvp-section h3 {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             background-clip: text;
@@ -162,7 +144,6 @@
             font-size: 1.2rem;
             border-bottom: none;
         }
-
         .rsvp-button {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             color: #1f2937;
@@ -176,22 +157,19 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            margin-bottom: 1rem;
         }
-
         .rsvp-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
         }
-
         .rsvp-button.rsvped {
             background: linear-gradient(45deg, #ef4444, #dc2626);
             color: white;
         }
-
         .rsvp-button.rsvped:hover {
             box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
         }
-
         .login-prompt {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             color: #1f2937;
@@ -207,12 +185,75 @@
             display: inline-block;
             text-align: center;
         }
-
         .login-prompt:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
         }
-
+        .share-section {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .share-button {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #1f2937;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .share-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+        .share-popup {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 200px;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .share-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .share-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .share-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #374151;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+        }
+        .share-option:hover {
+            background-color: #f3f4f6;
+        }
+        .share-option svg {
+            width: 18px;
+            height: 18px;
+            margin-right: 0.75rem;
+        }
         .capacity-bar {
             background: rgba(229, 231, 235, 0.5);
             height: 8px;
@@ -220,20 +261,17 @@
             margin: 1rem 0;
             overflow: hidden;
         }
-
         .capacity-fill {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             height: 100%;
             border-radius: 4px;
             transition: width 0.3s ease;
         }
-
         .action-buttons {
             display: flex;
             gap: 1rem;
             margin-top: 2rem;
         }
-
         .btn-secondary {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             color: #1f2937;
@@ -249,12 +287,10 @@
             text-align: center;
             flex: 1;
         }
-
         .btn-secondary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
         }
-
         .status-badge {
             display: inline-block;
             padding: 0.5rem 1rem;
@@ -264,22 +300,18 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         .status-published {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             color: #1f2937;
         }
-
         .status-draft {
             background: linear-gradient(45deg, #f59e0b, #d97706);
             color: white;
         }
-
         .status-cancelled {
             background: linear-gradient(45deg, #ef4444, #dc2626);
             color: white;
         }
-
         .map-container {
             margin: 1rem 0;
             border-radius: 12px;
@@ -287,45 +319,36 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border: 2px solid rgba(251, 191, 36, 0.2);
         }
-
         .map-container iframe {
             transition: all 0.3s ease;
         }
-
         .map-container:hover iframe {
             transform: scale(1.02);
         }
-
         /* Responsive Design */
         @media (max-width: 768px) {
             .event-details-container {
                 margin: 1rem;
                 padding: 0 1rem;
             }
-
             .event-content {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-
             .event-sidebar {
                 position: static;
             }
-
             .event-title {
                 font-size: 2rem;
             }
-
             .event-meta {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto;
             }
-
             .action-buttons {
                 flex-direction: column;
             }
         }
-
         /* Animation */
         @keyframes fadeInUp {
             from {
@@ -337,23 +360,19 @@
                 transform: translateY(0);
             }
         }
-
         .event-details-container > * {
             animation: fadeInUp 0.6s ease-out forwards;
         }
-
         .event-content > *:nth-child(2) { animation-delay: 0.1s; }
         .action-buttons { animation-delay: 0.2s; }
     </style>
 </th:block>
-
 <div layout:fragment="content">
     <div class="event-details-container">
         <!-- Event Header -->
         <div class="event-header">
             <h1 class="event-title" th:text="${event.title}">Event Title</h1>
         </div>
-
         <!-- Event Content Grid -->
         <div class="event-content">
             <!-- Main Information -->
@@ -381,19 +400,16 @@
                         <div class="meta-value" th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Free' : '$' + ${event.price}">Event Price</div>
                     </div>
                 </div>
-
                 <!-- Description -->
                 <div class="info-section">
                     <h3>About This Event</h3>
                     <p th:text="${event.description} ?: 'No description available.'">Event description will appear here.</p>
                 </div>
-
                 <!-- Venue Details -->
                 <div class="info-section" th:if="${event.venueDetails != null and !event.venueDetails.isEmpty()}">
                     <h3>Venue Details</h3>
                     <p th:text="${event.venueDetails}">Venue details will appear here.</p>
                 </div>
-
                 <!-- Google Maps Section -->
                 <div class="info-section">
                     <h3>Location Map</h3>
@@ -412,7 +428,6 @@
                         </p>
                     </div>
                 </div>
-
                 <!-- Additional Information -->
                 <div class="info-section">
                     <h3>Event Details</h3>
@@ -423,7 +438,6 @@
                     <p th:if="${event.isFeatured}"><strong>Featured Event:</strong> Yes</p>
                 </div>
             </div>
-
             <!-- Sidebar -->
             <div class="event-sidebar">
                 <!-- RSVP Section -->
@@ -445,12 +459,10 @@
                         <p><strong th:text="${event.currentRsvpCount} ?: 0">0</strong> attendees registered</p>
                         <p>Unlimited capacity</p>
                     </div>
-
                     <!-- RSVP Buttons -->
                     <div th:if="${currentUser == null}">
                         <a th:href="@{/auth/login(redirect='/events/' + ${event.eventId})}" class="login-prompt">Login to RSVP</a>
                     </div>
-
                     <div th:if="${currentUser != null}">
                         <!-- Show RSVP button if user hasn't RSVP'd OR if they cancelled -->
                         <div th:if="${userRsvpStatus == null or userRsvpStatus == 'No RSVP yet' or userRsvpStatus == 'cancelled'}">
@@ -472,8 +484,30 @@
                             </form>
                         </div>
                     </div>
+                    
+                    <!-- Share Section -->
+                    <div class="share-section" style="position: relative;">
+                        <button id="shareButton" class="share-button">
+                            Share Event
+                        </button>
+                        <div id="sharePopup" class="share-popup">
+                            <div class="share-options">
+                                <a href="#" id="emailShare" class="share-option">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                    </svg>
+                                    Share via Email
+                                </a>
+                                <a href="#" id="textShare" class="share-option">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                                    </svg>
+                                    Copy Link
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
                 <!-- Event Information -->
                 <div class="info-section">
                     <h3>Quick Info</h3>
@@ -483,7 +517,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Action Buttons -->
         <div class="action-buttons">
             <a href="/" class="btn-secondary">← Back to Events</a>
@@ -494,10 +527,114 @@
                class="btn-secondary">Edit Event</a>
         </div>
     </div>
-
     <script>
-
+        document.addEventListener('DOMContentLoaded', function() {
+            const shareButton = document.getElementById('shareButton');
+            const sharePopup = document.getElementById('sharePopup');
+            const emailShare = document.getElementById('emailShare');
+            const textShare = document.getElementById('textShare');
+            
+            let hideTimeout;
+            
+            shareButton.addEventListener('click', function() {
+                // Clear any existing timeout
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                }
+                
+                // Show popup
+                sharePopup.classList.add('show');
+                
+                // Hide popup after 3 seconds
+                hideTimeout = setTimeout(function() {
+                    sharePopup.classList.remove('show');
+                }, 3000);
+            });
+            
+            // Email sharing
+            emailShare.addEventListener('click', function(e) {
+                e.preventDefault();
+                const eventTitle = document.querySelector('.event-title').textContent;
+                const eventUrl = window.location.href;
+                const subject = encodeURIComponent(`Check out this event: ${eventTitle}`);
+                const body = encodeURIComponent(`Hi! I wanted to share this event with you: ${eventTitle}\n\nEvent details: ${eventUrl}`);
+                
+                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                sharePopup.classList.remove('show');
+            });
+            
+            // Text/Copy link sharing
+            textShare.addEventListener('click', function(e) {
+                e.preventDefault();
+                const eventUrl = window.location.href;
+                
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(eventUrl).then(function() {
+                        // Show feedback without changing the popup display
+                        const originalText = textShare.querySelector('span') ? textShare.querySelector('span').textContent : 'Copy Link';
+                        const textSpan = textShare.querySelector('span') || textShare.childNodes[textShare.childNodes.length - 1];
+                        if (textSpan.nodeType === Node.TEXT_NODE) {
+                            textSpan.textContent = 'Copied!';
+                        } else {
+                            textSpan.textContent = 'Copied!';
+                        }
+                        
+                        setTimeout(function() {
+                            if (textSpan.nodeType === Node.TEXT_NODE) {
+                                textSpan.textContent = originalText;
+                            } else {
+                                textSpan.textContent = originalText;
+                            }
+                        }, 2000);
+                        
+                        // Don't hide popup immediately, let the timeout handle it
+                    }).catch(function(err) {
+                        console.error('Could not copy text: ', err);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = eventUrl;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        const originalText = textShare.querySelector('span') ? textShare.querySelector('span').textContent : 'Copy Link';
+                        const textSpan = textShare.querySelector('span') || textShare.childNodes[textShare.childNodes.length - 1];
+                        if (textSpan.nodeType === Node.TEXT_NODE) {
+                            textSpan.textContent = 'Copied!';
+                        } else {
+                            textSpan.textContent = 'Copied!';
+                        }
+                        
+                        setTimeout(function() {
+                            if (textSpan.nodeType === Node.TEXT_NODE) {
+                                textSpan.textContent = originalText;
+                            } else {
+                                textSpan.textContent = originalText;
+                            }
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Unable to copy to clipboard', err);
+                    }
+                    document.body.removeChild(textArea);
+                }
+            });
+            
+            // Hide popup when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!shareButton.contains(e.target) && !sharePopup.contains(e.target)) {
+                    sharePopup.classList.remove('show');
+                    if (hideTimeout) {
+                        clearTimeout(hideTimeout);
+                    }
+                }
+            });
+        });
     </script>
 </div>
-
 </html>
