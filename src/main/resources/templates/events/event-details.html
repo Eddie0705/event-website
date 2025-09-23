@@ -352,11 +352,6 @@
         <!-- Event Header -->
         <div class="event-header">
             <h1 class="event-title" th:text="${event.title}">Event Title</h1>
-            <p class="event-subtitle">
-                <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('EEEE, MMMM dd, yyyy'))}">Event Date</span>
-                at 
-                <span th:text="${event.startTime.format(T(java.time.format.DateTimeFormatter).ofPattern('h:mm a'))}">Start Time</span>
-            </p>
         </div>
 
         <!-- Event Content Grid -->
