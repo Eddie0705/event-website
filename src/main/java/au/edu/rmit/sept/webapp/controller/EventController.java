@@ -1,9 +1,12 @@
 package au.edu.rmit.sept.webapp.controller;
 
 import au.edu.rmit.sept.webapp.models.Event;
+import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
+import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 
 import org.springframework.security.core.Authentication;
@@ -29,6 +32,12 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private RSVPService rsvpService;
+
+    @Autowired
+    private RSVPRepository rsvpRepository;
 
     /**
      * Get current authenticated user from Spring Security
@@ -117,10 +126,22 @@ public class EventController {
     public String viewEvent(@PathVariable Long id, Model model) {
         try {
             Event event = eventService.getEventById(id);
+            User currentUser = getCurrentUser();
+
             model.addAttribute("event", event);
+            model.addAttribute("currentUser", currentUser);
+
+            // Check user's RSVP status
+            if (currentUser != null) {
+                String userRsvpStatus = rsvpRepository.getRsvpStatus(event, currentUser)
+                        .map(RSVP.RSVPStatus::name)
+                        .orElse("No RSVP yet");
+                model.addAttribute("userRsvpStatus", userRsvpStatus);
+            }
+
             return "events/event-details";
         } catch (RuntimeException e) {
-            return "redirect:/events";
+            return "redirect:/";
         }
     }
 
