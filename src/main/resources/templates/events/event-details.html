@@ -194,8 +194,8 @@
             text-align: center;
         }
         .share-button {
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            color: #1f2937;
+            background: linear-gradient(45deg, #3b4bc4, #3240a8);
+            color: white;
             border: none;
             padding: 12px 24px;
             border-radius: 12px;
@@ -208,7 +208,7 @@
         }
         .share-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+            box-shadow: 0 8px 25px rgba(59, 75, 196, 0.4);
         }
         .share-popup {
             position: absolute;
@@ -570,24 +570,12 @@
                 
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(eventUrl).then(function() {
-                        // Show feedback without changing the popup display
-                        const originalText = textShare.querySelector('span') ? textShare.querySelector('span').textContent : 'Copy Link';
-                        const textSpan = textShare.querySelector('span') || textShare.childNodes[textShare.childNodes.length - 1];
-                        if (textSpan.nodeType === Node.TEXT_NODE) {
-                            textSpan.textContent = 'Copied!';
-                        } else {
-                            textSpan.textContent = 'Copied!';
-                        }
-                        
+                        // Change text temporarily to show feedback
+                        const originalText = textShare.innerHTML;
+                        textShare.innerHTML = textShare.innerHTML.replace('Copy Link', 'Copied!');
                         setTimeout(function() {
-                            if (textSpan.nodeType === Node.TEXT_NODE) {
-                                textSpan.textContent = originalText;
-                            } else {
-                                textSpan.textContent = originalText;
-                            }
+                            textShare.innerHTML = originalText;
                         }, 2000);
-                        
-                        // Don't hide popup immediately, let the timeout handle it
                     }).catch(function(err) {
                         console.error('Could not copy text: ', err);
                     });
@@ -603,20 +591,10 @@
                     textArea.select();
                     try {
                         document.execCommand('copy');
-                        const originalText = textShare.querySelector('span') ? textShare.querySelector('span').textContent : 'Copy Link';
-                        const textSpan = textShare.querySelector('span') || textShare.childNodes[textShare.childNodes.length - 1];
-                        if (textSpan.nodeType === Node.TEXT_NODE) {
-                            textSpan.textContent = 'Copied!';
-                        } else {
-                            textSpan.textContent = 'Copied!';
-                        }
-                        
+                        const originalText = textShare.innerHTML;
+                        textShare.innerHTML = textShare.innerHTML.replace('Copy Link', 'Copied!');
                         setTimeout(function() {
-                            if (textSpan.nodeType === Node.TEXT_NODE) {
-                                textSpan.textContent = originalText;
-                            } else {
-                                textSpan.textContent = originalText;
-                            }
+                            textShare.innerHTML = originalText;
                         }, 2000);
                     } catch (err) {
                         console.error('Unable to copy to clipboard', err);
