@@ -45,6 +45,11 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
+        if (currentUser != null && currentUser.getUserType() != null &&
+                currentUser.getUserType().name().equalsIgnoreCase("ADMIN")) {
+            return "redirect:/admin/dashboard";
+        }
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
         return "Index"; // This will use the same template as /Index

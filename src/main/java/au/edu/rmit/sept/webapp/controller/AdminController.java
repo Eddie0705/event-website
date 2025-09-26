@@ -20,4 +20,9 @@ public class AdminController {
 
     // for admin dash and admin specific tools
 
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        return "admin/dashboard";
+    }
+
 }
