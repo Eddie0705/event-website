@@ -26,8 +26,6 @@ public class OrganiserController {
     private EventService eventService;
 
 
-    @Autowired
-    private EventService eventService;
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
