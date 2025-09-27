@@ -22,9 +22,9 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/organiser")
 public class OrganiserController {
-
     @Autowired
     private EventService eventService;
+
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
