@@ -1,5 +1,7 @@
 package au.edu.rmit.sept.webapp.config;
 
+import org.springframework.http.HttpMethod;
+
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.security.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,10 @@ public class SecurityConfig {
                                                 .requestMatchers("/db-test", "/auth-test", "/db-users-test",
                                                                 "/test-user-load")
                                                 .permitAll()
+
+                                                // Event viewing - Allow anonymous access to view events
+                                                .requestMatchers(HttpMethod.GET, "/events/*").permitAll()
+                                                .requestMatchers("/events/*/rsvp").authenticated()
 
                                                 // Admin endpoints
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
