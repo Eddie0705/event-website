@@ -123,6 +123,13 @@ public class AuthController {
         return "redirect:/";
     }
 
+    @GetMapping("/logout")
+    public String Logout(HttpSession session, RedirectAttributes redirectAttributes) {
+        session.invalidate();
+        redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully");
+        return "redirect:/auth/login";
+    }
+
     /**
      * Display forgot password page
      */
