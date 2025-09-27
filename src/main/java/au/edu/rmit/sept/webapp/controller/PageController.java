@@ -126,13 +126,6 @@ public class PageController {
 
     }
 
-    @GetMapping("/calendar")
-    public String calendar(Model model) {
-        User currentUser = getCurrentUser();
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", currentUser != null);
-        return "Calendar";
-    }
 
     @GetMapping("/eventRSVP")
     public String rspv(Model model) {
