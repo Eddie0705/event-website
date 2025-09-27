@@ -172,6 +172,11 @@ public class PageController {
         return "myevents";
     }
 
+    @GetMapping("/logout")
+    public String Logout(Model model) {
+        return "redirect:/auth/logout";
+    }
+
     // Database test endpoint
     @GetMapping("/db-test")
     @ResponseBody

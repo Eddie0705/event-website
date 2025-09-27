@@ -50,8 +50,14 @@ public class AuthController {
      * Display login page
      */
     @GetMapping("/login")
-    public String showLoginPage(Model model) {
+    public String showLoginPage(@RequestParam(required = false) String redirect, Model model) {
         model.addAttribute("user", new User());
+
+        // Preserve redirect parameter for after login
+        if (redirect != null && !redirect.isEmpty()) {
+            model.addAttribute("redirectUrl", redirect);
+        }
+
         return "auth/login";
     }
 
@@ -115,6 +121,13 @@ public class AuthController {
         session.invalidate();
         redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully");
         return "redirect:/";
+    }
+
+    @GetMapping("/logout")
+    public String Logout(HttpSession session, RedirectAttributes redirectAttributes) {
+        session.invalidate();
+        redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully");
+        return "redirect:/auth/login";
     }
 
     /**
