@@ -11,9 +11,9 @@ class WebappApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-	@Test
-	void failTest() {
-		assertTrue(false, "This test case should fail ");
-	}
+	// @Test
+	// void failTest() {
+	// 	assertTrue(false, "This test case should fail ");
+	// }
 
 }
