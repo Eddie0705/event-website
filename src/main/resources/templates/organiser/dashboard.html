@@ -569,6 +569,29 @@
         function confirmAction(message) {
             return confirm(message);
         }
+
+        // Profile dropdown functionality
+        function toggleDropdown(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const dropdown = document.getElementById('profileDropdown');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            
+            dropdown.classList.toggle('show');
+            profileDropdown.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            
+            if (!profileDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+                profileDropdown.classList.remove('active');
+            }
+        });
     </script>
 </th:block>
 </html>
