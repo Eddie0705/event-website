@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-
+import java.util.List;
 @Service
 public class RSVPService {
     private final RSVPRepository rsvpRepository;
@@ -95,4 +95,14 @@ public class RSVPService {
                 .map(RSVP.RSVPStatus::name)
                 .orElse("No RSVP yet");
         }
+        
+    @Transactional
+    public Optional <RSVP> getUserRsvp (Event event, User user){
+        return rsvpRepository.findByEventAndUser(event, user);
+    }
+
+    @Transactional
+    public List<RSVP> getUserRsvps(User user) {
+        return rsvpRepository.findByUser(user);
+    }
 }
