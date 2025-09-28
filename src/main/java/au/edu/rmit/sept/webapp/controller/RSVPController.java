@@ -11,7 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Optional;
+import java.util.List;
 @Controller
 @RequestMapping("/rsvp")
 public class RSVPController {
@@ -88,5 +89,21 @@ public class RSVPController {
         return rsvpRepository.getRsvpStatus(event, user)
                 .map(RSVP.RSVPStatus::name)
                 .orElse("No RSVP yet");
+    }
+
+    @GetMapping("/event/{eventId}/my-rsvp")
+    public String getAllMyRsvps(@RequestParam Long userId, Model model) {
+        User user = userRepository.findById(userId).orElseThrow();
+        List<RSVP> rsvps = rsvpService.getUserRsvps(user);
+
+        model.addAttribute("confirmed", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes).toList());
+
+        model.addAttribute("no", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no) .toList());
+
+        model.addAttribute("maybe", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe) .toList());
+
+        model.addAttribute("cancelled", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled).toList());
+        
+        return "rsvp/eventRSVP";
     }
 }
