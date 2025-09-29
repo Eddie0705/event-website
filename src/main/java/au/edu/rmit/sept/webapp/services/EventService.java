@@ -34,7 +34,7 @@ public class EventService {
         }
 
         if (event.getStatus() == null) {
-            event.setStatus(EventStatus.DRAFT);
+            event.setStatus(EventStatus.draft);
         }
 
         if (event.getIsPaid() == null) {
@@ -48,7 +48,7 @@ public class EventService {
         Event savedEvent = eventRepository.save(event);
 
         // Generate QR code if event is published
-        if (savedEvent.getStatus() == EventStatus.PUBLISHED) {
+        if (savedEvent.getStatus() == EventStatus.published) {
             generateQrCodeData(savedEvent);
         }
 
@@ -88,7 +88,7 @@ public class EventService {
         Event savedEvent = eventRepository.save(existingEvent);
 
         // Generate QR code if status changed to published and QR code doesn't exist
-        if (savedEvent.getStatus() == EventStatus.PUBLISHED &&
+        if (savedEvent.getStatus() == EventStatus.published &&
                 (savedEvent.getQrCodeData() == null || savedEvent.getQrCodeData().isEmpty())) {
             generateQrCodeData(savedEvent);
         }
@@ -113,71 +113,78 @@ public class EventService {
 
     // Get published events
     public List<Event> getPublishedEvents() {
-        return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED);
+        return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.published);
     }
 
     public Page<Event> getPublishedEvents(Pageable pageable) {
-        return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED, pageable);
+        return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.published, pageable);
     }
 
     // Get upcoming events
     public List<Event> getUpcomingEvents() {
-        return eventRepository.findUpcomingEvents(EventStatus.PUBLISHED, LocalDate.now());
+        return eventRepository.findUpcomingEvents(EventStatus.published, LocalDate.now());
     }
 
     public Page<Event> getUpcomingEvents(Pageable pageable) {
-        return eventRepository.findUpcomingEvents(EventStatus.PUBLISHED, LocalDate.now(), pageable);
+        return eventRepository.findUpcomingEvents(EventStatus.published, LocalDate.now(), pageable);
     }
 
     // Get featured events
     public List<Event> getFeaturedEvents() {
-        return eventRepository.findByIsFeaturedTrueAndStatusOrderByEventDateAsc(EventStatus.PUBLISHED);
+        return eventRepository.findByIsFeaturedTrueAndStatusOrderByEventDateAsc(EventStatus.published);
+    }
+
+    // Get all events (admin only - includes all statuses)
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll().stream()
+                .sorted((e1, e2) -> e1.getEventDate().compareTo(e2.getEventDate()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     // Search events
     public List<Event> searchEvents(String searchTerm) {
-        return eventRepository.searchEvents(EventStatus.PUBLISHED, searchTerm);
+        return eventRepository.searchEvents(EventStatus.published, searchTerm);
     }
 
     public Page<Event> searchEvents(String searchTerm, Pageable pageable) {
-        return eventRepository.searchEvents(EventStatus.PUBLISHED, searchTerm, pageable);
+        return eventRepository.searchEvents(EventStatus.published, searchTerm, pageable);
     }
 
     // Get events by category
     public List<Event> getEventsByCategory(Long categoryId) {
-        return eventRepository.findByCategoryIdAndStatusOrderByEventDateAsc(categoryId, EventStatus.PUBLISHED);
+        return eventRepository.findByCategoryIdAndStatusOrderByEventDateAsc(categoryId, EventStatus.published);
     }
 
     // Get events by club
     public List<Event> getEventsByClub(Long clubId) {
-        return eventRepository.findByClubIdAndStatusOrderByEventDateAsc(clubId, EventStatus.PUBLISHED);
+        return eventRepository.findByClubIdAndStatusOrderByEventDateAsc(clubId, EventStatus.published);
     }
 
     // Get events by date range
     public List<Event> getEventsByDateRange(LocalDate startDate, LocalDate endDate) {
-        return eventRepository.findEventsByDateRange(EventStatus.PUBLISHED, startDate, endDate);
+        return eventRepository.findEventsByDateRange(EventStatus.published, startDate, endDate);
     }
 
     // Get events with available spots
     public List<Event> getEventsWithAvailableSpots() {
-        return eventRepository.findEventsWithAvailableSpots(EventStatus.PUBLISHED);
+        return eventRepository.findEventsWithAvailableSpots(EventStatus.published);
     }
 
     // Get free events
     public List<Event> getFreeEvents() {
-        return eventRepository.findFreeEvents(EventStatus.PUBLISHED);
+        return eventRepository.findFreeEvents(EventStatus.published);
     }
 
     // Get paid events
     public List<Event> getPaidEvents() {
-        return eventRepository.findPaidEvents(EventStatus.PUBLISHED);
+        return eventRepository.findPaidEvents(EventStatus.published);
     }
 
-    // Delete event (only if no RSVPs)
+    // Delete event (only if no RSVPs and organizer owns it) - for organizers only
     public void deleteEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
 
-        // Check if user is the organiser
+        // Check if user is the organiser (admin check not applicable here since this method is for organizers)
         if (!event.getCreatedBy().equals(organiserId)) {
             throw new RuntimeException("You can only delete your own events");
         }
@@ -192,7 +199,18 @@ public class EventService {
         eventRepository.delete(event);
     }
 
-    // Cancel event
+    // Delete event for admin (bypasses organizer restriction and RSVP check)
+    @Transactional
+    public void deleteEventByAdmin(Long eventId) {
+        Event event = getEventById(eventId);
+
+        // Admin can delete any event regardless of RSVPs
+        // Note: Image deletion will be added when image upload is implemented
+
+        eventRepository.delete(event);
+    }
+
+    // Cancel event - for organizers
     public Event cancelEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
 
@@ -202,16 +220,71 @@ public class EventService {
         }
 
         // Check if event is not already cancelled or completed
-        if (event.getStatus() == EventStatus.CANCELLED) {
+        if (event.getStatus() == EventStatus.cancelled) {
             throw new RuntimeException("Event is already cancelled");
         }
 
-        if (event.getStatus() == EventStatus.COMPLETED) {
+        if (event.getStatus() == EventStatus.completed) {
             throw new RuntimeException("Cannot cancel a completed event");
         }
 
-        event.setStatus(EventStatus.CANCELLED);
+        event.setStatus(EventStatus.cancelled);
         return eventRepository.save(event);
+    }
+
+    // Cancel event for admin (bypasses organizer restriction)
+    @Transactional
+    public Event cancelEventByAdmin(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+        // Check if event is not already cancelled or completed
+        if (event.getStatus() == EventStatus.cancelled) {
+            throw new RuntimeException("Event is already cancelled");
+        }
+
+        if (event.getStatus() == EventStatus.completed) {
+            throw new RuntimeException("Cannot cancel a completed event");
+        }
+
+        // Cancel the event
+        event.setStatus(EventStatus.cancelled);
+        
+        try {
+            return eventRepository.save(event);
+        } catch (Exception e) {
+            // Log the actual error for debugging
+            System.err.println("Error cancelling event " + eventId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to cancel event. Original error: " + e.getMessage());
+        }
+    }
+
+
+    // Uncancel event for admin (restore cancelled event to active status)
+    @Transactional
+    public Event uncancelEventByAdmin(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+        // Check if event is actually cancelled
+        if (event.getStatus() != EventStatus.cancelled) {
+            throw new RuntimeException("Only cancelled events can be uncancelled");
+        }
+
+        // Restore to published status
+        event.setStatus(EventStatus.published);
+        
+        try {
+            Event savedEvent = eventRepository.save(event);
+            
+            // Generate QR code data if it doesn't exist
+            generateQrCodeData(savedEvent);
+            
+            return savedEvent;
+        } catch (Exception e) {
+            System.err.println("Error uncancelling event " + eventId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to uncancel event. Original error: " + e.getMessage());
+        }
     }
 
     // Publish event
@@ -223,7 +296,7 @@ public class EventService {
             throw new RuntimeException("You can only publish your own events");
         }
 
-        event.setStatus(EventStatus.PUBLISHED);
+        event.setStatus(EventStatus.published);
         Event savedEvent = eventRepository.save(event);
 
         // Generate QR code
@@ -319,21 +392,21 @@ public class EventService {
     // Get today's events
     public List<Event> getTodaysEvents() {
         return eventRepository.findByEventDateAndStatusOrderByStartTimeAsc(
-                LocalDate.now(), EventStatus.PUBLISHED);
+                LocalDate.now(), EventStatus.published);
     }
 
     // Get events with upcoming registration deadlines
     public List<Event> getEventsWithUpcomingDeadlines(int days) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime deadline = now.plusDays(days);
-        return eventRepository.findEventsWithUpcomingDeadline(EventStatus.PUBLISHED, now, deadline);
+        return eventRepository.findEventsWithUpcomingDeadline(EventStatus.published, now, deadline);
     }
 
     // Mark event as completed (for past events)
     public void markEventAsCompleted(Long eventId) {
         Event event = getEventById(eventId);
         if (event.getEventDate().isBefore(LocalDate.now())) {
-            event.setStatus(EventStatus.COMPLETED);
+            event.setStatus(EventStatus.completed);
             eventRepository.save(event);
         }
     }
@@ -341,10 +414,10 @@ public class EventService {
     // Batch update past events to completed status
     public void updatePastEventsToCompleted() {
         List<Event> pastEvents = eventRepository.findEventsByDateRange(
-                EventStatus.PUBLISHED, LocalDate.of(2000, 1, 1), LocalDate.now().minusDays(1));
+                EventStatus.published, LocalDate.of(2000, 1, 1), LocalDate.now().minusDays(1));
 
         for (Event event : pastEvents) {
-            event.setStatus(EventStatus.COMPLETED);
+            event.setStatus(EventStatus.completed);
         }
         eventRepository.saveAll(pastEvents);
     }
@@ -353,8 +426,8 @@ public class EventService {
     public boolean canEditEvent(Long eventId, Long userId) {
         Event event = getEventById(eventId);
         return event.getCreatedBy().equals(userId) &&
-                event.getStatus() != EventStatus.COMPLETED &&
-                event.getStatus() != EventStatus.CANCELLED;
+                event.getStatus() != EventStatus.completed &&
+                event.getStatus() != EventStatus.cancelled;
     }
 
     // Get events count by status for organiser
