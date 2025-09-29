@@ -78,7 +78,7 @@ public class Event {
     @Column(name = "is_paid", nullable = false)
     private Boolean isPaid = false;
 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be greater than or equal to 0")
     @Digits(integer = 8, fraction = 2, message = "Price format is invalid")
     @Column(name = "price", precision = 10, scale = 2)
     private BigDecimal price;
@@ -89,7 +89,7 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private EventStatus status = EventStatus.DRAFT;
+    private EventStatus status = EventStatus.draft;
 
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;
@@ -112,20 +112,10 @@ public class Event {
 
     // Enum for event status
     public enum EventStatus {
-        DRAFT("draft"),
-        PUBLISHED("published"),
-        CANCELLED("cancelled"),
-        COMPLETED("completed");
-
-        private final String value;
-
-        EventStatus(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
+        draft,
+        published,
+        cancelled,
+        completed;
     }
 
     // Default constructor
@@ -377,9 +367,9 @@ public class Event {
 
     public boolean isRegistrationOpen() {
         if (registrationDeadline == null) {
-            return status == EventStatus.PUBLISHED;
+            return status == EventStatus.published;
         }
-        return status == EventStatus.PUBLISHED &&
+        return status == EventStatus.published &&
                 LocalDateTime.now().isBefore(registrationDeadline);
     }
 
