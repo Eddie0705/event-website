@@ -39,6 +39,7 @@ class UserServiceTest {
         user.setEmail("test@test.com");
         user.setUsername("testuser");
         user.setPasswordHash("plain");
+        user.setUserType(UserType.STUDENT);
 
         when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
         when(userRepository.existsByUsername(user.getUsername())).thenReturn(false);
