@@ -224,17 +224,29 @@ public class UserService {
      * @return true if user banned successfully
      */
     public boolean banUser(Long userId) {
+        System.out.println("=== USER SERVICE BAN USER ===");
+        System.out.println("Looking for user with ID: " + userId);
+        
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+            System.out.println("Found user: " + user.getUsername() + " (was banned: " + user.getIsBanned() + ")");
+            
             user.setIsBanned(true);
             user.setIsActive(false);
-            userRepository.save(user);
+            
+            System.out.println("Setting user banned to: " + user.getIsBanned());
+            System.out.println("Setting user active to: " + user.getIsActive());
+            
+            User savedUser = userRepository.save(user);
+            System.out.println("User saved. Verifying ban status: " + savedUser.getIsBanned());
+            
             return true;
+        } else {
+            System.out.println("User with ID " + userId + " not found!");
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -401,5 +413,31 @@ public class UserService {
         public long getAdmins() {
             return admins;
         }
+    }
+
+    /**
+     * Permanently delete a user (admin only)
+     * This will also cascade delete any events created by this user
+     * WARNING: This is permanent and cannot be undone
+     */
+    @Transactional
+    public void deleteUser(Long userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (!userOptional.isPresent()) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
+
+        User user = userOptional.get();
+        
+        // Additional safety check - prevent deletion of the last admin
+        if (user.getUserType() == UserType.ADMIN) {
+            long adminCount = userRepository.countByUserType(UserType.ADMIN);
+            if (adminCount <= 1) {
+                throw new RuntimeException("Cannot delete the last remaining admin user");
+            }
+        }
+        
+        // Delete the user (cascading will handle related events automatically)
+        userRepository.delete(user);
     }
 }

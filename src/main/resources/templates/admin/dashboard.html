@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}">
+<head>
+    <title>Admin Dashboard</title>
+</head>
+
+<!-- Page-specific CSS (and external styles) -->
+<th:block layout:fragment="css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Force top navbar to match base layout despite Bootstrap */
+        body > nav.nav {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 1rem 2rem !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1) !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 100 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+
+        body > nav.nav .mid-nav a,
+        body > nav.nav .right-nav a {
+            text-decoration: none !important;
+            color: #374151 !important;
+            font-weight: 500 !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+        }
+
+        body > nav.nav .mid-nav a:hover,
+        body > nav.nav .right-nav a:hover {
+            background: #6366f1 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+        }
+
+        body > nav.nav .logo {
+            font-size: 1.8rem !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+
+        /* Ensure base layout gradient shows everywhere */
+        .container-fluid, .row, .admin-content {
+            background: transparent !important;
+        }
+        .admin-content {
+            min-height: calc(100vh - 140px);
+        }
+        .admin-sidebar {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
+        }
+        .admin-sidebar .nav-link {
+            color: #ffffff !important;
+            font-weight: 500;
+            padding: 0.625rem 0.75rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.10);
+            margin-bottom: 0.5rem;
+        }
+        .admin-sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .admin-sidebar .nav-link.active {
+            background-color: #6366f1 !important;
+            color: #ffffff !important;
+            border-radius: 10px;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+        }
+        .admin-header {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            box-shadow: none !important;
+        }
+        .admin-header #page-title { color: #ffffff !important; }
+        .admin-content {
+            padding: 1rem 1.5rem;
+        }
+        /* Brighter Admin logo */
+        .admin-logo {
+            background: linear-gradient(45deg, #fde68a, #fbbf24, #f59e0b, #f97316) !important;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45) !important;
+        }
+        .admin-logo i {
+            color: #ffffff !important;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+        }
+        .admin-title {
+            color: #ffffff !important;
+            letter-spacing: 0.2px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .admin-subtitle {
+            color: #fde68a !important;
+            font-weight: 600;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.2);
+        }
+        .stats-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 18px rgba(0,0,0,0.06);
+        }
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        /* Tables inherit translucent style for consistency */
+        .table {
+            background: transparent;
+        }
+        .table tbody tr { background: transparent; }
+        .table-hover tbody tr:hover { background-color: rgba(99, 102, 241, 0.06); }
+        .table thead th {
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .badge.bg-success { background-color: #10b981 !important; }
+        .badge.bg-warning { background-color: #f59e0b !important; }
+        .badge.bg-danger { background-color: #ef4444 !important; }
+        .badge.bg-info { background-color: #3b82f6 !important; }
+    </style>
+</th:block>
+
+<!-- Page Content injected into base layout -->
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 admin-sidebar">
+                <div class="p-4 d-flex flex-column" style="height: 100vh;">
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center justify-content-center admin-logo rounded-circle mb-3" style="width: 48px; height: 48px;">
+                            <i class="fas fa-crown text-white"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold admin-title">Admin Panel</h5>
+                        <small class="admin-subtitle">EventHub Management</small>
+                    </div>
+                    <nav class="flex-column">
+                        <a class="nav-link active" href="#events" onclick="showSection('events')">
+                            <i class="fas fa-calendar-alt me-2"></i>Events Management
+                        </a>
+                        <a class="nav-link" href="#users" onclick="showSection('users')">
+                            <i class="fas fa-users me-2"></i>User Management
+                        </a>
+                        <a class="nav-link" href="#analytics" onclick="showSection('analytics')">
+                            <i class="fas fa-chart-bar me-2"></i>Analytics Dashboard
+                        </a>
+                    </nav>
+                    
+                    <!-- Bottom Navigation -->
+                    
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 admin-content">
+                <!-- Header -->
+                <div class="admin-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 id="page-title">Events Management</h2>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" onclick="refreshData()" title="Refresh Data">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4">
+
+                    <!-- Events Management Section -->
+                    <div id="events-section">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>All Events
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" placeholder="Search events..." id="event-search">
+                                    <select class="form-select" id="event-filter">
+                                        <option value="all">All Events</option>
+                                        <option value="active">Active</option>
+                                        <option value="flagged">Flagged</option>
+                                        <option value="upcoming">Upcoming</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Event</th>
+                                                <th>Organizer</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="events-table">
+                                            <tr id="events-loading">
+                                                <td colspan="5" class="text-center py-4">
+                                                    <div class="spinner-border" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Management Section -->
+                    <div id="users-section" style="display: none;">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>User Management
+                                </h5>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" placeholder="Search users..." id="user-search">
+                                    <select class="form-select" id="user-filter">
+                                        <option value="all">All Users</option>
+                                        <option value="active">Active</option>
+                                        <option value="banned">Banned</option>
+                                        <option value="admin">Admins</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Joined</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="users-table">
+                                            <tr id="users-loading">
+                                                <td colspan="6" class="text-center py-4">
+                                                    <div class="spinner-border" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Section -->
+                    <div id="analytics-section" style="display: none;">
+                        <!-- Statistics Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                                        <h5 class="card-title">Total Events</h5>
+                                        <h3 class="mb-0" id="total-events">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-users fa-2x mb-2"></i>
+                                        <h5 class="card-title">Total Users</h5>
+                                        <h3 class="mb-0" id="total-users">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                        <h5 class="card-title">Flagged Events</h5>
+                                        <h3 class="mb-0" id="flagged-events">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                        <h5 class="card-title">Banned Users</h5>
+                                        <h3 class="mb-0" id="banned-users">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-chart-line me-2"></i>Event Statistics
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="eventChart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-chart-pie me-2"></i>User Distribution
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="userChart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Delete Event Modal -->
+    <div class="modal fade" id="deleteEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" title="Close Modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this event? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" title="Cancel Deletion">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteEvent()" title="Confirm Event Deletion">Delete Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal fade" id="viewUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">User Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" title="Close Modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="user-details-content">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading user details...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" title="Close User Details">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Event Modal -->
+    <div class="modal fade" id="viewEventModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Event Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" title="Close Modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="event-details-content">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading event details...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" title="Close Event Details">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ban User Modal -->
+    <div class="modal fade" id="banUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ban User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" title="Close Modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to ban this user? They will not be able to access the platform.</p>
+                    <div class="mb-3">
+                        <label for="banReason" class="form-label">Reason for ban:</label>
+                        <textarea class="form-control" id="banReason" rows="3" placeholder="Enter reason for banning this user..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" title="Cancel Ban Action">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmBanUser()" title="Confirm User Ban">Ban User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page-specific JavaScript -->
+<th:block layout:fragment="javascript">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let currentEventId = null;
+        let currentUserId = null;
+
+        // Navigation functions
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('events-section').style.display = 'none';
+            document.getElementById('users-section').style.display = 'none';
+            document.getElementById('analytics-section').style.display = 'none';
+
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            document.querySelector(`[href="#${section}"]`).classList.add('active');
+
+            // Update page title
+            const titles = {
+                'events': 'Events Management',
+                'users': 'User Management',
+                'analytics': 'Analytics Dashboard'
+            };
+            document.getElementById('page-title').textContent = titles[section];
+
+            // Load section-specific data
+            switch (section) {
+                case 'events':
+                    loadEvents();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    setTimeout(() => initializeCharts(), 100); // Small delay to ensure DOM is ready
+                    break;
+            }
+        }
+
+        // Event management functions
+        function viewEvent(id) {
+            // Reset modal content to loading state
+            document.getElementById('event-details-content').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading event details...</p>
+                </div>
+            `;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('viewEventModal'));
+            modal.show();
+            
+            // Fetch event details
+            fetch(`/admin/api/events/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayEventDetails(data.event);
+                    } else {
+                        document.getElementById('event-details-content').innerHTML = `
+                            <div class="alert alert-danger">
+                                <h6>Error loading event details</h6>
+                                <p class="mb-0">${data.error}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('event-details-content').innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6>Error loading event details</h6>
+                            <p class="mb-0">${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function displayEventDetails(event) {
+            const statusBadge = getEventStatusBadge(event.status);
+            const paymentBadge = event.isPaid ? 
+                '<span class="badge bg-warning">Paid Event</span>' : 
+                '<span class="badge bg-success">Free Event</span>';
+            
+            const featuredBadge = event.isFeatured ? 
+                '<span class="badge bg-info">Featured</span>' : 
+                '<span class="badge bg-secondary">Standard</span>';
+            
+            const createdAt = new Date(event.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const eventDate = new Date(event.eventDate + 'T' + event.startTime).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            const eventTime = event.startTime && event.endTime ? 
+                `${new Date('1970-01-01T' + event.startTime).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})} - ${new Date('1970-01-01T' + event.endTime).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}` :
+                (event.startTime ? new Date('1970-01-01T' + event.startTime).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : 'TBA');
+
+            const capacityInfo = event.maxCapacity > 0 ? 
+                `${event.currentRsvpCount || 0} / ${event.maxCapacity} attendees` : 
+                `${event.currentRsvpCount || 0} attendees (unlimited capacity)`;
+
+            const priceInfo = event.isPaid && event.price ? 
+                `${event.price} ${event.currency || 'USD'}` : 
+                'Free';
+
+            document.getElementById('event-details-content').innerHTML = `
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="text-center mb-4">
+                            <img src="https://via.placeholder.com/300x200" alt="Event Cover" 
+                                 class="rounded mb-3" style="width: 100%; height: 200px; object-fit: cover;">
+                            <h3 class="mb-1">${event.title}</h3>
+                            <p class="text-muted mb-2">Created by: ${event.createdBy}</p>
+                            <div class="mb-2">
+                                ${statusBadge}
+                                ${paymentBadge}
+                                ${featuredBadge}
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Event Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1">Event Date</h6>
+                                        <p class="mb-0">${eventDate}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1">Time</h6>
+                                        <p class="mb-0">${eventTime}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-1">Location</h6>
+                                    <p class="mb-0">${event.location || 'TBA'}</p>
+                                    ${event.venueDetails ? `<small class="text-muted">${event.venueDetails}</small>` : ''}
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1">Capacity</h6>
+                                        <p class="mb-0">${capacityInfo}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1">Price</h6>
+                                        <p class="mb-0">${priceInfo}</p>
+                                    </div>
+                                </div>
+                                
+                                ${event.registrationDeadline ? `
+                                    <div class="mb-3">
+                                        <h6 class="text-muted mb-1">Registration Deadline</h6>
+                                        <p class="mb-0">${new Date(event.registrationDeadline).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                ${event.googleMapsUrl ? `
+                                    <div class="mb-3">
+                                        <h6 class="text-muted mb-1">Location Link</h6>
+                                        <a href="${event.googleMapsUrl}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-map-marked-alt me-1"></i>View on Maps
+                                        </a>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-7">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">${event.description || 'No description provided'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Event Analytics</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="border rounded p-3">
+                                            <h5 class="mb-0 text-primary">${event.currentRsvpCount || 0}</h5>
+                                            <small class="text-muted">Current RSVPs</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="border rounded p-3">
+                                            <h5 class="mb-0 text-info">${event.maxCapacity > 0 ? Math.round(((event.currentRsvpCount || 0) / event.maxCapacity) * 100) : event.currentRsvpCount || 0}${event.maxCapacity > 0 ? '%' : ''}</h5>
+                                            <small class="text-muted">Fill Rate</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="border rounded p-3">
+                                            <h5 class="mb-0 text-success">${event.isFeatured ? 'Yes' : 'No'}</h5>
+                                            <small class="text-muted">Featured</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Event Timeline</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <h6 class="text-muted mb-1">Created</h6>
+                                    <p class="mb-0">${createdAt}</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h6 class="text-muted mb-1">Last Updated</h6>
+                                    <p class="mb-0">${event.updatedAt ? new Date(event.updatedAt).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'Unknown'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${event.qrCodeData ? `
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-qrcode me-2"></i>QR Code</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="border rounded p-3 bg-light">
+                                        <i class="fas fa-qrcode fa-3x text-muted mb-2"></i>
+                                        <p class="small text-muted mb-0">QR Code URL: ${event.qrCodeData}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function cancelEvent(id) {
+            if (confirm('Are you sure you want to cancel this event? This will notify all attendees that the event has been cancelled.')) {
+                fetch(`/admin/api/events/${id}/cancel`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        loadEvents(); // Reload events table to show updated status
+                    } else {
+                        alert('Error cancelling event: ' + data.error);
+                    }
+                })
+                .catch(error => alert('Error cancelling event: ' + error.message));
+            }
+        }
+
+        function uncancelEvent(id) {
+            if (confirm('Are you sure you want to restore this event? The event will become active again and available for RSVPs.')) {
+                fetch(`/admin/api/events/${id}/uncancel`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        loadEvents(); // Reload events table to show updated status
+                    } else {
+                        alert('Error restoring event: ' + data.error);
+                    }
+                })
+                .catch(error => alert('Error restoring event: ' + error.message));
+            }
+        }
+
+        function deleteEvent(id) {
+            currentEventId = id;
+            const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+            modal.show();
+        }
+
+        function confirmDeleteEvent() {
+            if (currentEventId) {
+                fetch(`/admin/api/events/${currentEventId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        loadEvents(); // Reload events table
+                    } else {
+                        alert('Error deleting event: ' + data.error);
+                    }
+                })
+                .catch(error => alert('Error deleting event: ' + error.message));
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
+                modal.hide();
+                currentEventId = null;
+            }
+        }
+
+        // User management functions
+        function viewUser(id) {
+            // Reset modal content to loading state
+            document.getElementById('user-details-content').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading user details...</p>
+                </div>
+            `;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('viewUserModal'));
+            modal.show();
+            
+            // Fetch user details
+            fetch(`/admin/api/users/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayUserDetails(data.user);
+                    } else {
+                        document.getElementById('user-details-content').innerHTML = `
+                            <div class="alert alert-danger">
+                                <h6>Error loading user details</h6>
+                                <p class="mb-0">${data.error}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('user-details-content').innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6>Error loading user details</h6>
+                            <p class="mb-0">${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function displayUserDetails(user) {
+            const statusBadge = user.isBanned ? 
+                '<span class="badge bg-danger">Banned</span>' : 
+                (user.isActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>');
+            
+            const roleBadge = getUserRoleBadge(user.userType);
+            const emailVerified = user.emailVerified ? 
+                '<span class="badge bg-success">Verified</span>' : 
+                '<span class="badge bg-warning">Unverified</span>';
+            
+            const joinedDate = new Date(user.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const lastLogin = user.lastLogin ? 
+                new Date(user.lastLogin).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Never';
+
+            document.getElementById('user-details-content').innerHTML = `
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <img src="https://via.placeholder.com/120x120" alt="User Avatar" 
+                             class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        <h4 class="mb-1">${user.firstName} ${user.lastName}</h4>
+                        <p class="text-muted mb-2">@${user.username}</p>
+                        <div>
+                            ${roleBadge}
+                            ${statusBadge}
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <h6 class="text-muted mb-1">Email Address</h6>
+                                <p class="mb-0">${user.email}</p>
+                                <small>${emailVerified}</small>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <h6 class="text-muted mb-1">Account Status</h6>
+                                <div>
+                                    ${statusBadge}
+                                    ${user.isActive ? '' : '<span class="badge bg-warning ms-1">Inactive</span>'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <h6 class="text-muted mb-1">Joined</h6>
+                                <p class="mb-0">${joinedDate}</p>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <h6 class="text-muted mb-1">Last Login</h6>
+                                <p class="mb-0">${lastLogin}</p>
+                            </div>
+                        </div>
+                        
+                        ${user.bio ? `
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Bio</h6>
+                                <p class="mb-0">${user.bio}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${user.interests ? `
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Interests</h6>
+                                <p class="mb-0">${user.interests}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-4">
+                            <h6 class="text-muted mb-2">Account Statistics</h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-primary">${user.userType}</h5>
+                                        <small class="text-muted">Role</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-success">${user.emailVerified ? 'Yes' : 'No'}</h5>
+                                        <small class="text-muted">Email Verified</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="border rounded p-2">
+                                        <h5 class="mb-0 text-info">${Math.floor((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24))}</h5>
+                                        <small class="text-muted">Days Active</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        function banUser(id) {
+            currentUserId = id;
+            const modal = new bootstrap.Modal(document.getElementById('banUserModal'));
+            modal.show();
+        }
+
+        function unbanUser(id) {
+            if (confirm('Are you sure you want to unban this user?')) {
+                fetch(`/admin/api/users/${id}/unban`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        loadUsers(); // Reload users table
+                    } else {
+                        alert('Error unbanning user: ' + data.error);
+                    }
+                })
+                .catch(error => alert('Error unbanning user: ' + error.message));
+            }
+        }
+
+        function removeUser(id) {
+            if (confirm('⚠️ WARNING: This will PERMANENTLY DELETE this user and all their events!\n\nThis action cannot be undone.\n\nAre you absolutely sure you want to proceed?')) {
+                if (confirm('This is your final warning!\n\nThe user will be completely removed from the system.\n\nClick OK to confirm permanent deletion.')) {
+                    fetch(`/admin/api/users/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            loadUsers(); // Reload users table
+                        } else {
+                            alert('Error removing user: ' + data.error);
+                        }
+                    })
+                    .catch(error => alert('Error removing user: ' + error.message));
+                }
+            }
+        }
+
+        function confirmBanUser() {
+            if (currentUserId) {
+                const reason = document.getElementById('banReason').value;
+                if (!reason.trim()) {
+                    alert('Please provide a reason for banning this user.');
+                    return;
+                }
+                
+                // Make actual API call to ban the user
+                fetch(`/admin/api/users/${currentUserId}/ban`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason: reason })
+                })
+                .then(response => {
+                    console.log('Ban response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Ban response data:', data);
+                    if (data.success) {
+                        alert(data.message);
+                        loadUsers(); // Reload users table to show updated status
+                    } else {
+                        alert('Error blocking user: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ban API error:', error);
+                    alert('Error blocking user: ' + error.message);
+                });
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('banUserModal'));
+                modal.hide();
+                document.getElementById('banReason').value = '';
+                currentUserId = null;
+            }
+        }
+
+        // Data loading functions
+        function loadEvents() {
+            const tableBody = document.getElementById('events-table');
+            const filter = document.getElementById('event-filter').value;
+            const search = document.getElementById('event-search').value;
+            
+            // Show loading
+            tableBody.innerHTML = '<tr id="events-loading"><td colspan="5" class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+            
+            fetch(`/admin/api/events?filter=${filter}&search=${search}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayEvents(data.events);
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error: ' + data.error + '</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading events: ' + error.message + '</td></tr>';
+                });
+        }
+
+        function displayEvents(events) {
+            const tableBody = document.getElementById('events-table');
+            
+            if (events.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No events found</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = events.map(event => {
+                const statusBadge = getEventStatusBadge(event.status);
+                const organizerName = event.creatorName || event.creatorUsername || `User ${event.createdBy}`;
+                const canCancel = event.status !== 'cancelled' && event.status !== 'completed';
+                const canUncancel = event.status === 'cancelled';
+                
+                return `
+                    <tr data-event-id="${event.eventId}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://via.placeholder.com/50x50" alt="Event" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-0">${event.title}</h6>
+                                    <small class="text-muted">${event.location}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${organizerName}</td>
+                        <td>${event.eventDate}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewEvent(${event.eventId})" title="View Event Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${canCancel ? `<button class="btn btn-sm btn-outline-warning btn-action" onclick="cancelEvent(${event.eventId})" title="Cancel Event"><i class="fas fa-times"></i></button>` : ''}
+                            ${canUncancel ? `<button class="btn btn-sm btn-outline-success btn-action" onclick="uncancelEvent(${event.eventId})" title="Restore Event"><i class="fas fa-undo"></i></button>` : ''}
+                            <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteEvent(${event.eventId})" title="Delete Event">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getEventStatusBadge(status) {
+            switch (status) {
+                case 'published':
+                    return '<span class="badge bg-success status-badge">Active</span>';
+                case 'cancelled':
+                    return '<span class="badge bg-warning status-badge">Cancelled</span>';
+                case 'draft':
+                    return '<span class="badge bg-secondary status-badge">Draft</span>';
+                case 'completed':
+                    return '<span class="badge bg-info status-badge">Completed</span>';
+                default:
+                    return '<span class="badge bg-info status-badge">' + status + '</span>';
+            }
+        }
+
+        function loadUsers() {
+            const tableBody = document.getElementById('users-table');
+            const search = document.getElementById('user-search').value;
+            
+            // Show loading
+            tableBody.innerHTML = '<tr id="users-loading"><td colspan="6" class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+            
+            fetch(`/admin/api/users?search=${search}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayUsers(data.users);
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error: ' + data.error + '</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading users: ' + error.message + '</td></tr>';
+                });
+        }
+
+        function displayUsers(users) {
+            const tableBody = document.getElementById('users-table');
+            
+            if (users.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No users found</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = users.map(user => {
+                const statusBadge = user.isBanned ? '<span class="badge bg-danger status-badge">Banned</span>' : '<span class="badge bg-success status-badge">Active</span>';
+                const roleBadge = getUserRoleBadge(user.userType);
+                const actionButtons = user.isBanned ? 
+                    `<button class="btn btn-sm btn-outline-success btn-action" onclick="unbanUser(${user.userId})" title="Unban User"><i class="fas fa-check"></i></button>
+                     <button class="btn btn-sm btn-outline-danger btn-action" onclick="removeUser(${user.userId})" title="Remove User Permanently"><i class="fas fa-user-times"></i></button>` :
+                    `<button class="btn btn-sm btn-outline-warning btn-action" onclick="banUser(${user.userId})" title="Ban User"><i class="fas fa-ban"></i></button>
+                     <button class="btn btn-sm btn-outline-danger btn-action" onclick="removeUser(${user.userId})" title="Remove User Permanently"><i class="fas fa-user-times"></i></button>`;
+                
+                return `
+                    <tr data-user-id="${user.userId}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://via.placeholder.com/40x40" alt="User" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-0">${user.firstName} ${user.lastName}</h6>
+                                    <small class="text-muted">@${user.username}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${user.email}</td>
+                        <td>${roleBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewUser(${user.userId})" title="View User Profile">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${actionButtons}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getUserRoleBadge(userType) {
+            switch (userType) {
+                case 'admin':
+                case 'ADMIN':
+                    return '<span class="badge bg-danger">Admin</span>';
+                case 'organiser':
+                case 'ORGANISER':
+                    return '<span class="badge bg-warning">Organizer</span>';
+                case 'student':
+                case 'STUDENT':
+                    return '<span class="badge bg-primary">Student</span>';
+                default:
+                    return '<span class="badge bg-secondary">' + userType + '</span>';
+            }
+        }
+
+        function loadAnalytics() {
+            fetch('/admin/api/analytics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const analytics = data.analytics;
+                        // Update statistics cards
+                        document.getElementById('total-events').textContent = analytics.events.total;
+                        document.getElementById('total-users').textContent = analytics.users.total;
+                        document.getElementById('flagged-events').textContent = analytics.events.cancelled;
+                        document.getElementById('banned-users').textContent = analytics.users.total - analytics.users.active;
+                        
+                        updateCharts(analytics);
+                    } else {
+                        console.error('Error loading analytics:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading analytics:', error);
+                });
+        }
+
+        function updateCharts(analytics) {
+            // Update charts with real data
+            const eventCtx = document.getElementById('eventChart');
+            const userCtx = document.getElementById('userChart');
+            
+            if (eventCtx) {
+                new Chart(eventCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Published', 'Draft', 'Cancelled'],
+                        datasets: [{
+                            label: 'Events',
+                            data: [analytics.events.published, analytics.events.total - analytics.events.published - analytics.events.cancelled, analytics.events.cancelled],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            if (userCtx) {
+                new Chart(userCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Students', 'Organisers', 'Admins'],
+                        datasets: [{
+                            data: [analytics.users.students, analytics.users.organisers, analytics.users.admins],
+                            backgroundColor: [
+                                'rgb(54, 162, 235)',
+                                'rgb(255, 205, 86)',
+                                'rgb(255, 99, 132)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+
+        // Search and filter functions
+        function setupSearchAndFilter() {
+            // Event search with API call
+            document.getElementById('event-search').addEventListener('input', function(e) {
+                loadEvents(); // Reload with search term
+            });
+
+            // Event filter
+            document.getElementById('event-filter').addEventListener('change', function(e) {
+                loadEvents(); // Reload with filter
+            });
+
+            // User search with API call
+            document.getElementById('user-search').addEventListener('input', function(e) {
+                loadUsers(); // Reload with search term
+            });
+        }
+
+        // Chart initialization
+        function initializeCharts() {
+            // Event Chart
+            const eventCtx = document.getElementById('eventChart').getContext('2d');
+            new Chart(eventCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Events Created',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // User Chart
+            const userCtx = document.getElementById('userChart').getContext('2d');
+            new Chart(userCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active Users', 'Banned Users', 'Admins'],
+                    datasets: [{
+                        data: [150, 2, 4],
+                        backgroundColor: [
+                            'rgb(54, 162, 235)',
+                            'rgb(255, 99, 132)',
+                            'rgb(255, 205, 86)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Refresh data function
+        function refreshData() {
+            const currentSection = document.querySelector('.nav-link.active').getAttribute('href').substring(1);
+            
+            switch (currentSection) {
+                case 'events':
+                    loadEvents();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    initializeCharts();
+                    break;
+                default:
+                    console.log('Unknown section:', currentSection);
+            }
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSearchAndFilter();
+            // Load initial data for events section (default view)
+            loadEvents();
+        });
+    </script>
+    </th:block>
+</html>

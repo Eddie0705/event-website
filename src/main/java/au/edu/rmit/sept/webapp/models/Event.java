@@ -94,8 +94,9 @@ public class Event {
  
     @Column(name = "is_paid", nullable = false)
     private Boolean isPaid = false;
- 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be greater than or equal to 0")
+
     @Digits(integer = 8, fraction = 2, message = "Price format is invalid")
     @Column(name = "price", precision = 10, scale = 2)
     private BigDecimal price;
@@ -129,10 +130,10 @@ public class Event {
  
     // Enum for event status
     public enum EventStatus {
-            draft,
+        draft,
         published,
         cancelled,
-        completed
+        completed;
     }
 
 
