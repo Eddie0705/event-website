@@ -5,6 +5,7 @@ import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.repository.UserRepository;
+import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 import java.util.List;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 @Controller
 @RequestMapping("/rsvp")
 public class RSVPController {
@@ -21,6 +24,17 @@ public class RSVPController {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final RSVPService rsvpService;
+
+    private User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null
+            && authentication.getPrincipal() instanceof CustomUserDetailsService.CustomUserPrincipal) {
+        CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
+            (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getUser();
+    }
+    return null;
+}
     
 
     @Autowired
@@ -91,19 +105,32 @@ public class RSVPController {
                 .orElse("No RSVP yet");
     }
 
-    @GetMapping("/event/{eventId}/my-rsvp")
-    public String getAllMyRsvps(@RequestParam Long userId, Model model) {
-        User user = userRepository.findById(userId).orElseThrow();
-        List<RSVP> rsvps = rsvpService.getUserRsvps(user);
+    // @GetMapping("/eventRSVP")
+    // public String showMyRsvps(Model model) {
 
-        model.addAttribute("confirmed", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes).toList());
+    //     User currentUser = getCurrentUser();
+    //     model.addAttribute("user", currentUser);
+    //     model.addAttribute("isAuthenticated", currentUser != null);
 
-        model.addAttribute("no", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no) .toList());
+    //     // List<RSVP> rsvps = rsvpService.getUserRsvps(currentUser);
+    //     // model.addAttribute("rsvps", rsvps);
 
-        model.addAttribute("maybe", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe) .toList());
+    //     // model.addAttribute("yes", rsvps.stream()
+    //     //                             .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes)
+    //     //                             .toList());
 
-        model.addAttribute("cancelled", rsvps.stream().filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled).toList());
-        
-        return "rsvp/eventRSVP";
-    }
+    //     // model.addAttribute("no", rsvps.stream()
+    //     //                             .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no)
+    //     //                             .toList());
+
+    //     // model.addAttribute("maybe", rsvps.stream()
+    //     //                                 .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe)
+    //     //                                 .toList());
+
+    //     // model.addAttribute("cancelled", rsvps.stream()
+    //     //                                     .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled)
+    //     //                                     .toList());
+
+    //     return "eventRSVP";
+    // }
 }
