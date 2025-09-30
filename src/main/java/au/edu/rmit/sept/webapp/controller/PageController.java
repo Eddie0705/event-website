@@ -63,7 +63,10 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
-        
+        if (currentUser != null && currentUser.getUserType() != null &&
+                currentUser.getUserType().name().equalsIgnoreCase("ADMIN")) {
+            return "redirect:/admin/dashboard";
+        }
         // Redirect organizers to their dashboard
         if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
             return "redirect:/organiser/dashboard";

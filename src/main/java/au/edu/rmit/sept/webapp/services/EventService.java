@@ -133,6 +133,13 @@ public class EventService {
     public List<Event> getFeaturedEvents() {
         return eventRepository.findByIsFeaturedTrueAndStatusOrderByEventDateAsc(EventStatus.published);
     }
+
+    // Get all events (admin only - includes all statuses)
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll().stream()
+                .sorted((e1, e2) -> e1.getEventDate().compareTo(e2.getEventDate()))
+                .collect(java.util.stream.Collectors.toList());
+    }
  
     // Search events
     public List<Event> searchEvents(String searchTerm) {
@@ -172,12 +179,11 @@ public class EventService {
     public List<Event> getPaidEvents() {
         return eventRepository.findPaidEvents(EventStatus.published);
     }
- 
-    // Delete event (only if no RSVPs)
+
+    // Delete event (only if no RSVPs and organizer owns it) - for organizers only
     public void deleteEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
- 
-        // Check if user is the organiser
+  
         if (!event.getCreatedBy().equals(organiserId)) {
             throw new RuntimeException("You can only delete your own events");
         }
@@ -191,8 +197,18 @@ public class EventService {
  
         eventRepository.delete(event);
     }
- 
-    // Cancel event
+
+    // Delete event for admin (bypasses organizer restriction and RSVP check)
+    @Transactional
+    public void deleteEventByAdmin(Long eventId) {
+        Event event = getEventById(eventId);
+
+        // Admin can delete any event regardless of RSVPs
+        // Note: Image deletion will be added when image upload is implemented
+
+        eventRepository.delete(event);
+    }
+
     public Event cancelEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
  
@@ -213,7 +229,62 @@ public class EventService {
         event.setStatus(EventStatus.cancelled);
         return eventRepository.save(event);
     }
- 
+
+    // Cancel event for admin (bypasses organizer restriction)
+    @Transactional
+    public Event cancelEventByAdmin(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+        // Check if event is not already cancelled or completed
+        if (event.getStatus() == EventStatus.cancelled) {
+            throw new RuntimeException("Event is already cancelled");
+        }
+
+        if (event.getStatus() == EventStatus.completed) {
+            throw new RuntimeException("Cannot cancel a completed event");
+        }
+
+        // Cancel the event
+        event.setStatus(EventStatus.cancelled);
+        
+        try {
+            return eventRepository.save(event);
+        } catch (Exception e) {
+            // Log the actual error for debugging
+            System.err.println("Error cancelling event " + eventId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to cancel event. Original error: " + e.getMessage());
+        }
+    }
+
+
+    // Uncancel event for admin (restore cancelled event to active status)
+    @Transactional
+    public Event uncancelEventByAdmin(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+        // Check if event is actually cancelled
+        if (event.getStatus() != EventStatus.cancelled) {
+            throw new RuntimeException("Only cancelled events can be uncancelled");
+        }
+
+        // Restore to published status
+        event.setStatus(EventStatus.published);
+        
+        try {
+            Event savedEvent = eventRepository.save(event);
+            
+            // Generate QR code data if it doesn't exist
+            generateQrCodeData(savedEvent);
+            
+            return savedEvent;
+        } catch (Exception e) {
+            System.err.println("Error uncancelling event " + eventId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to uncancel event. Original error: " + e.getMessage());
+        }
+    }
+
     // Publish event
     public Event publishEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
