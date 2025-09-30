@@ -67,28 +67,30 @@
          <!-- event card section rsvp -->
         <div class="events-section">
             <h2 class="events-section-title">Upcoming events</h2> 
-            <div class ="event-grid">
-                <div class ="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Thu, Mar 21 • 6:00 PM</div>
-                        <div class="event-title">Melbourne Startup Community Meetup</div>
-                        <div class="event-location"> At WeWork Collins Street</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 59 attending</div>
-                            <div class="status-indicator">Going</div>
-                        </div>
-                    </div>
-                </div>
 
+<p th:text="${currentUser != null ? currentUser.username : 'Not logged in'}"></p>
+            <p th:if="${rsvps != null}">
+    <span th:each="r : ${rsvps}">
+        <span th:text="${r.rsvpStatus}">Status</span> -
+        <span th:text="${r.event.title}">Event</span><br/>
+    </span>
+</p>
+<div th:if="${#lists.isEmpty(rsvps)}">
+    <p>No RSVPs foundxxxxxxxxs.</p>
+</div>
+
+
+
+            <div th:if="${#lists.isEmpty(yes)}">
+    <p>No RSVPs found.</p>
+</div>
+           <p th:text="${yes != null ? #lists.size(yes) + ' RSVPs found for Yes' : 'No RSVPs'}"></p>
+            <div class="event-grid" th:each="rsvp : ${yes}">
                 <div class="event-card">
                     <div class="event-content">
-                        <div class="event-date">Sat, Mar 23 • 10:00 AM</div>
-                        <div class="event-title">UX Design Workshop</div>
-                        <div class="event-location"> At RMIT Design Hub</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 67 attending</div>
-                            <div class="status-indicator"> Going</div>
-                        </div>
+                        <div class="event-date" th:text="${rsvp.event.eventDate}">Date</div>
+                        <div class="event-title" th:text="${rsvp.event.title}">Title</div>
+                        <div class="status-indicator" th:text="${rsvp.rsvpStatus}">Going</div>
                     </div>
                 </div>
             </div>
@@ -132,7 +134,7 @@
                             <div class="status-indicator">Going</div>
                         </div>
                     </div>
-                </div>
+                </div> 
 
                 <div class="event-card">
                     <div class="event-content">

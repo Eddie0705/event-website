@@ -19,6 +19,6 @@ public interface RSVPRepository extends JpaRepository<RSVP, Long> {
         return findByEventAndUser(event, user)
                 .map(RSVP::getRsvpStatus);
     }
-    List<RSVP> findByUser(User user);
+    List<RSVP> findByUserUserId(Long userId);
 
 }

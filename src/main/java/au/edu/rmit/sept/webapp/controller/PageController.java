@@ -134,11 +134,18 @@ public class PageController {
         return "Calendar";
     }
 
-    @GetMapping("/eventRSVP")
+    @GetMapping("/rsvp/eventRSVP")
     public String rspv(Model model) {
         User currentUser = getCurrentUser();
+        System.out.println("UserId:" + currentUser.getUserId());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
+        List<RSVP> rsvps = rsvpService.getUserRsvps(currentUser);
+        model.addAttribute("rsvps", rsvps);
+
+        model.addAttribute("yes", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes)
+                                    .toList());
         return "rsvp/eventRSVP";
     }
 
