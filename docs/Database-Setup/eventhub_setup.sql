@@ -465,13 +465,13 @@ CREATE INDEX idx_rsvps_status ON rsvps(rsvp_status, attendance_status);
 CREATE INDEX idx_notifications_unread ON notifications(user_id, is_read, created_at);
 
 SELECT '✅ Performance indexes created!' AS Status;
-
 -- =============================================
 -- INITIAL DATA
 -- =============================================
 
 SELECT '📝 Inserting initial data...' AS Progress;
 
+-- Categories
 INSERT INTO event_categories (category_name, description, colour_code) VALUES
 ('Academic', 'Lectures, workshops, and study sessions', '#4CAF50'),
 ('Social', 'Parties, gatherings, and social events', '#2196F3'),
@@ -482,6 +482,7 @@ INSERT INTO event_categories (category_name, description, colour_code) VALUES
 ('Music', 'Concerts, performances, and music events', '#FFC107'),
 ('Volunteer', 'Community service and volunteer opportunities', '#8BC34A');
 
+-- Badges
 INSERT INTO badges (badge_name, description, badge_type, points) VALUES
 ('First Timer', 'Attended your first event', 'milestone', 10),
 ('Frequent Attendee', 'Attended 10 events', 'attendance', 50),
@@ -491,11 +492,70 @@ INSERT INTO badges (badge_name, description, badge_type, points) VALUES
 ('Feedback Champion', 'Provided feedback for 10 events', 'participation', 40),
 ('Early Bird', 'RSVP to 5 events more than a week in advance', 'special', 25);
 
-INSERT INTO users (email, username, password_hash, first_name, last_name, user_type, email_verified) 
-VALUES ('admin@eventhub.edu', 'admin', '$2y$10$example_hash_change_in_production', 'System', 'Administrator', 'admin', TRUE);
+-- Users
+INSERT INTO users (email, username, password_hash, first_name, last_name, user_type, email_verified) VALUES
+('admin@eventhub.edu', 'admin', '$2y$10$example_hash_change_in_production', 'System', 'Administrator', 'admin', TRUE),
+('alice@student.edu', 'alice', 'hashed_pw', 'Alice', 'Johnson', 'student', TRUE),
+('bob@student.edu', 'bob', 'hashed_pw', 'Bob', 'Smith', 'student', TRUE),
+('carol@organiser.edu', 'carol', 'hashed_pw', 'Carol', 'Davis', 'organiser', TRUE),
+('dave@organiser.edu', 'dave', 'hashed_pw', 'Dave', 'Wilson', 'organiser', TRUE);
 
-SELECT '✅ Initial data inserted!' AS Status;
+-- Clubs
+INSERT INTO clubs (club_name, description, logo_url, website_url, contact_email, created_by) VALUES
+('Tech Club', 'A community for tech enthusiasts', '/assets/logos/tech.png', 'https://techclub.edu', 'techclub@eventhub.edu', 4),
+('Music Society', 'For music lovers and performers', '/assets/logos/music.png', 'https://musicsociety.edu', 'music@eventhub.edu', 5);
 
+-- Club Members
+INSERT INTO club_members (club_id, user_id, role) VALUES
+(1, 2, 'member'),
+(1, 3, 'member'),
+(2, 2, 'member'),
+(2, 3, 'member');
+
+-- Events
+INSERT INTO events (title, description, event_date, start_time, end_time, location, max_capacity, category_id, club_id, created_by, status) VALUES
+('Tech Talk: Future of AI', 'A talk on AI advancements', '2025-10-01', '18:00', '20:00', 'Main Auditorium', 100, 6, 1, 4, 'published'),
+('Music Jam Night', 'Open mic for all students', '2025-10-05', '19:00', '22:00', 'Student Union Hall', 80, 7, 2, 5, 'published'),
+('Career Fair 2025', 'Meet potential employers and network', '2025-10-10', '09:00', '15:00', 'Exhibition Centre', 200, 4, 1, 4, 'published');
+
+-- Event Tags
+INSERT INTO event_tags (tag_name) VALUES
+('AI'),
+('Networking'),
+('Live Music'),
+('Free Food'),
+('Workshop');
+
+-- Event Tag Mappings
+INSERT INTO event_tag_mappings (event_id, tag_id) VALUES
+(1, 1), -- AI talk tagged with AI
+(1, 2), -- and Networking
+(2, 3), -- Music Jam tagged with Live Music
+(2, 4), -- and Free Food
+(3, 2), -- Career Fair tagged with Networking
+(3, 5); -- and Workshop
+
+-- RSVPs
+INSERT INTO rsvps (event_id, user_id, rsvp_status, attendance_status) VALUES
+(1, 2, 'yes', 'not_checked'),
+(1, 3, 'maybe', 'not_checked'),
+(2, 2, 'yes', 'checked_in'),
+(2, 3, 'no', 'not_checked'),
+(3, 2, 'yes', 'not_checked'),
+(3, 3, 'yes', 'not_checked');
+
+-- Feedback
+INSERT INTO event_feedback (event_id, user_id, rating, comments) VALUES
+(2, 2, 5, 'Amazing music night!'),
+(2, 3, 4, 'Great atmosphere, but crowded.'),
+(1, 2, 4, 'Interesting AI talk.');
+
+-- Notifications
+INSERT INTO notifications (user_id, type, title, message, related_event_id) VALUES
+(2, 'event_reminder', 'Reminder: Tech Talk', 'Don’t forget the AI talk tonight!', 1),
+(3, 'rsvp_confirmation', 'RSVP Confirmed', 'You RSVP’d for Music Jam Night', 2);
+
+SELECT '✅ Dummy data inserted!' AS Status;
 -- =============================================
 -- FINAL SETUP
 -- =============================================
@@ -516,5 +576,9 @@ UNION ALL
 SELECT 'Default Badges:', COUNT(*) FROM badges
 UNION ALL
 SELECT 'Admin Users:', COUNT(*) FROM users WHERE user_type = 'admin';
+
+
+
+
 
 SELECT 'Ready for development!' AS Final_Status;
