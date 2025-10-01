@@ -28,13 +28,15 @@ public class ReminderService {
 
     // Runs every hour
     @Scheduled(cron = "0 0 * * * *") 
-    // 
+    //
     public void checkHourlyReminders() {
         LocalDateTime now = LocalDateTime.now();
         List<RSVP> rsvps = rsvpRepository.findAll();
 
         for (RSVP rsvp : rsvps) {
             Event event  = rsvp.getEvent();
+
+            // TODO check if RSVP status is valid 
 
             // Combine event date and time
             LocalDateTime eventDateTime = LocalDateTime.of(event.getEventDate(), event.getStartTime());
