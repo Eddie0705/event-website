@@ -358,25 +358,7 @@
 
 
        <!-- Events Container -->
-       <!-- <div class="events_container">
-            <div class="events_card" th:each="event : ${events}">
-                <h3 th:text="${event.title}">Event Title</h3>
-                <p>
-                    <span th:text="${event.eventDate}">Event Date</span> |
-                    <span th:text="${event.startTime}">Start Time</span>
-                </p>
-                <p th:text="${event.description} ?: 'No Description'">Event Description</p>
-                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
-                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
-
-                <div class="event-info-grid">
-                    <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
-                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
-                <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p>
-                </div> -->
-
-
-           
+       <div class="events_container"> 
             <!-- Loop over events -->
             <div class="events_card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
