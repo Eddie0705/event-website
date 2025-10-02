@@ -4,14 +4,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 
 /**
  * Custom authentication success handler
- * Handles successful login and redirects based on user type
+ * Handles successful login and redirects based on user type or redirect
+ * parameter
  */
 @Component
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -21,16 +22,27 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
 
+        // First check for redirect parameter
+        String redirectUrl = request.getParameter("redirect");
+
+        if (redirectUrl != null && !redirectUrl.isEmpty()) {
+            // Security check - only allow internal redirects
+            if (redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")) {
+                response.sendRedirect(redirectUrl);
+                return;
+            }
+        }
+
+        // Fall back to role-based redirects
         CustomUserDetailsService.CustomUserPrincipal userPrincipal = (CustomUserDetailsService.CustomUserPrincipal) authentication
                 .getPrincipal();
-
         String userType = userPrincipal.getUserType();
 
         // Redirect based on user type
         if ("ADMIN".equals(userType)) {
-            response.sendRedirect("/");
+            response.sendRedirect("/admin/dashboard");
         } else if ("ORGANISER".equals(userType)) {
-            response.sendRedirect("/");
+            response.sendRedirect("/organiser/dashboard");
         } else {
             // Default redirect for students
             response.sendRedirect("/");

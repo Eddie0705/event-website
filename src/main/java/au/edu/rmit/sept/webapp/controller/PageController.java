@@ -63,7 +63,10 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
-        
+        if (currentUser != null && currentUser.getUserType() != null &&
+                currentUser.getUserType().name().equalsIgnoreCase("ADMIN")) {
+            return "redirect:/admin/dashboard";
+        }
         // Redirect organizers to their dashboard
         if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
             return "redirect:/organiser/dashboard";
@@ -170,6 +173,11 @@ public class PageController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
         return "myevents";
+    }
+
+    @GetMapping("/logout")
+    public String Logout(Model model) {
+        return "redirect:/auth/logout";
     }
 
     // Database test endpoint
