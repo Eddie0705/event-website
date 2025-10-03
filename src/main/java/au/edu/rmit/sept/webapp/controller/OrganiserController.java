@@ -1,5 +1,6 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import au.edu.rmit.sept.webapp.config.GoogleMapsConfig;
 import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
@@ -25,6 +26,13 @@ public class OrganiserController {
     @Autowired
     private EventService eventService;
 
+    private final GoogleMapsConfig googleMapsConfig;
+
+    // Add this constructor
+    @Autowired
+    public OrganiserController(GoogleMapsConfig googleMapsConfig) {
+        this.googleMapsConfig = googleMapsConfig;
+    }
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -38,13 +46,13 @@ public class OrganiserController {
     }
 
     /**
-     * Display organizer dashboard with all events and statistics
+     * Display organiser dashboard with all events and statistics
      */
     @GetMapping("/dashboard")
-    public String showDashboard(Model model, 
-                               @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "10") int size,
-                               @RequestParam(defaultValue = "all") String filter) {
+    public String showDashboard(Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "all") String filter) {
         User currentUser = getCurrentUser();
 
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
@@ -65,32 +73,32 @@ public class OrganiserController {
                 eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
                 // Filter only published events
                 List<Event> publishedEvents = eventsPage.getContent().stream()
-                    .filter(event -> event.getStatus() == Event.EventStatus.published)
-                    .toList();
+                        .filter(event -> event.getStatus() == Event.EventStatus.published)
+                        .toList();
                 model.addAttribute("events", publishedEvents);
                 break;
             case "draft":
                 eventsPage = eventService.getEventsByOrganiser(currentUser.getUserId(), pageable);
                 // Filter only draft events
                 List<Event> draftEvents = eventsPage.getContent().stream()
-                    .filter(event -> event.getStatus() == Event.EventStatus.draft)
-                    .toList();
+                        .filter(event -> event.getStatus() == Event.EventStatus.draft)
+                        .toList();
                 model.addAttribute("events", draftEvents);
                 break;
             case "upcoming":
                 List<Event> upcomingEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
-                    .stream()
-                    .filter(event -> event.getEventDate().isAfter(LocalDate.now()) && 
-                                   event.getStatus() == Event.EventStatus.published)
-                    .toList();
+                        .stream()
+                        .filter(event -> event.getEventDate().isAfter(LocalDate.now()) &&
+                                event.getStatus() == Event.EventStatus.published)
+                        .toList();
                 model.addAttribute("events", upcomingEvents);
                 break;
             case "past":
                 List<Event> pastEvents = eventService.getEventsByOrganiser(currentUser.getUserId())
-                    .stream()
-                    .filter(event -> event.getEventDate().isBefore(LocalDate.now()) || 
-                                   event.getStatus() == Event.EventStatus.completed)
-                    .toList();
+                        .stream()
+                        .filter(event -> event.getEventDate().isBefore(LocalDate.now()) ||
+                                event.getStatus() == Event.EventStatus.completed)
+                        .toList();
                 model.addAttribute("events", pastEvents);
                 break;
             default:
@@ -119,6 +127,8 @@ public class OrganiserController {
 
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
+        model.addAttribute("googleMapsApiKey", googleMapsConfig.getApiKey());
+
         return "organiser/create-event";
     }
 
@@ -127,14 +137,14 @@ public class OrganiserController {
      */
     @PostMapping("/create-event")
     public String createEvent(@RequestParam String title,
-                             @RequestParam String description,
-                             @RequestParam String eventDate,
-                             @RequestParam String startTime,
-                             @RequestParam String endTime,
-                             @RequestParam String location,
-                             @RequestParam Integer maxCapacity,
-                             @RequestParam(required = false) String venueDetails,
-                             RedirectAttributes redirectAttributes) {
+            @RequestParam String description,
+            @RequestParam String eventDate,
+            @RequestParam String startTime,
+            @RequestParam String endTime,
+            @RequestParam String location,
+            @RequestParam Integer maxCapacity,
+            @RequestParam(required = false) String venueDetails,
+            RedirectAttributes redirectAttributes) {
 
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
