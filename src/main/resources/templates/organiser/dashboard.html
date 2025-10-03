@@ -549,8 +549,8 @@
     </div>
 </div>
 
-<th:block layout:fragment="javascript">
-    <script>
+
+<script th:inline="javascript">
         // Auto-hide alert messages after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert-message');
@@ -569,6 +569,5 @@
         function confirmAction(message) {
             return confirm(message);
         }
-    </script>
-</th:block>
+</script>
 </html>

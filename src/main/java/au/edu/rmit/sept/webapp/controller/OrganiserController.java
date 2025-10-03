@@ -46,6 +46,8 @@ public class OrganiserController {
     }
 
     /**
+     * 
+     * /**
      * Display organiser dashboard with all events and statistics
      */
     @GetMapping("/dashboard")
