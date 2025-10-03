@@ -146,6 +146,22 @@ public class PageController {
         model.addAttribute("yes", rsvps.stream()
                                     .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes)
                                     .toList());
+
+        model.addAttribute("cancelled", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled)
+                                    .toList());
+
+
+        model.addAttribute("maybe", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe)
+                                    .toList());
+
+        model.addAttribute("no", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no)
+                                    .toList());
+
+
+        
         return "rsvp/eventRSVP";
     }
 
