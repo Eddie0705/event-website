@@ -123,7 +123,7 @@ public class OrganiserController {
     public String showCreateEventForm(Model model) {
         User currentUser = getCurrentUser();
 
-        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+        if (currentUser == null || (currentUser.getUserType() != UserType.ORGANISER && currentUser.getUserType() != UserType.ADMIN)) {
             return "redirect:/auth/login";
         }
 
