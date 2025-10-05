@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
-    <title>Organizer Dashboard - EventHub</title>
+    <title>Organiser Dashboard</title>
 </head>
 
 <th:block layout:fragment="css">
@@ -549,8 +549,8 @@
     </div>
 </div>
 
-<th:block layout:fragment="javascript">
-    <script>
+
+<script th:inline="javascript">
         // Auto-hide alert messages after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert-message');
