@@ -134,4 +134,33 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         // Find events that need QR code generation
         @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' AND (e.qrCodeData IS NULL OR e.qrCodeData = '')")
         List<Event> findEventsNeedingQrCode();
+
+        @Query("""
+                        SELECT e FROM Event e
+                        WHERE e.status = 'PUBLISHED'
+                        AND (
+                            :search IS NULL OR :search = ''
+                            OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))
+                            OR LOWER(e.description) LIKE LOWER(CONCAT('%', :search, '%'))
+                        )
+                        AND (
+                            :location IS NULL OR :location = '' OR :location = 'any'
+                            OR LOWER(e.location) LIKE LOWER(CONCAT('%', :location, '%'))
+                        )
+                        AND (
+                            :category IS NULL OR :category = '' OR :category = 'all'
+                            OR e.categoryId = CAST(:category AS long)
+                        )
+                        AND (
+                            :date IS NULL OR :date = ''
+                            OR e.eventDate = CAST(:date AS date)
+                        )
+                        ORDER BY e.eventDate ASC
+                        """)
+        List<Event> searchEvents(
+                        @Param("search") String search,
+                        @Param("category") String category,
+                        @Param("date") String date,
+                        @Param("location") String location);
+
 }

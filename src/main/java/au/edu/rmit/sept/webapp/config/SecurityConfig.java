@@ -39,15 +39,14 @@ public class SecurityConfig {
                                 // Configure authorization rules
                                 .authorizeHttpRequests(authz -> authz
                                                 // Public endpoints
-                                                .requestMatchers("/", "/Index", "/explore", "/calendar", "/rspv",
-                                                                "/noti")
-                                                .permitAll()
-                                                .requestMatchers("/auth/login", "/auth/register",
-                                                                "/auth/forgot-password")
-                                                .permitAll()
-                                                .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**")
-                                                .permitAll()
-                                                .requestMatchers("/db-test", "/auth-test", "/db-users-test",
+                                                .requestMatchers(
+                                                                "/", "/Index", "/explore", "/calendar", "/rspv",
+                                                                "/noti",
+                                                                "/events/search", "/events/**",
+                                                                "/auth/login", "/auth/register",
+                                                                "/auth/forgot-password",
+                                                                "/static/**", "/css/**", "/js/**", "/images/**",
+                                                                "/db-test", "/auth-test", "/db-users-test",
                                                                 "/test-user-load")
                                                 .permitAll()
 

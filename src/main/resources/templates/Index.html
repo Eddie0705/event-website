@@ -283,24 +283,24 @@
 <!-- Page Content (Navigation and Footer are handled by the layout) -->
 <div layout:fragment="content">
     <!-- Search Area -->
-<body>
+
 
     <div class="search_area">
-        <input type="text" placeholder="Search...">
+        <input type="text" id="searchText" placeholder="Search...">
         <select name="category" id="category">
             <option value="all">All</option>
             <option value="events">Events</option>
             <option value="users">Users</option>
             <option value="groups">Groups</option>
         </select>
-        <input type="date" id="date_preferred" name="date_preferred">
+        <input type="date" id="datePreferred" name="date_preferred">
         <select name="location" id="location">
             <option value="any">Any Location</option>
             <option value="newyork">New York</option>
             <option value="losangeles">Los Angeles</option>
             <option value="chicago">Chicago</option>
         </select>
-        <input type="submit" value="Search"/>
+        <input type="submit" id="searchBtn" value="Search"/>
     </div>
 
     <!-- Main Content Area -->
@@ -358,55 +358,7 @@
 
 
        <!-- Events Container -->
-       <div class="events_container"> 
-            <!-- Loop over events -->
-            <div class="events_card" th:each="event : ${events}">
-                <h3 th:text="${event.title}">Event Title</h3>
-                <p>
-                    <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
- |
-                    <span th:text="${event.startTime}">Start Time</span>
-                    <p th:text="${event.description} ?: 'No Description'">Event Description</p>
-                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
-                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
-                <!-- <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p> -->
-                </p>
-
-                 <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
-                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
-                <p th:text="${event.location}">Location</p>
-                <p th:text="${event.description}">Event Description</p>
-
-                <!-- RSVP form -->
-                <form>
-                    <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
-                    <input type="hidden" name="eventId" th:value="${event.eventId}" />
-                    <input type="hidden" name="rsvpStatus" value="yes" />
-                    <!-- redirect to login -->
-                    <button type="button"
-                        th:if="${currentUser == null}"
-                            onclick="window.location.href='/auth/login'">
-                        RSVP
-                    </button>
-
-                    <!-- Button if user has not RSVPed -->
-                     <div th:if="${currentUser != null}">
-                    <button type="button"
-                            th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                            th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                        RSVP
-                    </button>
-
-                    <!-- Button if user already RSVPed -->
-                    <button type="button"
-                            th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                            th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                        Cancel RSVP
-                    </button>
-                    <!-- end of button -->
-                    <!-- for future: add dropdown for yes no maybe cancelled and make button dynamic -->
-                </div>
-                </form>
+       <div class="events_container" id="eventsContainer" th:replace="fragments/eventCards :: eventsContainer"> 
             </div>
         </div>
     </div>
@@ -414,26 +366,63 @@
 </html>
 
 <script>
+document.getElementById('searchBtn').addEventListener('click', async function(event) {
+    event.preventDefault(); // prevent page reload
+
+    // 1️⃣ Collect search input values
+    const search = document.getElementById('searchText').value;
+    const category = document.getElementById('category').value;
+    const date = document.getElementById('datePreferred').value;
+    const location = document.getElementById('location').value;
+
+    // 2️⃣ Build query string
+    const params = new URLSearchParams({
+        search: search,
+        category: category,
+        date: date,
+        location: location
+    });
+
+    // 3️⃣ Fetch filtered results from the backend
+    const response = await fetch(`/events/search?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'include'
+    });
+
+    // 4️⃣ Expect server to return HTML snippet (just the cards)
+    const html = await response.text();
+
+    const container = document.getElementById('eventsContainer');
+  container.outerHTML = html;
+  if (response.redirected && response.url.includes('/auth/login')) {
+  window.location.href = response.url;
+  return;
+}
+
+});
+
 function submitRsvp(eventId, userId) {
-    fetch('/rsvp/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
-    }).then(() => {
-        alert('RSVP submitted!');
-    });
-}
+        fetch('/rsvp/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
+        }).then(() => {
+            alert('RSVP submitted!');
+            window.location.reload();
+        });
+    }
 
-function submitRsvpCancelled(eventId, userId) {
-    fetch('/rsvp/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
-    }).then(() => {
-        alert('RSVP Cancelled!');
-    });
-}
-
+    function submitRsvpCancelled(eventId, userId) {
+        fetch('/rsvp/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
+        }).then(() => {
+            alert('RSVP cancelled!');
+            window.location.reload();
+        });
+    }
 
 
 </script>

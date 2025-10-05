@@ -4,6 +4,7 @@ import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
 import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.time.LocalDateTime;
 
 @Controller
@@ -29,6 +31,8 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
+    @Autowired
+    private RSVPService rsvpService;
 
     /**
      * Get current authenticated user from Spring Security
@@ -209,4 +213,29 @@ public class EventController {
             return "redirect:/organiser/dashboard";
         }
     }
+
+    @GetMapping("/search")
+    public String searchEvents(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String location,
+            Model model) {
+
+        search = (search != null && search.isBlank()) ? null : search;
+        category = (category != null && category.isBlank()) ? null : category;
+        date = (date != null && date.isBlank()) ? null : date;
+        location = (location != null && location.isBlank()) ? null : location;
+
+        // ✅ Keep user context and RSVP service so buttons render correctly
+        User currentUser = getCurrentUser();
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("rsvpService", rsvpService);
+
+        List<Event> filteredEvents = eventService.searchEvents(search, category, date, location);
+        model.addAttribute("events", filteredEvents);
+
+        return "fragments/eventCards :: eventsContainer";
+    }
+
 }
