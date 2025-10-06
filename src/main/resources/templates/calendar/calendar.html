@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}">
+       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}">
 <head>
     <title>Calendar - EventHub</title>
     <style>
@@ -12,7 +12,6 @@
             border-bottom:1px solid #e9ecef; padding-bottom:12px; margin-bottom:16px; }
         .calendar-nav { display:flex; gap:10px; align-items:center; }
 
-        /* Button styles (anchors styled like buttons) */
         .btn { display:inline-block; cursor:pointer; text-decoration:none; }
         .btn-today { background:#007bff; color:#fff; border-radius:6px; padding:8px 14px; font-weight:600; }
         .btn-nav { background:#f8f9fa; border:1px solid #dee2e6; color:#111; border-radius:6px; padding:8px 12px; }
@@ -44,33 +43,27 @@
 <body>
 <div layout:fragment="content" class="calendar-container">
 
-    <!-- data-* kept for possible JS enhancements -->
     <div class="calendar-main"
          th:attr="data-view=${view},data-anchor=${#temporals.format(anchorDate,'yyyy-MM-dd')}">
 
-        <!-- HEADER -->
         <div class="calendar-header">
             <div class="calendar-nav">
-                <!-- Today -->
                 <a class="btn btn-today"
                    th:href="@{/calendar(view=${view}, date=${#temporals.format(today,'yyyy-MM-dd')})}">
                     Today
                 </a>
 
-                <!-- Prev / Next (use server-calculated prevDate/nextDate) -->
                 <a class="btn btn-nav"
                    th:href="@{/calendar(view=${view}, date=${#temporals.format(prevDate,'yyyy-MM-dd')})}">‹</a>
                 <a class="btn btn-nav"
                    th:href="@{/calendar(view=${view}, date=${#temporals.format(nextDate,'yyyy-MM-dd')})}">›</a>
 
-                <!-- Title -->
                 <h2 class="calendar-title"
                     th:text="${#temporals.format(view=='week' ? calendarData.weekStart : yearMonth.atDay(1), 'MMMM yyyy')}">
                     Month YYYY
                 </h2>
             </div>
 
-            <!-- View toggle: always keep same anchor date, swap view -->
             <div class="view-toggle">
                 <a class="view-link" th:classappend="${view=='week'} ? ' active' : ''"
                    th:href="@{/calendar(view='week', date=${#temporals.format(anchorDate,'yyyy-MM-dd')})}">
@@ -90,14 +83,17 @@
 
             <div th:each="d : ${calendarData.monthDays}"
                  th:class="'day' + (${d.monthValue != yearMonth.monthValue} ? ' other' : '') + (${d.equals(today)} ? ' today' : '')"
-                 th:attr="data-date=${#temporals.format(d,'yyyy-MM-dd')}"
+                 th:with="key=${#temporals.format(d,'yyyy-MM-dd')}"
+                 th:attr="data-date=${key}"
                  onclick="selectDate(this.dataset.date)">
                 <div class="day-number" th:text="${d.dayOfMonth}">1</div>
 
-                <div th:if="${eventsByDate[d]}">
-                    <div th:each="e : ${eventsByDate[d]}"
-                         th:class="'event-pill'"
-                         th:title="${e.description}" th:text="${e.eventName}">
+                <div th:with="list=${eventsByDate.get(d) != null ? eventsByDate.get(d) : eventsByDateStr[key]}">
+                    <div th:if="${list}"
+                         th:each="e : ${list}"
+                         class="event-pill"
+                         th:title="${e.description}"
+                         th:text="${e.title}">
                     </div>
                 </div>
             </div>
@@ -110,14 +106,17 @@
 
             <div th:each="d : ${calendarData.weekDays}"
                  th:class="'week-day' + (${d.equals(today)} ? ' today' : '')"
-                 th:attr="data-date=${#temporals.format(d,'yyyy-MM-dd')}"
+                 th:with="key=${#temporals.format(d,'yyyy-MM-dd')}"
+                 th:attr="data-date=${key}"
                  onclick="selectDate(this.dataset.date)">
                 <div class="day-number" th:text="${d.dayOfMonth}">1</div>
 
-                <div th:if="${eventsByDate[d]}">
-                    <div th:each="e : ${eventsByDate[d]}"
-                         th:class="'event-pill'"
-                         th:title="${e.description}" th:text="${e.eventName}">
+                <div th:with="list=${eventsByDate.get(d) != null ? eventsByDate.get(d) : eventsByDateStr[key]}">
+                    <div th:if="${list}"
+                         th:each="e : ${list}"
+                         class="event-pill"
+                         th:title="${e.description}"
+                         th:text="${e.title}">
                     </div>
                 </div>
             </div>
@@ -125,11 +124,9 @@
     </div>
 </div>
 
-<!-- Minimal JS: only for date click (navigation links use server URLs) -->
 <script>
   function selectDate(iso){
     console.log('Selected date:', iso);
-    // You can navigate to a day view or open a modal here later.
   }
 </script>
 </body>
