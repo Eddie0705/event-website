@@ -59,24 +59,24 @@ public class EventService {
     public Event updateEvent(Long eventId, Event updatedEvent) {
         Event existingEvent = getEventById(eventId);
  
-        // Update fields
-        existingEvent.setTitle(updatedEvent.getTitle());
-        existingEvent.setDescription(updatedEvent.getDescription());
-        existingEvent.setEventDate(updatedEvent.getEventDate());
-        existingEvent.setStartTime(updatedEvent.getStartTime());
-        existingEvent.setEndTime(updatedEvent.getEndTime());
-        existingEvent.setLocation(updatedEvent.getLocation());
-        existingEvent.setVenueDetails(updatedEvent.getVenueDetails());
-        existingEvent.setMaxCapacity(updatedEvent.getMaxCapacity());
-        existingEvent.setCategoryId(updatedEvent.getCategoryId());
-        existingEvent.setClubId(updatedEvent.getClubId());
-        existingEvent.setRegistrationDeadline(updatedEvent.getRegistrationDeadline());
-        existingEvent.setIsPaid(updatedEvent.getIsPaid());
-        existingEvent.setPrice(updatedEvent.getPrice());
-        existingEvent.setCurrency(updatedEvent.getCurrency());
-        existingEvent.setStatus(updatedEvent.getStatus());
-        existingEvent.setIsFeatured(updatedEvent.getIsFeatured());
-        existingEvent.setGoogleMapsUrl(updatedEvent.getGoogleMapsUrl());
+        // Update fields (preserve existing values when null in payload)
+        if (updatedEvent.getTitle() != null) existingEvent.setTitle(updatedEvent.getTitle());
+        if (updatedEvent.getDescription() != null) existingEvent.setDescription(updatedEvent.getDescription());
+        if (updatedEvent.getEventDate() != null) existingEvent.setEventDate(updatedEvent.getEventDate());
+        if (updatedEvent.getStartTime() != null) existingEvent.setStartTime(updatedEvent.getStartTime());
+        if (updatedEvent.getEndTime() != null) existingEvent.setEndTime(updatedEvent.getEndTime());
+        if (updatedEvent.getLocation() != null) existingEvent.setLocation(updatedEvent.getLocation());
+        if (updatedEvent.getVenueDetails() != null) existingEvent.setVenueDetails(updatedEvent.getVenueDetails());
+        if (updatedEvent.getMaxCapacity() != null) existingEvent.setMaxCapacity(updatedEvent.getMaxCapacity());
+        if (updatedEvent.getCategoryId() != null) existingEvent.setCategoryId(updatedEvent.getCategoryId());
+        if (updatedEvent.getClubId() != null) existingEvent.setClubId(updatedEvent.getClubId());
+        if (updatedEvent.getRegistrationDeadline() != null) existingEvent.setRegistrationDeadline(updatedEvent.getRegistrationDeadline());
+        if (updatedEvent.getIsPaid() != null) existingEvent.setIsPaid(updatedEvent.getIsPaid());
+        if (updatedEvent.getPrice() != null) existingEvent.setPrice(updatedEvent.getPrice());
+        if (updatedEvent.getCurrency() != null) existingEvent.setCurrency(updatedEvent.getCurrency());
+        if (updatedEvent.getStatus() != null) existingEvent.setStatus(updatedEvent.getStatus());
+        if (updatedEvent.getIsFeatured() != null) existingEvent.setIsFeatured(updatedEvent.getIsFeatured());
+        if (updatedEvent.getGoogleMapsUrl() != null) existingEvent.setGoogleMapsUrl(updatedEvent.getGoogleMapsUrl());
  
         // Note: Cover image handling will be added later
         if (updatedEvent.getCoverImage() != null) {
