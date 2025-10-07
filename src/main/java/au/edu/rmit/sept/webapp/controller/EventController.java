@@ -4,27 +4,25 @@ import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
-import au.edu.rmit.sept.webapp.repository.RSVPRepository;
+import au.edu.rmit.sept.webapp.config.GoogleMapsConfig;
+// removed unused import RSVPRepository
 import au.edu.rmit.sept.webapp.services.EventService;
 import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
+// removed unused imports
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+// removed unused imports
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+// removed unused imports
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.LocalDateTime;
+// removed unused imports
 
 @Controller
 @RequestMapping("/events")
@@ -36,11 +34,13 @@ public class EventController {
     @Autowired
     private RSVPService rsvpService;
 
-    @Autowired
-    private RSVPRepository rsvpRepository;
+    // removed unused repository field
 
     @Autowired
     private RSVPController rsvpController;
+
+    @Autowired
+    private GoogleMapsConfig googleMapsConfig;
 
     /**
      * Get current authenticated user from Spring Security
@@ -69,7 +69,7 @@ public class EventController {
 
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {
@@ -181,7 +181,7 @@ public class EventController {
     public String editEvent(@PathVariable Long id, Model model) {
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {
@@ -192,7 +192,11 @@ public class EventController {
             }
 
             model.addAttribute("event", event);
-            return "events/edit";
+            model.addAttribute("currentUser", currentUser);
+            model.addAttribute("isAuthenticated", true);
+            model.addAttribute("googleMapsApiKey", googleMapsConfig.getApiKey());
+            model.addAttribute("editMode", true);
+            return "organiser/create-event";
         } catch (RuntimeException e) {
             return "redirect:/organiser/dashboard";
         }
@@ -212,7 +216,7 @@ public class EventController {
 
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {
