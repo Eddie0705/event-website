@@ -113,6 +113,22 @@ public class RSVPService {
                 .orElse("No RSVP yet");
         }
 
+
+     // check attendance status
+    @Transactional
+    public String checkAttendanceStatus(Long eventId, Long userId) {
+        return rsvpRepository.getAttendanceStatus(eventId, userId)
+                .map(RSVP.AttendanceStatus::name)
+                .orElse("Not Checked");
+    }
+
+    // update attendance status (check-in time also)
+    @Transactional
+    public boolean updateAttendanceStatus(Long eventId, Long userId, RSVP.AttendanceStatus status) {
+        int updatedRows = rsvpRepository.updateAttendanceStatus(eventId, userId, status);
+        return updatedRows > 0;
+    }
+
     // helper method to send emails out 
     private void sendRSVPConfirmationEmail(User user, Event event, String action) {
         String recipient = user.getEmail();
