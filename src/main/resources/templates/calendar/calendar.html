@@ -32,7 +32,11 @@
         .day-number { font-weight:700; }
 
         .event-pill { font-size:12px; margin:2px 0; padding:2px 6px; border-radius:4px;
-            background:#e3f2fd; border-left:3px solid #1976d2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            background:#e3f2fd; border-left:3px solid #1976d2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+            display:block; text-decoration:none; color:#0d47a1; }
+        .event-pill:hover { background:#d7ecff; }
+
+        .events-list { display:flex; flex-direction:column; gap:4px; }
 
         .week-grid { display:grid; grid-template-columns:repeat(7,1fr); border:1px solid #e9ecef; border-radius:8px; overflow:hidden; }
         .week-day { min-height:150px; padding:8px; border-right:1px solid #f1f3f5; border-top:1px solid #f1f3f5; background:#fff; }
@@ -88,13 +92,16 @@
                  onclick="selectDate(this.dataset.date)">
                 <div class="day-number" th:text="${d.dayOfMonth}">1</div>
 
-                <div th:with="list=${eventsByDate.get(d) != null ? eventsByDate.get(d) : eventsByDateStr[key]}">
-                    <div th:if="${list}"
-                         th:each="e : ${list}"
-                         class="event-pill"
-                         th:title="${e.description}"
-                         th:text="${e.title}">
-                    </div>
+                <div class="events-list" th:with="list=${eventsByDate.get(d) != null ? eventsByDate.get(d) : eventsByDateStr[key]}">
+                    <a th:if="${list}"
+                       th:each="e : ${list}"
+                       class="event-pill"
+                       th:title="${e.description}"
+                       th:href="@{/events/{id}(id=${e.eventId}, t=${e.title})}"
+                       th:attr="data-event-id=${e.eventId},data-title=${e.title},data-date=${#temporals.format(e.eventDate,'yyyy-MM-dd')}"
+                       th:style="'order:' + ${#temporals.format(e.startTime,'HHmm')}"
+                       th:text="${e.title}">
+                    </a>
                 </div>
             </div>
         </div>
@@ -111,13 +118,16 @@
                  onclick="selectDate(this.dataset.date)">
                 <div class="day-number" th:text="${d.dayOfMonth}">1</div>
 
-                <div th:with="list=${eventsByDate.get(d) != null ? eventsByDate.get(d) : eventsByDateStr[key]}">
-                    <div th:if="${list}"
-                         th:each="e : ${list}"
-                         class="event-pill"
-                         th:title="${e.description}"
-                         th:text="${e.title}">
-                    </div>
+                <div class="events-list" th:with="list=${eventsByDate.get(d) != null ? eventsByDate.get(d) : eventsByDateStr[key]}">
+                    <a th:if="${list}"
+                       th:each="e : ${list}"
+                       class="event-pill"
+                       th:title="${e.description}"
+                       th:href="@{/events/{id}(id=${e.eventId}, t=${e.title})}"
+                       th:attr="data-event-id=${e.eventId},data-title=${e.title},data-date=${#temporals.format(e.eventDate,'yyyy-MM-dd')}"
+                       th:style="'order:' + ${#temporals.format(e.startTime,'HHmm')}"
+                       th:text="${e.title}">
+                    </a>
                 </div>
             </div>
         </div>
@@ -128,6 +138,24 @@
   function selectDate(iso){
     console.log('Selected date:', iso);
   }
+
+  // Prefetch event details on hover to minimize reload time
+  document.addEventListener('mouseover', function(e){
+    const link = e.target.closest('a.event-pill');
+    if(!link) return;
+    const href = link.getAttribute('href');
+    if(!href) return;
+    // Use browser prefetch hint
+    let pre = document.querySelector(`link[rel="prefetch"][data-href="${href}"]`);
+    if(!pre){
+      pre = document.createElement('link');
+      pre.rel = 'prefetch';
+      pre.as = 'document';
+      pre.href = href;
+      pre.setAttribute('data-href', href);
+      document.head.appendChild(pre);
+    }
+  });
 </script>
 </body>
 </html>
