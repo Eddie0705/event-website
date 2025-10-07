@@ -36,7 +36,12 @@ public class ReminderService {
         for (RSVP rsvp : rsvps) {
             Event event  = rsvp.getEvent();
 
-            // TODO check if RSVP status is valid 
+            // check if RSVP status is valid 
+            RSVP.RSVPStatus status = rsvp.getRsvpStatus();
+
+            if (status == RSVP.RSVPStatus.cancelled || status == RSVP.RSVPStatus.no) {
+                continue; // skip declined RSVPs
+            }
 
             // Combine event date and time
             LocalDateTime eventDateTime = LocalDateTime.of(event.getEventDate(), event.getStartTime());
@@ -44,7 +49,7 @@ public class ReminderService {
 
             long hoursToEvent = Duration.between(now, eventDateTime).toHours();
 
-            // Check if event is 1 hour (or less) and sendmessage
+            // Check if event is 1 hour (or less) and send message
             if (hoursToEvent <= 1.0) {
                 sendReminder(rsvp, "Your event is starting in 1 hour!");
             }
@@ -86,7 +91,7 @@ public class ReminderService {
             "We look forward to seeing you there!\n\n" +
             "Best regards,\n" +
             "The Events Team",
-            rsvp.getUser().getFullName(),   // assumes you have a getFullName() or similar
+            rsvp.getUser().getFullName(), 
             customMessage,
             event.getTitle(),
             event.getEventDate(),
@@ -95,6 +100,27 @@ public class ReminderService {
             event.getLocation()
         );
 
-        emailService.sendEmail(recipient, subject, body);
+        try {
+            emailService.sendEmail(recipient, subject, body);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Failed to send reminder to " + recipient + " for event '" + event.getTitle() + "'", e);
+        }
+
+    }
+
+
+    private void sendMsg(RSVP rsvp,  String subject, String customMessage) {
+        Event event = rsvp.getEvent();
+        String recipient = rsvp.getUser().getEmail();
+
+    
+
+        try {
+            emailService.sendEmail(recipient, subject, customMessage);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Failed to send reminder to " + recipient + " for event '" + event.getTitle() + "'", e);
+        }
     }
 }
