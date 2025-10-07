@@ -433,8 +433,8 @@
 <div layout:fragment="content">
     <div class="create-event-container">
         <div class="page-header">
-            <h1>Create New Event</h1>
-            <p>Share your amazing event with the world</p>
+            <h1 th:text="${editMode} ? 'Edit Event' : 'Create New Event'">Create New Event</h1>
+            <p th:text="${editMode} ? 'Update your event details' : 'Share your amazing event with the world'">Share your amazing event with the world</p>
         </div>
 
         <!-- Error Messages -->
@@ -447,34 +447,34 @@
             Success message here
         </div>
 
-        <!-- Event Creation Form -->
-        <form action="/organiser/create-event" method="post" id="eventForm">
+        <!-- Event Create/Edit Form -->
+        <form th:action="${editMode} ? @{'/events/' + ${event.eventId} + '/update'} : @{'/organiser/create-event'}" method="post" id="eventForm">
             <div class="form-group full-width">
                 <label for="title">Event Title *</label>
                 <input type="text" id="title" name="title" 
                        placeholder="Enter an engaging title for your event" 
-                       maxlength="255" required>
+                       maxlength="255" required th:value="${editMode} ? ${event.title} : ''">
             </div>
 
             <div class="form-group full-width">
                 <label for="description">Event Description *</label>
                 <textarea id="description" name="description" rows="4" 
                           placeholder="Describe what makes your event special..." 
-                          required></textarea>
+                          required th:text="${editMode} ? ${event.description} : ''"></textarea>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="eventDate">Event Date *</label>
-                    <input type="date" id="eventDate" name="eventDate" required>
+                    <input type="date" id="eventDate" name="eventDate" required th:value="${editMode} ? ${#temporals.format(event.eventDate, 'yyyy-MM-dd')} : ''">
                 </div>
                 <div class="form-group">
                     <label for="startTime">Start Time *</label>
-                    <input type="time" id="startTime" name="startTime" required>
+                    <input type="time" id="startTime" name="startTime" required th:value="${editMode} ? ${#temporals.format(event.startTime, 'HH:mm')} : ''">
                 </div>
                 <div class="form-group">
                     <label for="endTime">End Time *</label>
-                    <input type="time" id="endTime" name="endTime" required>
+                    <input type="time" id="endTime" name="endTime" required th:value="${editMode} ? ${#temporals.format(event.endTime, 'HH:mm')} : ''">
                 </div>
             </div>
 
@@ -483,7 +483,7 @@
                 <div class="location-input-wrapper">
                     <input type="text" id="location" name="location" 
                            placeholder="Start typing an address in Victoria..." 
-                           maxlength="500" required autocomplete="off">
+                           maxlength="500" required autocomplete="off" th:value="${editMode} ? ${event.location} : ''">
                     <span class="location-validation-icon" id="locationIcon"></span>
                     
                     <!-- Autocomplete Dropdown - only shown if API available -->
@@ -519,14 +519,14 @@
             <div class="form-group full-width">
                 <label for="venueDetails">Venue Details (Optional)</label>
                 <textarea id="venueDetails" name="venueDetails" rows="2" 
-                          placeholder="Additional venue information, directions, or special instructions..."></textarea>
+                          placeholder="Additional venue information, directions, or special instructions..." th:text="${editMode} ? ${event.venueDetails} : ''"></textarea>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="maxCapacity">Maximum Capacity *</label>
                     <input type="number" id="maxCapacity" name="maxCapacity" 
-                           placeholder="e.g., 100" min="1" max="10000" required>
+                           placeholder="e.g., 100" min="1" max="10000" required th:value="${editMode} ? ${event.maxCapacity} : ''">
                 </div>
             </div>
 
@@ -558,8 +558,8 @@
             </div>
 
             <div class="form-actions">
-                <a href="/" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
+                <a th:href="${editMode} ? @{'/events/' + ${event.eventId}} : @{'/organiser/dashboard'}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn" th:text="${editMode} ? 'Save Changes' : 'Create Event'">
                     Create Event
                 </button>
             </div>
@@ -1005,7 +1005,8 @@
         }
         
         const submitBtn = document.getElementById('submitBtn');
-        submitBtn.textContent = 'Creating Event...';
+        const isEdit = /*[[${editMode}]]*/ false;
+        submitBtn.textContent = isEdit ? 'Saving...' : 'Creating Event...';
         submitBtn.disabled = true;
     });
 
