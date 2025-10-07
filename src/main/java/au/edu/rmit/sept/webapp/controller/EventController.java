@@ -142,6 +142,11 @@ public class EventController {
                 // Add a simple boolean for easier template logic
                 boolean hasRsvped = !userRsvpStatus.equals("No RSVP yet");
                 model.addAttribute("hasRsvped", hasRsvped);
+
+                if (hasRsvped) {
+                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
+                    model.addAttribute("attendanceStatus", attendanceStatus);
+                }
             }
 
             return "events/event-details";
@@ -261,4 +266,65 @@ public class EventController {
             return "redirect:/organiser/dashboard";
         }
     }
+
+    @GetMapping("/{id}/checkin")
+    public String showCheckInPopup(@PathVariable Long id, Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+            model.addAttribute("event", event);
+            model.addAttribute("currentUser", currentUser);
+
+
+
+            // Use the RSVP controller's method to check status
+            if (currentUser != null) {
+                String userRsvpStatus = rsvpController.checkUserRsvp(event, currentUser);
+                model.addAttribute("userRsvpStatus", userRsvpStatus);
+
+                // Add a simple boolean for easier template logic
+                boolean hasRsvped = !userRsvpStatus.equals("No RSVP yet");
+                model.addAttribute("hasRsvped", hasRsvped);
+
+                if (hasRsvped) {
+                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
+                    model.addAttribute("attendanceStatus", attendanceStatus);
+                }
+            }
+
+            // set the attribute so popup appears
+            model.addAttribute("checkin", true);
+
+            return "events/event-details";
+        } catch (Exception e) {
+            return "events/event-details";
+        }
+    }
+
+    // POST method to checkin to an event 
+    @PostMapping("/{id}/checkin")
+    public String checkInUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+            // Update attendance status & check-in time
+            rsvpService.updateAttendanceStatus(event.getEventId(), currentUser.getUserId(), RSVP.AttendanceStatus.checked_in);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Checked in successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error during check-in: " + e.getMessage());
+        }
+
+        return "redirect:/events/" + id;
+    }
+
+
 }
