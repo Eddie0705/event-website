@@ -5,6 +5,7 @@ import au.edu.rmit.sept.webapp.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -112,6 +113,41 @@ public class RSVPService {
                 .map(RSVP.RSVPStatus::name)
                 .orElse("No RSVP yet");
         }
+
+
+     // check attendance status
+    @Transactional
+    public String checkAttendanceStatus(Long eventId, Long userId) {
+
+        return rsvpRepository.getAttendanceStatus(eventId, userId)
+                .map(RSVP.AttendanceStatus::name)
+                .orElse("Not Checked");
+    }
+
+    // update attendance status (check-in time also)
+    @Transactional
+    public boolean updateAttendanceStatus(Long eventId, Long userId, RSVP.AttendanceStatus status) {
+
+        // validate inputs
+        if (eventId == null || userId == null || status == null) {
+            throw new IllegalArgumentException("Event ID, User ID, and Status must not be null");
+        }
+
+        // check if event exist
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        
+        // check date (cannot check-in before event date)
+        LocalDate today = LocalDate.now();
+        if (event.getEventDate().isAfter(today) || event.getEventDate().isBefore(today)) {
+            throw new IllegalArgumentException("Cannot check-in before the event date");
+        }
+
+
+
+        int updatedRows = rsvpRepository.updateAttendanceStatus(eventId, userId, status);
+        return updatedRows > 0;
+    }
 
     // helper method to send emails out 
     private void sendRSVPConfirmationEmail(User user, Event event, String action) {
