@@ -35,6 +35,8 @@
             background:#e3f2fd; border-left:3px solid #1976d2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
             display:block; text-decoration:none; color:#0d47a1; }
         .event-pill:hover { background:#d7ecff; }
+        .event-pill.past { background:#fee2e2; border-left-color:#b91c1c; color:#7f1d1d; }
+        .event-pill.past:hover { background:#fde8e8; }
 
         .events-list { display:flex; flex-direction:column; gap:4px; }
 
@@ -96,6 +98,7 @@
                     <a th:if="${list}"
                        th:each="e : ${list}"
                        class="event-pill"
+                       th:classappend="${e.eventDate.isBefore(today)} ? ' past' : ''"
                        th:title="${e.description}"
                        th:href="@{/events/{id}(id=${e.eventId}, t=${e.title})}"
                        th:attr="data-event-id=${e.eventId},data-title=${e.title},data-date=${#temporals.format(e.eventDate,'yyyy-MM-dd')}"
@@ -122,6 +125,7 @@
                     <a th:if="${list}"
                        th:each="e : ${list}"
                        class="event-pill"
+                       th:classappend="${e.eventDate.isBefore(today)} ? ' past' : ''"
                        th:title="${e.description}"
                        th:href="@{/events/{id}(id=${e.eventId}, t=${e.title})}"
                        th:attr="data-event-id=${e.eventId},data-title=${e.title},data-date=${#temporals.format(e.eventDate,'yyyy-MM-dd')}"
