@@ -505,6 +505,22 @@
                     
                 </div>
 
+                <div th:if="${attendanceStatus == 'checked_in'}" style="margin-top: 1.5rem;">
+                    <!-- Check-In Icon -->
+                    <button type="button"
+                            class="rsvp-button"
+                            disabled="true"
+                            style="background: linear-gradient(45deg, orange, orange); color: white;">
+                        Checked In
+                    </button>
+
+                    
+                </div>
+
+                <div th:if="${checkinError}" style="color: red; font-weight: bold; margin-top: 1rem;">
+                    <p th:text="${checkinError}"></p>
+                </div>
+
                 <!-- RSVP Section -->
                 <div class="rsvp-section">
                     <h3>Event Registration</h3>
