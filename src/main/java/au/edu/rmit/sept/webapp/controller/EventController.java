@@ -22,6 +22,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.Console;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
@@ -307,20 +309,22 @@ public class EventController {
 
     // POST method to checkin to an event 
     @PostMapping("/{id}/checkin")
-    public String checkInUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String checkInUser(@PathVariable Long id, RedirectAttributes redirectAttributes, Model model) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             return "redirect:/auth/login";
         }
 
+
         try {
             Event event = eventService.getEventById(id);
-            // Update attendance status & check-in time
             rsvpService.updateAttendanceStatus(event.getEventId(), currentUser.getUserId(), RSVP.AttendanceStatus.checked_in);
+        } catch (IllegalArgumentException e) {
+            // Handle known errors (e.g., event not found, cannot check-in before event date)
+            redirectAttributes.addFlashAttribute("checkinError", "Ensure you are checking in on the event date and have RSVPed.");
 
-            redirectAttributes.addFlashAttribute("successMessage", "Checked in successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error during check-in: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("checkinError", "Error during check-in. Please try again.");
         }
 
         return "redirect:/events/" + id;
