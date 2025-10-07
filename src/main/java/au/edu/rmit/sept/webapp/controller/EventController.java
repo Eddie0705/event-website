@@ -58,6 +58,8 @@ public class EventController {
         return null;
     }
 
+    
+
     @PostMapping("/create")
     public String createEvent(@RequestParam String title,
             @RequestParam String description,
@@ -273,7 +275,7 @@ public class EventController {
     public String showCheckInPopup(@PathVariable Long id, Model model) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
-            return "redirect:/auth/login";
+            return "redirect:/auth/login?redirect=/events/" + id + "/checkin";
         }
 
         try {
@@ -312,7 +314,7 @@ public class EventController {
     public String checkInUser(@PathVariable Long id, RedirectAttributes redirectAttributes, Model model) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
-            return "redirect:/auth/login";
+            return "redirect:/auth/login?redirect=/events/" + id + "/checkin";
         }
 
 
