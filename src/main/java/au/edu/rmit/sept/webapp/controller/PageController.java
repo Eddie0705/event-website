@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
@@ -36,10 +37,13 @@ public class PageController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private RSVPService rsvpService;
+
     @Autowired
     private EventService eventService;
+
+
+    @Autowired
+    private RSVPService rsvpService;
 
     /**
      * Get current authenticated user
@@ -59,39 +63,35 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
-
+        
         // Redirect organizers to their dashboard
         if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
             return "redirect:/organiser/dashboard";
         }
-
+        
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
 
         List<Event> events = eventService.getPublishedEvents();
         // Map<Long, String> rsvpStatusMap = new HashMap<>();
 
-        // for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event,
-        // currentUser) : "No RSVP yet";
+        //  for (Event event : events) {
+        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
         // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
         // }
         model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
         return "Index";
-        // List<Event> events = eventService.getPublishedEvents(); // Make sure this
-        // returns events
-        // // Fetch organizer name for each event
-        // Map<Long, String> organizerNames = new HashMap<>();
-        // for (Event event : events) {
-        // organizerNames.put(event.getEventId(),
-        // userService.getUserFullNameById(event.getCreatedBy()));
-        // }
-        // model.addAttribute("events", events);
-        // model.addAttribute("organizerNames", organizerNames);
-        // return "Index"; // This will use the same template as /Index
-
-        // return "Index"; // This will use the same template as /Index
+//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
+//         // Fetch organizer name for each event
+//         Map<Long, String> organizerNames = new HashMap<>();
+//         for (Event event : events) {
+//             organizerNames.put(event.getEventId(),
+//                     userService.getUserFullNameById(event.getCreatedBy()));
+//         }
+//         model.addAttribute("events", events);
+//         model.addAttribute("organizerNames", organizerNames);
+//         return "Index"; // This will use the same template as /Index
 
     }
 
@@ -99,32 +99,30 @@ public class PageController {
     @GetMapping("/explore")
     public String explore(Model model) {
         User currentUser = getCurrentUser();
-
+        
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
 
         List<Event> events = eventService.getPublishedEvents();
         // Map<Long, String> rsvpStatusMap = new HashMap<>();
 
-        // for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event,
-        // currentUser) : "No RSVP yet";
+        //  for (Event event : events) {
+        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
         // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
         // }
         model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
         return "Index";
-        // List<Event> events = eventService.getPublishedEvents(); // Make sure this
-        // returns events
-        // // Fetch organizer name for each event
-        // Map<Long, String> organizerNames = new HashMap<>();
-        // for (Event event : events) {
-        // organizerNames.put(event.getEventId(),
-        // userService.getUserFullNameById(event.getCreatedBy()));
-        // }
-        // model.addAttribute("events", events);
-        // model.addAttribute("organizerNames", organizerNames);
-        // return "Index"; // This will use the same template as /Index
+//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
+//         // Fetch organizer name for each event
+//         Map<Long, String> organizerNames = new HashMap<>();
+//         for (Event event : events) {
+//             organizerNames.put(event.getEventId(),
+//                     userService.getUserFullNameById(event.getCreatedBy()));
+//         }
+//         model.addAttribute("events", events);
+//         model.addAttribute("organizerNames", organizerNames);
+//         return "Index"; // This will use the same template as /Index
 
     }
 
@@ -136,11 +134,34 @@ public class PageController {
         return "Calendar";
     }
 
-    @GetMapping("/eventRSVP")
+    @GetMapping("/rsvp/eventRSVP")
     public String rspv(Model model) {
         User currentUser = getCurrentUser();
+        System.out.println("UserId:" + currentUser.getUserId());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
+        List<RSVP> rsvps = rsvpService.getUserRsvps(currentUser);
+        model.addAttribute("rsvps", rsvps);
+
+        model.addAttribute("yes", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes)
+                                    .toList());
+
+        model.addAttribute("cancelled", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled)
+                                    .toList());
+
+
+        model.addAttribute("maybe", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe)
+                                    .toList());
+
+        model.addAttribute("no", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no)
+                                    .toList());
+
+
+        
         return "rsvp/eventRSVP";
     }
 

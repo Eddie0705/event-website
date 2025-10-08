@@ -157,11 +157,11 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Events Container */
+        /* Events Container - Modified for 3 columns */
         .events_container {
             flex: 1;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
         }
 
@@ -175,6 +175,8 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .events_card:before {
@@ -211,6 +213,13 @@
             font-weight: 600;
         }
 
+        /* Button container for side-by-side buttons */
+        .event-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: auto;
+        }
+
         .events_card button {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             color: #1f2937;
@@ -219,11 +228,14 @@
             border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
+            flex: 1;
             font-size: 16px;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .events_card button:hover {
@@ -231,7 +243,23 @@
             box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
         }
 
+        /* View button styling */
+        .view-button {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6) !important;
+            color: white !important;
+        }
+
+        .view-button:hover {
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
+        }
+
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .events_container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
             .search_area {
                 flex-direction: column;
@@ -255,6 +283,11 @@
 
             .events_container {
                 grid-template-columns: 1fr;
+            }
+
+            .event-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
             }
         }
 
@@ -356,80 +389,66 @@
             </select>
         </div>
 
-
-       <!-- Events Container -->
-       <!-- <div class="events_container">
-            <div class="events_card" th:each="event : ${events}">
-                <h3 th:text="${event.title}">Event Title</h3>
-                <p>
-                    <span th:text="${event.eventDate}">Event Date</span> |
-                    <span th:text="${event.startTime}">Start Time</span>
-                </p>
-                <p th:text="${event.description} ?: 'No Description'">Event Description</p>
-                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
-                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
-
-                <div class="event-info-grid">
-                    <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
-                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
-                <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p>
-                </div> -->
-
-
-           
+        <!-- Events Container -->
+        <div class="events_container">
             <!-- Loop over events -->
             <div class="events_card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p>
                     <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
- |
+                    |
                     <span th:text="${event.startTime}">Start Time</span>
-                    <p th:text="${event.description} ?: 'No Description'">Event Description</p>
+                </p>
+                <p th:text="${event.description} ?: 'No Description'">Event Description</p>
                 <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
                 <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
-                <!-- <p>Organizer: <span th:text="${organizerNames[event.eventId]}">Organizer Name</span></p> -->
-                </p>
+                
+                <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
+                <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
 
-                 <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
-                    <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
-                <p th:text="${event.location}">Location</p>
-                <p th:text="${event.description}">Event Description</p>
-
-                <!-- RSVP form -->
-                <form>
-                    <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
-                    <input type="hidden" name="eventId" th:value="${event.eventId}" />
-                    <input type="hidden" name="rsvpStatus" value="yes" />
-                    <!-- redirect to login -->
-                    <button type="button"
-                        th:if="${currentUser == null}"
-                            onclick="window.location.href='/auth/login'">
-                        RSVP
+                <!-- Button container -->
+                <div class="event-buttons">
+                    <!-- View Button -->
+                    <button type="button" class="view-button" th:onclick="'window.location.href=\'/events/' + ${event.eventId} + '\''">
+                        View
                     </button>
 
-                    <!-- Button if user has not RSVPed -->
-                     <div th:if="${currentUser != null}">
-                    <button type="button"
-                            th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                            th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                        RSVP
-                    </button>
+                    <!-- RSVP form and button -->
+                    <div style="flex: 1;">
+                        <form style="margin: 0;">
+                            <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
+                            <input type="hidden" name="eventId" th:value="${event.eventId}" />
+                            <input type="hidden" name="rsvpStatus" value="yes" />
+                            
+                            <!-- redirect to login -->
+                            <button type="button"
+                                th:if="${currentUser == null}"
+                                onclick="window.location.href='/auth/login'">
+                                RSVP
+                            </button>
 
-                    <!-- Button if user already RSVPed -->
-                    <button type="button"
-                            th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                            th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                        Cancel RSVP
-                    </button>
-                    <!-- end of button -->
-                    <!-- for future: add dropdown for yes no maybe cancelled and make button dynamic -->
+                            <!-- Button if user has not RSVPed -->
+                            <div th:if="${currentUser != null}">
+                                <button type="button"
+                                        th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
+                                        th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
+                                    RSVP
+                                </button>
+
+                                <!-- Button if user already RSVPed -->
+                                <button type="button"
+                                        th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
+                                        th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
+                                    Cancel RSVP
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                </form>
             </div>
         </div>
     </div>
 </div>
-</html>
 
 <script>
 function submitRsvp(eventId, userId) {
@@ -451,7 +470,7 @@ function submitRsvpCancelled(eventId, userId) {
         alert('RSVP Cancelled!');
     });
 }
-
-
-
 </script>
+
+</body>
+</html>

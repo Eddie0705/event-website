@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-
+import java.util.List;
 @Service
 public class RSVPService {
     private final RSVPRepository rsvpRepository;
@@ -14,8 +14,8 @@ public class RSVPService {
     private final UserRepository userRepository;
 
     public RSVPService(RSVPRepository rsvpRepository,
-            EventRepository eventRepository,
-            UserRepository userRepository) {
+                       EventRepository eventRepository,
+                       UserRepository userRepository) {
         this.rsvpRepository = rsvpRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
@@ -23,8 +23,7 @@ public class RSVPService {
 
     @Transactional
     public RSVP rsvpToEvent(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return createOrUpdateRsvp(user, event, RSVP.RSVPStatus.yes, null);
@@ -32,8 +31,7 @@ public class RSVPService {
 
     @Transactional
     public void cancelRSVP(Long eventId, Long userId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
@@ -53,13 +51,13 @@ public class RSVPService {
         Optional<User> user = userRepository.findById(userId);
 
         return event.isPresent() && user.isPresent() &&
-                rsvpRepository.existsByEventAndUser(event.get(), user.get());
+               rsvpRepository.existsByEventAndUser(event.get(), user.get());
     }
 
     @Transactional
     public RSVP createOrUpdateRsvp(User user, Event event,
-            RSVP.RSVPStatus rsvpStatus,
-            RSVP.AttendanceStatus attendanceStatus) {
+                                   RSVP.RSVPStatus rsvpStatus,
+                                   RSVP.AttendanceStatus attendanceStatus) {
 
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
                 .orElseGet(() -> {
@@ -78,6 +76,7 @@ public class RSVPService {
         return rsvpRepository.save(rsvp);
     }
 
+
     @Transactional
     public String checkUserRsvp(Event event, User user) {
         return rsvpRepository.getRsvpStatus(event, user)
@@ -90,11 +89,20 @@ public class RSVPService {
         Optional<Event> event = eventRepository.findById(eventId);
         Optional<User> user = userRepository.findById(userId);
 
-        if (event.isEmpty() || user.isEmpty())
-            return "no";
+        if (event.isEmpty() || user.isEmpty()) return "no";
 
         return rsvpRepository.getRsvpStatus(event.get(), user.get())
                 .map(RSVP.RSVPStatus::name)
                 .orElse("No RSVP yet");
+        }
+        
+    @Transactional
+    public Optional <RSVP> getUserRsvp (Event event, User user){
+        return rsvpRepository.findByEventAndUser(event, user);
+    }
+
+    @Transactional
+    public List<RSVP> getUserRsvps(User user) {
+        return rsvpRepository.findByUserUserId(user.getUserId());
     }
 }
