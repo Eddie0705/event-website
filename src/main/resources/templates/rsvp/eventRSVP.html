@@ -35,17 +35,17 @@
                     </div>
 
                     <div class="summary-card card-going">
-                        <div class="summary-number" th:text="${yes.size()}"></div>
-                        <div class="sumary-label">Confirmed</div>
+                        <div class="summary-number" th:text="${no.size()}"></div>
+                        <div class="sumary-label">No</div>
                     </div>
 
                     <div class="summary-card card-maybe">
-                        <div class="summary-number" th:text="${cancelled.size()}" ></div>
-                        <div class="sumary-label">Declined</div>
+                        <div class="summary-number" th:text="${maybe.size()}" ></div>
+                        <div class="sumary-label">Maybe</div>
                     </div>
                     <div class="summary-card card-past">
-                        <div class="summary-number">2</div>
-                        <div class="summary-label">Past</div>
+                        <div class="summary-number " th:text="${cancelled.size()}"></div>
+                        <div class="summary-label">Cancelled</div>
                     </div>
                 </div>
             </div>
@@ -131,7 +131,7 @@
             <h2 id="events-section-title" class="events-section-title"></h2>
             <div id="past-section">
                 <div class ="event-grid">
-                    <div class="event-card" th:each="rsvp : ${cancelled}">
+                    <div class="event-card cancelled" th:each="rsvp : ${cancelled}">
                         <div class="event-content">
                             <div class="event-date" th:text="|${#temporals.format(rsvp.event.eventDate, 'dd MMM yyyy')} • ${#temporals.format(rsvp.event.startTime, 'hh:mm a')}|">Date</div>
                             <div class="event-title" th:text="${rsvp.event.title}">Title</div>
