@@ -7,6 +7,7 @@ import au.edu.rmit.sept.webapp.models.UserType;
 import au.edu.rmit.sept.webapp.config.GoogleMapsConfig;
 // removed unused import RSVPRepository
 import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.QRCodeService;
 import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 // removed unused imports
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 // removed unused imports
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,6 +34,9 @@ import java.time.LocalTime;
 public class EventController {
 
     @Autowired
+    private QRCodeService qrCodeService;
+
+    @Autowired
     private EventService eventService;
 
     @Autowired
@@ -43,6 +49,9 @@ public class EventController {
 
     @Autowired
     private GoogleMapsConfig googleMapsConfig;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     /**
      * Get current authenticated user from Spring Security
@@ -151,6 +160,11 @@ public class EventController {
                     String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
                     model.addAttribute("attendanceStatus", attendanceStatus);
                 }
+
+                if (currentUser.getUserType() == UserType.ADMIN || 
+                    (currentUser.getUserType() == UserType.ORGANISER && event.getCreatedBy().equals(currentUser.getUserId()))) {
+                    model.addAttribute("canViewQR", true);
+                } 
             }
 
             return "events/event-details";
@@ -336,5 +350,38 @@ public class EventController {
         return "redirect:/events/" + id;
     }
 
+    // authenticated endpoint for qr code generation
+    @GetMapping("/{id}/qrcode")
+    @ResponseBody
+    public ResponseEntity<byte[]> getEventQRCode(@PathVariable Long id) {
+
+        // authentication
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        Event event = eventService.getEventById(id);
+
+        //  only the event's organiser or admin can generate the QR code
+        boolean isOrganiser = currentUser.getUserType() == UserType.ORGANISER 
+                            && event.getCreatedBy().equals(currentUser.getUserId());
+        boolean isAdmin = currentUser.getUserType() == UserType.ADMIN;
+
+        if (!isOrganiser && !isAdmin) {
+            return ResponseEntity.status(403).build(); 
+        }
+
+        // Generate QR linking to the event with /checkin route
+        String checkinUrl = baseUrl + "/events/" + event.getEventId() + "/checkin";
+
+        // used 250x250 for size 
+        byte[] qrImage = qrCodeService.generateQRCodeImage(checkinUrl, 250, 250);
+
+        // return as PNG image
+        return ResponseEntity.ok()
+                .header("Content-Type", "image/png")
+                .body(qrImage);
+    }
 
 }
