@@ -51,7 +51,7 @@ class AuthControllerTest {
 
     @Test
     void showLoginPageReturnsLoginView() {
-        String view = authController.showLoginPage(model);
+        String view = authController.showLoginPage("auth/login", model);
         verify(model).addAttribute(eq("user"), any(User.class));
         assertEquals("auth/login", view);
     }

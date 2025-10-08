@@ -1,5 +1,7 @@
 package au.edu.rmit.sept.webapp.config;
 
+import org.springframework.http.HttpMethod;
+
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.security.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,10 @@ public class SecurityConfig {
                                                                 "/test-user-load")
                                                 .permitAll()
 
+                                                // Event viewing - Allow anonymous access to view events
+                                                .requestMatchers(HttpMethod.GET, "/events/*").permitAll()
+                                                .requestMatchers("/events/*/rsvp").authenticated()
+
                                                 // Admin endpoints
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/users/**").hasRole("ADMIN")
@@ -62,7 +68,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/events/*/delete").hasAnyRole("ORGANISER", "ADMIN")
 
                                                 // User endpoints (authenticated users)
-                                                .requestMatchers("/auth/profile", "/auth/change-password")
+                                                .requestMatchers("/auth/profile", "/auth/change-password","rsvp/eventRSVP")
                                                 .authenticated()
                                                 .requestMatchers("/profile").authenticated()
 

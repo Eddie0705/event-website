@@ -367,8 +367,7 @@
             <a class="home" th:href="@{/}">Home</a> 
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
-            <a class="rsvp" th:href="@{/eventRSVP}">RSVP</a>
-
+            <a class="rsvp" th:href="@{/rsvp/eventRSVP}">RSVP</a>
             <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
                 <a th:href="@{/organiser/create-event}" class="profile-btn">Create Event</a>
             </th:block>
@@ -385,7 +384,7 @@
                         <span th:text="${currentUser != null ? currentUser.firstName + ' ' + currentUser.lastName: 'Log In'}"></span>
                     </a>
                     <div class="dropdown-divider"></div>
-                    <a href="/rsvp" class="dropdown-item">
+                    <a th:href="@{/eventRSVP}" class="dropdown-item">
                         <span class="dropdown-icon">📅</span>
                         RSVP
                     </a> 
@@ -394,7 +393,8 @@
                         My Events
                     </a>
                     <div class="dropdown-divider"></div>
-                    <a href="/auth/logout" class="dropdown-item logout">
+                    <a th:href="@{/auth/logout}" class="dropdown-item logout">
+
                         <span class="dropdown-icon">🚪</span>
                         Logout
                     </a>
@@ -427,7 +427,6 @@
         </a>
     </div>  
 </footer>
-
 
     <!-- Page-specific JavaScript -->
     <th:block layout:fragment="javascript">

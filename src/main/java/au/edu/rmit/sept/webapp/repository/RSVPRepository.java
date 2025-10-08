@@ -4,6 +4,7 @@ import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
 import java.util.Optional;
 
@@ -18,4 +19,6 @@ public interface RSVPRepository extends JpaRepository<RSVP, Long> {
         return findByEventAndUser(event, user)
                 .map(RSVP::getRsvpStatus);
     }
+    List<RSVP> findByUserUserId(Long userId);
+
 }
