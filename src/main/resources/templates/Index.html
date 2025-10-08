@@ -310,6 +310,34 @@
         .events_card:nth-child(2) { animation-delay: 0.1s; }
         .events_card:nth-child(3) { animation-delay: 0.2s; }
         .events_card:nth-child(4) { animation-delay: 0.3s; }
+
+
+        /* rsvp status */
+        .rsvp-status {
+            cursor: default;
+            pointer-events: none;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        /* Not RSVPed */
+        .rsvp-status.not-rsvped {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* RSVPed */
+        .rsvp-status.rsvped {
+            background: #d1fae5 ;
+            color: #065f46;
+        }
+
+
+
     </style>
 </th:block>
 
@@ -424,22 +452,24 @@
                             <button type="button"
                                 th:if="${currentUser == null}"
                                 onclick="window.location.href='/auth/login'">
-                                RSVP
+                                Login to RSVP
                             </button>
 
                             <!-- Button if user has not RSVPed -->
                             <div th:if="${currentUser != null}">
                                 <button type="button"
                                         th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                                        th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                                    RSVP
+                                        class="rsvp-status not-rsvped"
+                                        disabled="true">
+                                        Not RSVP'd
                                 </button>
 
                                 <!-- Button if user already RSVPed -->
                                 <button type="button"
                                         th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                                        th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                                    Cancel RSVP
+                                        class="rsvp-status rsvped"
+                                        disabled="true">
+                                    RSVP'd
                                 </button>
                             </div>
                         </form>
@@ -451,25 +481,6 @@
 </div>
 
 <script>
-function submitRsvp(eventId, userId) {
-    fetch('/rsvp/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
-    }).then(() => {
-        alert('RSVP submitted!');
-    });
-}
-
-function submitRsvpCancelled(eventId, userId) {
-    fetch('/rsvp/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
-    }).then(() => {
-        alert('RSVP Cancelled!');
-    });
-}
 </script>
 
 </body>
