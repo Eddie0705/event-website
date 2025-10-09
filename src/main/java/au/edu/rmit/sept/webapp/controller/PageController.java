@@ -133,11 +133,34 @@ public class PageController {
     }
 
 
-    @GetMapping("/eventRSVP")
+    @GetMapping("/rsvp/eventRSVP")
     public String rspv(Model model) {
         User currentUser = getCurrentUser();
+        System.out.println("UserId:" + currentUser.getUserId());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
+        List<RSVP> rsvps = rsvpService.getUserRsvps(currentUser);
+        model.addAttribute("rsvps", rsvps);
+
+        model.addAttribute("yes", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes)
+                                    .toList());
+
+        model.addAttribute("cancelled", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled)
+                                    .toList());
+
+
+        model.addAttribute("maybe", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe)
+                                    .toList());
+
+        model.addAttribute("no", rsvps.stream()
+                                    .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no)
+                                    .toList());
+
+
+        
         return "rsvp/eventRSVP";
     }
 

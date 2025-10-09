@@ -13,7 +13,7 @@ public class RSVP {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long rsvpId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 

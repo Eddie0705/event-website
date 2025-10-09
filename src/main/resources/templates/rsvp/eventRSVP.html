@@ -5,16 +5,16 @@
       layout:decorate="~{layout/base}">
 <head>
 <title>PAGE_TITLE</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- <link rel="stylesheet" th:href="@{/css/style.css}"> -->
      <link rel="stylesheet" th:href="@{/css/eventRSVP.css}">
 </head>
  
-<!-- <th:block layout:fragment="css">
+<th:block layout:fragment="css">
 <style>
         /* Page-specific styles */
         
 </style>
-</th:block> -->
+</th:block>
  
 <div layout:fragment="content">
 <!-- Your page content here -->
@@ -30,157 +30,168 @@
                 <!-- summary card -->
                 <div class="summary-cards">
                     <div class="summary-card card-upcoming">
-                        <div class="summary-number">2</div>
+                        <div class="summary-number" th:text="${yes.size()}"></div>
                         <div class="summary-label">Yes</div>
                     </div>
 
                     <div class="summary-card card-going">
-                        <div class="summary-number">2</div>
-                        <div class="sumary-label">Confirmed</div>
+                        <div class="summary-number" th:text="${no.size()}"></div>
+                        <div class="sumary-label">No</div>
                     </div>
 
                     <div class="summary-card card-maybe">
-                        <div class="summary-number">2</div>
-                        <div class="sumary-label">Declined</div>
+                        <div class="summary-number" th:text="${maybe.size()}" ></div>
+                        <div class="sumary-label">Maybe</div>
                     </div>
                     <div class="summary-card card-past">
-                        <div class="summary-number">2</div>
-                        <div class="summary-label">No</div>
+                        <div class="summary-number " th:text="${cancelled.size()}"></div>
+                        <div class="summary-label">Cancelled</div>
                     </div>
                 </div>
             </div>
         </div>
         <!-- end of header -->
 
-
         <!-- filter buttons -->
         <div class="filters">
             <h1> Your Events</h1>
             <div class ='filter-buttons'>
-                <button class="filter-btn active">Upcoming Events</button>
+                <button class="filter-btn" onclick="filterEvents('upcoming')">Upcoming Events</button>
                 <button class="filter-btn">Confirmed</button>
                 <button class="filter-btn">Declined</button>
-                <button class="filter-btn">Past Events</button>
+                <button class="filter-btn"onclick="filterEvents('past')" >Past Events</button>
             </div>
         </div>
          <!-- end of filter button -->
 
          <!-- event card section rsvp -->
         <div class="events-section">
-            <h2 class="events-section-title">Upcoming events</h2> 
-            <div class ="event-grid">
-                <div class ="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Thu, Mar 21 • 6:00 PM</div>
-                        <div class="event-title">Melbourne Startup Community Meetup</div>
-                        <div class="event-location"> At WeWork Collins Street</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 59 attending</div>
-                            <div class="status-indicator">Going</div>
-                        </div>
-                    </div>
-                </div>
+            <h2 id="events-section-title" class="events-section-title"></h2> 
 
-                <div class="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Sat, Mar 23 • 10:00 AM</div>
-                        <div class="event-title">UX Design Workshop</div>
-                        <div class="event-location"> At RMIT Design Hub</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 67 attending</div>
-                            <div class="status-indicator"> Going</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <h2 class="events-section-title">Confirmed</h2>
-            <div class ="event-grid">
-                <div class ="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Thu, Mar 21 • 6:00 PM</div>
-                        <div class="event-title">Melbourne Startup Community Meetup</div>
-                        <div class="event-location"> At WeWork Collins Street</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 59 attending</div>
-                            <div class="status-indicator">Going</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Sat, Mar 23 • 10:00 AM</div>
-                        <div class="event-title">UX Design Workshop</div>
-                        <div class="event-location"> At RMIT Design Hub</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 67 attending</div>
-                            <div class="status-indicator"> Going</div>
+           <!-- <p th:text="${yes != null ? #lists.size(yes) + ' RSVPs found for Yes' : 'No RSVPs'}"></p> -->
+            <div id="upcoming-section">
+                <div class="event-grid">
+                    <div class="event-card" 
+                    th:each="rsvp : ${yes}"
+                    th:attr="data-date=${rsvp.event.eventDate}">
+                        <div class="event-content">
+                            <div class="event-date" th:text="|${#temporals.format(rsvp.event.eventDate, 'dd MMM yyyy')} • ${#temporals.format(rsvp.event.startTime, 'hh:mm a')}|">Date</div>
+                            <div class="event-title" th:text="${rsvp.event.title}">Title</div>
+                            <div class="event-location" th:text=" At + ' ' +${rsvp.event.getLocation}"> </div>
+                            <div class="status-indicator" th:text="${rsvp.event.getDescription}">Going</div>
+                            <div class="event-stats">
+                                <div class="attendee-count" th:text="${rsvp.event.maxCapacity} + ' ' +  Attendees"></div>
+                                <div class="attendee-count" th:text="${rsvp.event.venueDetails}"></div>
+                                <div class="attendee-count" th text="${rsvp.event.currentRsvpCount} + ' ' + attending"></div>
+                                <div class="status-indicator" th:text="${rsvp.rsvpStatus}"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <h2 class="events-section-title">Cancelled</h2>
-            <div class ="event-grid">
-                <div class ="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Thu, Mar 21 • 6:00 PM</div>
-                        <div class="event-title">Melbourne Startup Community Meetup</div>
-                        <div class="event-location"> At WeWork Collins Street</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 59 attending</div>
-                            <div class="status-indicator">Going</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Sat, Mar 23 • 10:00 AM</div>
-                        <div class="event-title">UX Design Workshop</div>
-                        <div class="event-location"> At RMIT Design Hub</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 67 attending</div>
-                            <div class="status-indicator"> Going</div>
+            <h2 id="events-section-title" class="events-section-title"></h2>
+            <div id="confirmed-section">
+                <div class ="event-grid">
+                    <div class ="event-card" th:each="rsvp : ${no}">
+                        <div class="event-content">
+                            <div class="event-date" th:text="|${#temporals.format(rsvp.event.eventDate, 'dd MMM yyyy')} • ${#temporals.format(rsvp.event.startTime, 'hh:mm a')}|">Date</div>
+                            <div class="event-title" th:text="${rsvp.event.title}">Title</div>
+                            <div class="event-location" th:text=" At + ' ' +${rsvp.event.getLocation}"> </div>
+                            <div class="status-indicator" th:text="${rsvp.event.getDescription}">Going</div>
+                            <div class="event-stats">
+                                <div class="attendee-count" th:text="${rsvp.event.maxCapacity} + ' ' +  Attendees"></div>
+                                <div class="attendee-count" th text="${rsvp.event.currentRsvpCount} + ' ' + attending"></div>
+                                <div class="status-indicator" th:text="${rsvp.rsvpStatus}">Going</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <h2 class="events-section-title">Cancelled</h2>
-            <div class ="event-grid">
-                <div class ="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Thu, Mar 21 • 6:00 PM</div>
-                        <div class="event-title">Melbourne Startup Community Meetup</div>
-                        <div class="event-location"> At WeWork Collins Street</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 59 attending</div>
-                            <div class="status-indicator">Going</div>
+            <h2 id="events-section-title" class="events-section-title"></h2>
+            <div id="declined-section">
+                <div class ="event-grid">
+                    <div class="event-card" th:each="rsvp : ${maybe}">
+                        <div class="event-content">
+                            <div class="event-date" th:text="|${#temporals.format(rsvp.event.eventDate, 'dd MMM yyyy')} • ${#temporals.format(rsvp.event.startTime, 'hh:mm a')}|">Date</div>
+                            <div class="event-title" th:text="${rsvp.event.title}">Title</div>
+                            <div class="event-location" th:text=" At + ' ' +${rsvp.event.getLocation}"> </div>
+                            <div class="status-indicator" th:text="${rsvp.event.getDescription}"></div>
+                            <div class="event-stats">
+                                <div class="attendee-count" th:text="${rsvp.event.maxCapacity} + ' ' +  Attendees"></div>
+                                <div class="attendee-count" th text="${rsvp.event.currentRsvpCount} + ' ' + attending"></div> 
+                                <div class="status-indicator" th:text="${rsvp.rsvpStatus}">Going</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="event-card">
-                    <div class="event-content">
-                        <div class="event-date">Sat, Mar 23 • 10:00 AM</div>
-                        <div class="event-title">UX Design Workshop</div>
-                        <div class="event-location"> At RMIT Design Hub</div>
-                        <div class="event-stats">
-                            <div class="attendee-count">👥 67 attending</div>
-                            <div class="status-indicator"> Going</div>
+            <h2 id="events-section-title" class="events-section-title"></h2>
+            <div id="past-section">
+                <div class ="event-grid">
+                    <div class="event-card cancelled" th:each="rsvp : ${cancelled}">
+                        <div class="event-content">
+                            <div class="event-date" th:text="|${#temporals.format(rsvp.event.eventDate, 'dd MMM yyyy')} • ${#temporals.format(rsvp.event.startTime, 'hh:mm a')}|">Date</div>
+                            <div class="event-title" th:text="${rsvp.event.title}">Title</div>
+                            <div class="event-location" th:text=" At + ' ' +${rsvp.event.getLocation}"> </div>
+                            <div class="status-indicator" th:text="${rsvp.event.getDescription}">Going</div>
+                            <div class="event-stats">
+                                <div class="attendee-count" th:text="${rsvp.event.maxCapacity} + ' ' +  Attendees"></div>
+                                <div class="attendee-count" th text="${rsvp.event.currentRsvpCount} + ' ' + attending"></div>
+                                <div class="status-indicator" th:text="${rsvp.rsvpStatus}">Going</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+          <!-- end of evend card section rsvp  -->
+        <footer>
+            <p>&copy; 2024 Your Company. All rights reserved.</p>
+        </footer>
     </div>
 </div>
  
-<!-- <th:block layout:fragment="javascript">
+<th:block layout:fragment="javascript">
+
 <script>
-        // Page-specific JavaScript
+function filterEvents(type) {
+    const now = new Date();
+    const sectionTitle = document.getElementById("events-section-title"); 
+    const clickedButton = document.querySelector(`.filter-btn[onclick="filterEvents('${type}')"]`);
+    const isActive = clickedButton.classList.contains('active');
+
+    // Remove active from all buttons first
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Determine whether to reset view (show all) or filter
+    const resetView = isActive;
+
+    document.querySelectorAll('.event-card').forEach(card => {
+        const eventDate = new Date(card.dataset.date + "T00:00:00");
+
+        if (resetView) {
+            // Show all cards
+            card.style.display = 'block';
+        } else {
+            // Filter by type
+            if (type === 'upcoming' && eventDate >= now) card.style.display = 'block';
+            else if (type === 'past' && eventDate < now) card.style.display = 'block';
+            else card.style.display = 'none';
+        }
+    });
+
+    // Update section title
+    sectionTitle.textContent = resetView ? "All Events" :
+        type === 'upcoming' ? "Upcoming Events" :
+        type === 'past' ? "Past Events" : "Your Events";
+
+    // Only add active class if button was not already active
+    if (!isActive) clickedButton.classList.add('active');
+}
 </script>
-</th:block> -->
+</th:block>
 </html>

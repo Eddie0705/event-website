@@ -6,9 +6,13 @@ import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.Event.EventStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +28,8 @@ public interface RSVPRepository extends JpaRepository<RSVP, Long> {
         return findByEventAndUser(event, user)
                 .map(RSVP::getRsvpStatus);
     }
+
+    List<RSVP> findByUserUserId(Long userId);
 
     // method to get attendance status
     @Query("SELECT r.attendanceStatus FROM RSVP r WHERE r.event.id = :eventId AND r.user.id = :userId")
