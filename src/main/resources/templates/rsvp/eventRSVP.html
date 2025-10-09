@@ -9,12 +9,12 @@
      <link rel="stylesheet" th:href="@{/css/eventRSVP.css}">
 </head>
  
-<!-- <th:block layout:fragment="css">
+<th:block layout:fragment="css">
 <style>
         /* Page-specific styles */
         
 </style>
-</th:block> -->
+</th:block>
  
 <div layout:fragment="content">
 <!-- Your page content here -->
@@ -147,10 +147,16 @@
                 </div>
             </div>
         </div>
+
+          <!-- end of evend card section rsvp  -->
+        <footer>
+            <p>&copy; 2024 Your Company. All rights reserved.</p>
+        </footer>
     </div>
 </div>
  
-<!-- <th:block layout:fragment="javascript">
+<th:block layout:fragment="javascript">
+
 <script>
 function filterEvents(type) {
     const now = new Date();
@@ -187,5 +193,5 @@ function filterEvents(type) {
     if (!isActive) clickedButton.classList.add('active');
 }
 </script>
-</th:block> -->
+</th:block>
 </html>

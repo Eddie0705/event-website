@@ -122,6 +122,7 @@ public class RSVPService {
     @Transactional
     public List<RSVP> getUserRsvps(User user) {
         return rsvpRepository.findByUserUserId(user.getUserId());
+    }
 
 
 
