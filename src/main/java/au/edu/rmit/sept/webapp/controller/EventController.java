@@ -57,6 +57,7 @@ public class EventController {
             @RequestParam String location,
             @RequestParam Integer maxCapacity,
             @RequestParam(required = false) String venueDetails,
+            @RequestParam(required = false) List<String> category,
             RedirectAttributes redirectAttributes) {
 
         User currentUser = getCurrentUser();
@@ -93,6 +94,9 @@ public class EventController {
             event.setLocation(location);
             event.setMaxCapacity(maxCapacity);
             event.setCurrentRsvpCount(0);
+            if (category != null && !category.isEmpty()) {
+                event.setCategory(String.join(", ", category)); // saves "Sport, Social"
+            }
 
             if (venueDetails != null && !venueDetails.trim().isEmpty()) {
                 event.setVenueDetails(venueDetails);
@@ -217,24 +221,26 @@ public class EventController {
     @GetMapping("/search")
     public String searchEvents(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false, name = "category") List<String> categories,
             @RequestParam(required = false) String date,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) String price,
+            @RequestParam(required = false) String organizer,
             Model model) {
 
-        search = (search != null && search.isBlank()) ? null : search;
-        category = (category != null && category.isBlank()) ? null : category;
-        date = (date != null && date.isBlank()) ? null : date;
-        location = (location != null && location.isBlank()) ? null : location;
-
-        // ✅ Keep user context and RSVP service so buttons render correctly
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
-        model.addAttribute("rsvpService", rsvpService);
 
-        List<Event> filteredEvents = eventService.searchEvents(search, category, date, location);
+        // optional: log incoming params for debugging
+        System.out.println("[SEARCH] categories=" + categories + ", dateFrom=" + dateFrom + ", dateTo=" + dateTo +
+                ", location=" + location + ", price=" + price + ", organizer=" + organizer);
+
+        List<Event> filteredEvents = eventService.searchEvents(
+                search, categories, date, dateFrom, dateTo, location, price, organizer);
+
         model.addAttribute("events", filteredEvents);
-
         return "fragments/eventCards :: eventsContainer";
     }
 

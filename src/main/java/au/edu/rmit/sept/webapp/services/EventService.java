@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -422,14 +423,86 @@ public class EventService {
         }
     }
 
-    public List<Event> searchEvents(String search, String category, String date, String location) {
-        if ((search == null || search.isEmpty()) &&
-                (category == null || category.equals("all")) &&
-                (date == null || date.isEmpty()) &&
-                (location == null || location.equals("any"))) {
-            return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.published);
+    public List<Event> searchEvents(String search, List<String> categories, String date,
+            String dateFrom, String dateTo, String location,
+            String price, String organizer) {
+
+        List<Event> events = eventRepository.findByStatusOrderByEventDateAsc(Event.EventStatus.published);
+
+        // 🔍 text
+        if (search != null && !search.isBlank()) {
+            String s = search.toLowerCase();
+            events = events.stream()
+                    .filter(e -> e.getTitle().toLowerCase().contains(s)
+                            || (e.getDescription() != null && e.getDescription().toLowerCase().contains(s)))
+                    .toList();
         }
-        return eventRepository.searchEvents(search, category, date, location);
+
+        // 📁 category
+        if (categories != null && !categories.isEmpty()) {
+            List<String> normalized = categories.stream()
+                    .filter(c -> c != null && !c.trim().isEmpty())
+                    .map(c -> c.trim().toLowerCase())
+                    .toList();
+            boolean all = normalized.contains("all");
+            if (!all) {
+                events = events.stream()
+                        .filter(e -> e.getCategory() != null && !e.getCategory().isBlank()
+                                && normalized.stream().anyMatch(c -> e.getCategory().toLowerCase().contains(c)))
+                        .toList();
+            }
+        }
+
+        // 📅 single date
+        if (date != null && !date.isBlank()) {
+            events = events.stream()
+                    .filter(e -> e.getEventDate() != null && e.getEventDate().toString().equals(date))
+                    .toList();
+        }
+
+        // 📅 date range
+        if ((dateFrom != null && !dateFrom.isBlank()) || (dateTo != null && !dateTo.isBlank())) {
+            LocalDate from = (dateFrom != null && !dateFrom.isBlank()) ? LocalDate.parse(dateFrom) : LocalDate.MIN;
+            LocalDate to = (dateTo != null && !dateTo.isBlank()) ? LocalDate.parse(dateTo) : LocalDate.MAX;
+            events = events.stream()
+                    .filter(e -> e.getEventDate() != null &&
+                            (e.getEventDate().isEqual(from) || e.getEventDate().isAfter(from)) &&
+                            (e.getEventDate().isEqual(to) || e.getEventDate().isBefore(to)))
+                    .toList();
+        }
+
+        // 📍 location
+        if (location != null && !"any".equalsIgnoreCase(location.trim())) {
+            events = events.stream()
+                    .filter(e -> e.getLocation() != null &&
+                            e.getLocation().toLowerCase().contains(location.toLowerCase()))
+                    .toList();
+        }
+
+        // 💰 price
+        if (price != null && !"any".equalsIgnoreCase(price.trim())) {
+            if (price.equalsIgnoreCase("free")) {
+                events = events.stream()
+                        .filter(e -> (e.getIsPaid() == null || !e.getIsPaid())
+                                || (e.getPrice() != null && e.getPrice().compareTo(BigDecimal.ZERO) == 0))
+                        .toList();
+            } else if (price.equalsIgnoreCase("paid")) {
+                events = events.stream()
+                        .filter(e -> (e.getIsPaid() != null && e.getIsPaid())
+                                || (e.getPrice() != null && e.getPrice().compareTo(BigDecimal.ZERO) > 0))
+                        .toList();
+            }
+        }
+
+        // 👥 organizer
+        if (organizer != null && !"any".equalsIgnoreCase(organizer.trim())) {
+            events = events.stream()
+                    .filter(e -> e.getCreatedBy() != null &&
+                            String.valueOf(e.getCreatedBy()).equalsIgnoreCase(organizer))
+                    .toList();
+        }
+
+        return events;
     }
 
 }

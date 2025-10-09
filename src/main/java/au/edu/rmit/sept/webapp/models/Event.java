@@ -62,6 +62,10 @@ public class Event {
     @Column(name = "category_id")
     private Long categoryId;
 
+    @Size(max = 100, message = "Category name must not exceed 100 characters")
+    @Column(name = "category", length = 100)
+    private String category;
+
     @Column(name = "club_id")
     private Long clubId;
 
@@ -253,6 +257,14 @@ public class Event {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public Long getClubId() {
