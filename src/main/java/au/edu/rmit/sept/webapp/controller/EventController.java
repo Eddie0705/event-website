@@ -4,27 +4,27 @@ import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
-import au.edu.rmit.sept.webapp.repository.RSVPRepository;
+import au.edu.rmit.sept.webapp.config.GoogleMapsConfig;
+// removed unused import RSVPRepository
 import au.edu.rmit.sept.webapp.services.EventService;
 import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
+// removed unused imports
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+// removed unused imports
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+// removed unused imports
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.Console;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.LocalDateTime;
+// removed unused imports
 
 @Controller
 @RequestMapping("/events")
@@ -36,11 +36,13 @@ public class EventController {
     @Autowired
     private RSVPService rsvpService;
 
-    @Autowired
-    private RSVPRepository rsvpRepository;
+    // removed unused repository field
 
     @Autowired
     private RSVPController rsvpController;
+
+    @Autowired
+    private GoogleMapsConfig googleMapsConfig;
 
     /**
      * Get current authenticated user from Spring Security
@@ -56,6 +58,8 @@ public class EventController {
         return null;
     }
 
+    
+
     @PostMapping("/create")
     public String createEvent(@RequestParam String title,
             @RequestParam String description,
@@ -69,7 +73,7 @@ public class EventController {
 
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {
@@ -142,6 +146,11 @@ public class EventController {
                 // Add a simple boolean for easier template logic
                 boolean hasRsvped = !userRsvpStatus.equals("No RSVP yet");
                 model.addAttribute("hasRsvped", hasRsvped);
+
+                if (hasRsvped) {
+                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
+                    model.addAttribute("attendanceStatus", attendanceStatus);
+                }
             }
 
             return "events/event-details";
@@ -181,7 +190,7 @@ public class EventController {
     public String editEvent(@PathVariable Long id, Model model) {
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {
@@ -192,7 +201,11 @@ public class EventController {
             }
 
             model.addAttribute("event", event);
-            return "events/edit";
+            model.addAttribute("currentUser", currentUser);
+            model.addAttribute("isAuthenticated", true);
+            model.addAttribute("googleMapsApiKey", googleMapsConfig.getApiKey());
+            model.addAttribute("editMode", true);
+            return "organiser/create-event";
         } catch (RuntimeException e) {
             return "redirect:/organiser/dashboard";
         }
@@ -212,7 +225,7 @@ public class EventController {
 
         User currentUser = getCurrentUser();
         if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {
@@ -261,4 +274,67 @@ public class EventController {
             return "redirect:/organiser/dashboard";
         }
     }
+
+    @GetMapping("/{id}/checkin")
+    public String showCheckInPopup(@PathVariable Long id, Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login?redirect=/events/" + id + "/checkin";
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+            model.addAttribute("event", event);
+            model.addAttribute("currentUser", currentUser);
+
+
+
+            // Use the RSVP controller's method to check status
+            if (currentUser != null) {
+                String userRsvpStatus = rsvpController.checkUserRsvp(event, currentUser);
+                model.addAttribute("userRsvpStatus", userRsvpStatus);
+
+                // Add a simple boolean for easier template logic
+                boolean hasRsvped = !userRsvpStatus.equals("No RSVP yet");
+                model.addAttribute("hasRsvped", hasRsvped);
+
+                if (hasRsvped) {
+                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
+                    model.addAttribute("attendanceStatus", attendanceStatus);
+                }
+            }
+
+            // set the attribute so popup appears
+            model.addAttribute("checkin", true);
+
+            return "events/event-details";
+        } catch (Exception e) {
+            return "events/event-details";
+        }
+    }
+
+    // POST method to checkin to an event 
+    @PostMapping("/{id}/checkin")
+    public String checkInUser(@PathVariable Long id, RedirectAttributes redirectAttributes, Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/auth/login?redirect=/events/" + id + "/checkin";
+        }
+
+
+        try {
+            Event event = eventService.getEventById(id);
+            rsvpService.updateAttendanceStatus(event.getEventId(), currentUser.getUserId(), RSVP.AttendanceStatus.checked_in);
+        } catch (IllegalArgumentException e) {
+            // Handle known errors (e.g., event not found, cannot check-in before event date)
+            redirectAttributes.addFlashAttribute("checkinError", "Ensure you are checking in on the event date and have RSVPed.");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("checkinError", "Error during check-in. Please try again.");
+        }
+
+        return "redirect:/events/" + id;
+    }
+
+
 }

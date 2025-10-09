@@ -82,6 +82,7 @@
         /* Profile Dropdown Styles */
         .profile-dropdown {
             position: relative;
+            z-index: 150;
         }
 
         .profile-dropdown .profile {
@@ -116,6 +117,7 @@
             z-index: 1000;
             margin-top: 0.5rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 150;
         }
 
         .dropdown-menu.show {
@@ -373,28 +375,36 @@
             </th:block>
         </div> 
         <div class="right-nav">
-            <a class="noti" href="/noti">Notifications</a>  
             <div class="profile-dropdown">
                 <a class="profile" href="#" onclick="toggleDropdown(event)">
                     Profile <span class="dropdown-arrow">▼</span>
                 </a>
                 <div class="dropdown-menu" id="profileDropdown">
-                    <a href="user/profile" class="dropdown-item">
+                    <a th:href="@{/profile}" class="dropdown-item">
                         <span class="dropdown-icon">👤</span>
                         <span th:text="${currentUser != null ? currentUser.firstName + ' ' + currentUser.lastName: 'Log In'}"></span>
                     </a>
                     <div class="dropdown-divider"></div>
                     <a th:href="@{/eventRSVP}" class="dropdown-item">
-                        <span class="dropdown-icon">📅</span>
+                        <span class="dropdown-icon">🎯</span>
                         RSVP
                     </a> 
-                    <a href="/myevents" class="dropdown-item">
-                        <span class="dropdown-icon">🎯</span>
+                    <a href="/calendar" class="dropdown-item">
+                        <span class="dropdown-icon">📅</span>
                         My Events
                     </a>
+
+                    <th:block th:if="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')}">
+                       
+                        
+                        <a href="/organiser/create-event" class="dropdown-item">
+                        <span class="dropdown-icon">🎉</span>
+                        Create Event
+                    </a>
+                    </th:block>
+
                     <div class="dropdown-divider"></div>
                     <a th:href="@{/auth/logout}" class="dropdown-item logout">
-
                         <span class="dropdown-icon">🚪</span>
                         Logout
                     </a>
@@ -418,7 +428,7 @@
     <!-- Footer -->
     <footer style="padding: 1rem 0;">
     <div style="display:flex; justify-content:space-between; align-items:center; max-width:1000px; margin:0 auto; padding:0 1rem;">
-        <p style="margin:0;">&copy; 2024 EventHub. All rights reserved.</p> 
+        <p style="margin:0;">&copy; 2025 EventHub. All rights reserved.</p> 
         <a href="https://github.com/cosc2299-2025/team-project-group-p03-03" target="_blank" rel="noopener noreferrer">
             <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.png"
                 alt="GitHub"

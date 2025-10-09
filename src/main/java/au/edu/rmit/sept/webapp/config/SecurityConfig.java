@@ -55,6 +55,7 @@ public class SecurityConfig {
 
                                                 // Event viewing - Allow anonymous access to view events
                                                 .requestMatchers(HttpMethod.GET, "/events/*").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/events/*/**").permitAll()
                                                 .requestMatchers("/events/*/rsvp").authenticated()
 
                                                 // Admin endpoints
