@@ -3,10 +3,12 @@ package au.edu.rmit.sept.webapp.services;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
 import au.edu.rmit.sept.webapp.repository.UserRepository;
+import au.edu.rmit.sept.webapp.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +24,12 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -437,7 +445,30 @@ public class UserService {
             }
         }
         
-        // Delete the user (cascading will handle related events automatically)
+        // Handle foreign key constraints manually before deleting the user
+        // Since we don't have all entity repositories, we'll use native SQL queries
+        // to handle the RESTRICT constraints
+        
+        // Delete events created by this user (this will cascade to RSVPs, feedback, etc.)
+        eventRepository.deleteByCreatedBy(userId);
+        
+        // Delete clubs created by this user using native query
+        entityManager.createNativeQuery("DELETE FROM clubs WHERE created_by = ?")
+                    .setParameter(1, userId)
+                    .executeUpdate();
+        
+        // Delete audit logs where this user was the admin using native query
+        entityManager.createNativeQuery("DELETE FROM audit_log WHERE admin_id = ?")
+                    .setParameter(1, userId)
+                    .executeUpdate();
+        
+        // Delete payments made by this user using native query
+        entityManager.createNativeQuery("DELETE FROM payments WHERE user_id = ?")
+                    .setParameter(1, userId)
+                    .executeUpdate();
+        
+        // Other entities with CASCADE will be handled automatically by the database
+        // Delete the user
         userRepository.delete(user);
     }
 }

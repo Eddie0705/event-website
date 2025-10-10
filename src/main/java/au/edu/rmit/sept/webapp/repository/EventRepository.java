@@ -151,4 +151,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         @Modifying
         @Query("UPDATE Event e SET e.qrCodeData = :qrCodeData WHERE e.eventId = :eventId")
         int updateQrCodeData(@Param("eventId") Long eventId, @Param("qrCodeData") String qrCodeData);
+
+        // Delete events created by a specific user
+        @Modifying
+        @Query("DELETE FROM Event e WHERE e.createdBy = :createdBy")
+        void deleteByCreatedBy(@Param("createdBy") Long createdBy);
 }
