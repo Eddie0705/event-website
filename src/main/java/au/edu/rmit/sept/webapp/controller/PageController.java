@@ -192,6 +192,7 @@ public class PageController {
             return "redirect:/auth/login";
         }
         model.addAttribute("user", currentUser);
+        model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", true);
         return "user/profile";
     }
