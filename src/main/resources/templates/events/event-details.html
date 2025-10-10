@@ -504,6 +504,17 @@
 
                     
                 </div>
+                
+                
+                <div th:if="${canViewQR}" style="margin-top: 1.5rem; text-align: center;">
+                    <h3>Check-in QR Code</h3>
+                    <img th:src="@{'/events/' + ${event.eventId} + '/qrcode'}"
+                        alt="Check-in QR Code"
+                        width="250" height="250" />
+
+                    <p>Attendees can scan this QR code to check in.</p>
+                </div>
+    
 
                 <div th:if="${attendanceStatus == 'checked_in'}" style="margin-top: 1.5rem;">
                     <!-- Check-In Icon -->
