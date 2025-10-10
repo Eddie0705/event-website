@@ -146,4 +146,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         @Modifying
         @Query("UPDATE Event e SET e.status = :status WHERE e.eventId = :eventId")
         int updateEventStatus(@Param("eventId") Long eventId, @Param("status") EventStatus status);
+
+        // Update QR code data directly (bypasses validation)
+        @Modifying
+        @Query("UPDATE Event e SET e.qrCodeData = :qrCodeData WHERE e.eventId = :eventId")
+        int updateQrCodeData(@Param("eventId") Long eventId, @Param("qrCodeData") String qrCodeData);
 }
