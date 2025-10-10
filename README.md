@@ -20,4 +20,3 @@
 - Microsoft Teams : https://teams.microsoft.com/l/team/19%3Ahe4l5WjrlcjOpNBSncuKidbNAXV_b8wtXgNDEVkHpd01%40thread.tacv2/conversations?groupId=a5f38729-13ae-4ccc-be11-ee6d903d7d40&tenantId=d1323671-cdbe-4417-b4d4-bdb24b51316b
 
 See [Instructions](INSTRUCTIONS.md)
-# Trigger GitHub contribution reprocessing
