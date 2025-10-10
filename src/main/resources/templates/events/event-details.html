@@ -552,10 +552,20 @@
                         <p>Unlimited capacity</p>
                     </div>
                     <!-- RSVP Buttons -->
-                    <div th:if="${currentUser == null}">
+                    <!-- Show finished status if event has finished -->
+                    <div th:if="${event.isEventFinished()}">
+                        <button type="button" class="rsvp-button" disabled="true" style="background: #6b7280; color: white;">
+                            Event Finished
+                        </button>
+                    </div>
+                    
+                    <!-- Show login prompt for non-logged in users if event not finished -->
+                    <div th:if="${currentUser == null and !event.isEventFinished()}">
                         <a th:href="@{/auth/login(redirect='/events/' + ${event.eventId})}" class="login-prompt">Login to RSVP</a>
                     </div>
-                    <div th:if="${currentUser != null}">
+                    
+                    <!-- Show RSVP options for logged in users if event not finished -->
+                    <div th:if="${currentUser != null and !event.isEventFinished()}">
                         <!-- Show RSVP button if user hasn't RSVP'd OR if they cancelled -->
                         <div th:if="${userRsvpStatus == null or userRsvpStatus == 'No RSVP yet' or userRsvpStatus == 'cancelled'}">
                             <form th:action="@{'/events/' + ${event.eventId} + '/rsvp'}" method="post" style="margin: 0;">

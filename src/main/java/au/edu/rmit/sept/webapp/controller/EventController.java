@@ -186,6 +186,12 @@ public class EventController {
         try {
             Event event = eventService.getEventById(id);
 
+            // Check if event has finished
+            if (event.isEventFinished()) {
+                redirectAttributes.addFlashAttribute("error", "Cannot RSVP to an event that has already finished.");
+                return "redirect:/events/" + id;
+            }
+
             if ("rsvp".equals(action)) {
                 rsvpService.createOrUpdateRsvp(currentUser, event, RSVP.RSVPStatus.yes, null);
                 redirectAttributes.addFlashAttribute("success", "RSVP submitted successfully!");

@@ -80,6 +80,13 @@ public class RSVPController {
             return "rsvp/rsvp-test";
         }
 
+        // Check if event has finished
+        if (event.isEventFinished()) {
+            model.addAttribute("message", "Cannot RSVP to an event that has already finished!");
+            model.addAttribute("rsvp", rsvp);
+            return "rsvp/rsvp-test";
+        }
+
         // Convert Strings to enums safely
         RSVP.RSVPStatus rsvpEnum = null;
         RSVP.AttendanceStatus attendanceEnum = null;

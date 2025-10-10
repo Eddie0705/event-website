@@ -30,6 +30,11 @@ public class RSVPService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // Check if event has finished
+        if (event.isEventFinished()) {
+            throw new IllegalStateException("Cannot RSVP to an event that has already finished.");
+        }
+
         RSVP rsvp = createOrUpdateRsvp(user, event, RSVP.RSVPStatus.yes, null);
         
         // send confirmation email (yes message)
@@ -69,6 +74,11 @@ public class RSVPService {
     public RSVP createOrUpdateRsvp(User user, Event event,
                                    RSVP.RSVPStatus rsvpStatus,
                                    RSVP.AttendanceStatus attendanceStatus) {
+
+        // Check if event has finished (only for RSVP, not for cancellation)
+        if (rsvpStatus == RSVP.RSVPStatus.yes && event.isEventFinished()) {
+            throw new IllegalStateException("Cannot RSVP to an event that has already finished.");
+        }
 
         RSVP rsvp = rsvpRepository.findByEventAndUser(event, user)
                 .orElseGet(() -> {

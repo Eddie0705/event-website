@@ -391,6 +391,16 @@ public class Event {
         return status == EventStatus.published &&
                 LocalDateTime.now().isBefore(registrationDeadline);
     }
+
+    // Check if event has finished (past event date and time)
+    public boolean isEventFinished() {
+        if (eventDate == null || endTime == null) {
+            return false;
+        }
+        
+        LocalDateTime eventEndDateTime = LocalDateTime.of(eventDate, endTime);
+        return LocalDateTime.now().isAfter(eventEndDateTime);
+    }
  
     @Override
     public String toString() {
