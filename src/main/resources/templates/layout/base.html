@@ -366,7 +366,9 @@
             <a class="logo" th:href="@{/}">EVENTHUB</a>
         </div>
         <div class="mid-nav">
-            <a class="home" th:href="@{/}">Home</a> 
+            <!-- Show Dashboard for organisers/admins, Home for others -->
+            <a class="home" th:href="@{/}" 
+               th:text="${currentUser != null and (currentUser.userType.name() == 'ORGANISER' or currentUser.userType.name() == 'ADMIN')} ? 'Dashboard' : 'Home'">Home</a> 
             <a class="explore" th:href="@{/explore}">Explore</a> 
             <a class="calendar" th:href="@{/calendar}">Calendar</a> 
             <a class="rsvp" th:href="@{/rsvp/eventRSVP}">RSVP</a>
