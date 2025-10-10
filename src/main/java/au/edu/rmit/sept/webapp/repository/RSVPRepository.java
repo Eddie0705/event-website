@@ -23,6 +23,11 @@ public interface RSVPRepository extends JpaRepository<RSVP, Long> {
 
     boolean existsByEventAndUser(Event event, User user);
 
+
+    boolean existsByEventAndUserAndRsvpStatus(Event event, User user, RSVP.RSVPStatus rsvpStatus);
+
+    List<RSVP> findAllByUserAndRsvpStatus(User user, RSVP.RSVPStatus rsvpStatus);
+
     // Custom default method to get RSVP status
     default Optional<RSVP.RSVPStatus> getRsvpStatus(Event event, User user) {
         return findByEventAndUser(event, user)

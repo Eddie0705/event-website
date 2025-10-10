@@ -26,6 +26,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
  
 @Entity
 @Table(name = "events")
@@ -127,6 +129,26 @@ public class Event {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RSVP> rsvps = new ArrayList<>();
+
+    public List<RSVP> getRsvps() {
+        return rsvps;
+    }
+
+    public void setRsvps(List<RSVP> rsvps) {
+        this.rsvps = rsvps;
+    }
+
+    
+    // Returns true if the given user has RSVP'd "yes" for this event.
+    public boolean hasRsvp(User user) {
+        if (user == null) return false;
+        return rsvps.stream()
+                    .anyMatch(r -> r.getUser().equals(user) && r.getRsvpStatus() == RSVP.RSVPStatus.yes);
+    }
+
  
     // Enum for event status
     public enum EventStatus {

@@ -25,6 +25,11 @@ public class RSVPService {
         this.emailService = emailService;
     }
 
+
+    public List<RSVP> findAllByUserAndRsvpStatus(User user, RSVP.RSVPStatus status) {
+        return rsvpRepository.findAllByUserAndRsvpStatus(user, status);
+    }
+
     @Transactional
     public RSVP rsvpToEvent(Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new IllegalArgumentException("Event not found"));
