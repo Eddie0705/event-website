@@ -5,11 +5,11 @@ import au.edu.rmit.sept.webapp.models.Event.EventStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.lang.StackWalker.Option;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -141,4 +141,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         // Find events that need QR code generation
         @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' AND (e.qrCodeData IS NULL OR e.qrCodeData = '')")
         List<Event> findEventsNeedingQrCode();
+
+        // Update event status directly (bypasses validation)
+        @Modifying
+        @Query("UPDATE Event e SET e.status = :status WHERE e.eventId = :eventId")
+        int updateEventStatus(@Param("eventId") Long eventId, @Param("status") EventStatus status);
 }

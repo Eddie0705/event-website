@@ -245,15 +245,16 @@ public class EventService {
             throw new RuntimeException("Cannot cancel a completed event");
         }
 
-        // Cancel the event
-        event.setStatus(EventStatus.cancelled);
-        
+        // Cancel the event - use direct SQL update to bypass validation
         try {
-            return eventRepository.save(event);
+            eventRepository.updateEventStatus(eventId, EventStatus.cancelled);
+            // Reload the event to return updated entity
+            return eventRepository.findById(eventId)
+                    .orElseThrow(() -> new RuntimeException("Event not found after update"));
         } catch (Exception e) {
             // Log the actual error for debugging
             System.err.println("Error cancelling event " + eventId + ": " + e.getMessage());
-            throw new RuntimeException("Failed to cancel event. Original error: " + e.getMessage());
+            throw new RuntimeException("Failed to cancel event: " + e.getMessage());
         }
     }
 
@@ -269,19 +270,21 @@ public class EventService {
             throw new RuntimeException("Only cancelled events can be uncancelled");
         }
 
-        // Restore to published status
-        event.setStatus(EventStatus.published);
-        
+        // Restore to published status - use direct SQL update to bypass validation
         try {
-            Event savedEvent = eventRepository.save(event);
+            eventRepository.updateEventStatus(eventId, EventStatus.published);
+            
+            // Reload the event to get updated entity
+            Event updatedEvent = eventRepository.findById(eventId)
+                    .orElseThrow(() -> new RuntimeException("Event not found after update"));
             
             // Generate QR code data if it doesn't exist
-            generateQrCodeData(savedEvent);
+            generateQrCodeData(updatedEvent);
             
-            return savedEvent;
+            return updatedEvent;
         } catch (Exception e) {
             System.err.println("Error uncancelling event " + eventId + ": " + e.getMessage());
-            throw new RuntimeException("Failed to uncancel event. Original error: " + e.getMessage());
+            throw new RuntimeException("Failed to uncancel event: " + e.getMessage());
         }
     }
 
