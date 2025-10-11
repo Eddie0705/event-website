@@ -167,6 +167,7 @@
             overflow: hidden;
             transition: all 0.3s ease;
             border: 1px solid #e2e8f0;
+            /* remove flex-related properties */
         }
 
         .event-card:hover {
@@ -288,8 +289,8 @@
     </div>
 
     <div class="events-section">
-        <div id="upcoming-section" class="event-grid" th:each="rsvp : ${yes}">
-            <div class="event-card" th:attr="data-date=${rsvp.event.eventDate}">
+        <div id="upcoming-section" class="event-grid">
+            <div class="event-card" th:each="rsvp : ${yes}" th:attr="data-date=${rsvp.event.eventDate}">
                 <div class="event-content">
                     <div class="event-date" th:text="|${#temporals.format(rsvp.event.eventDate,'dd MMM yyyy')} • ${#temporals.format(rsvp.event.startTime,'hh:mm a')}|"></div>
                     <div class="event-title" th:text="${rsvp.event.title}"></div>
