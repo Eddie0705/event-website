@@ -299,6 +299,15 @@
             gap: 1rem;
             margin-top: 2rem;
         }
+        .alert-error {
+            background: #fee2e2;          
+            color: #991b1b;              
+            border: 1px solid #fecaca;   
+            padding: 0.75rem 1rem;       
+            border-radius: 5px;          
+            margin-bottom: 1.5rem;          
+            font-weight: bold;
+        }
         .btn-secondary {
             background: linear-gradient(45deg, #fbbf24, #f59e0b);
             color: #1f2937;
@@ -492,29 +501,6 @@
             
             <!-- Sidebar -->
             <div class="event-sidebar">
-                <!-- Checkin Section -->
-                <div th:if="${currentUser != null and userRsvpStatus == 'yes' and attendanceStatus != 'checked_in'}" style="margin-top: 1.5rem;">
-                    <!-- Check-In Button -->
-                    <button type="button"
-                            id="checkinButton"
-                            class="rsvp-button"
-                            style="background: linear-gradient(45deg, #3b82f6, #2563eb); color: white;">
-                        Check In
-                    </button>
-
-                    
-                </div>
-                
-                
-                <div th:if="${canViewQR}" style="margin-top: 1.5rem; text-align: center;">
-                    <h3>Check-in QR Code</h3>
-                    <img th:src="@{'/events/' + ${event.eventId} + '/qrcode'}"
-                        alt="Check-in QR Code"
-                        width="250" height="250" />
-
-                    <p>Attendees can scan this QR code to check in.</p>
-                </div>
-    
 
                 <div th:if="${attendanceStatus == 'checked_in'}" style="margin-top: 1.5rem;">
                     <!-- Check-In Icon -->
@@ -527,9 +513,48 @@
 
                     
                 </div>
+                <!-- Checkin Section -->
+                <div th:if="${currentUser != null and userRsvpStatus == 'yes' and attendanceStatus != 'checked_in'}" style="margin-top: 1.5rem;">
+                    <!-- Check-In Button -->
+                    <button type="button"
+                            id="checkinButton"
+                            class="rsvp-button"
+                            style="background: linear-gradient(45deg, #3b82f6, #2563eb); color: white;">
+                        Check In
+                    </button>
 
-                <div th:if="${checkinError}" style="color: red; font-weight: bold; margin-top: 1rem;">
-                    <p th:text="${checkinError}"></p>
+                    
+                </div>
+
+
+                
+                
+                
+                <div th:if="${canViewQR}" style="margin-top: 1.5rem; text-align: center;">
+                    
+                    <h3>Check-in QR Code</h3>
+                    <img th:src="@{'/events/' + ${event.eventId} + '/qrcode'}"
+                        alt="Check-in QR Code"
+                        width="250" height="250" />
+
+                    <p>Attendees can scan this QR code to check in.</p>
+
+                    <a 
+                            id="exportAttendanceButton"
+                            class="rsvp-button"
+                            style="background: linear-gradient(45deg, orange, #2563eb); color: white;
+                            display: inline-block; 
+                            margin-top: 1rem;
+                            margin-bottom: 2rem;"
+                            th:href="@{'/events/' + ${event.eventId} + '/export-rsvps'}">
+                        Export Attendance (CSV)
+                    </a>
+
+                </div>
+
+
+                <div th:if="${checkinError}" class="alert-error">
+                    <p th:text="${checkinError}" style="margin: 0;"></p>
                 </div>
 
                 <!-- RSVP Section -->
