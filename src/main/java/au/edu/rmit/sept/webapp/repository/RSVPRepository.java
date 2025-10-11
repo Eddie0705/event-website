@@ -19,6 +19,9 @@ import java.util.Optional;
 
 public interface RSVPRepository extends JpaRepository<RSVP, Long> {
 
+
+    List<RSVP> findAllByEvent(Event event);
+
     Optional<RSVP> findByEventAndUser(Event event, User user);
 
     boolean existsByEventAndUser(Event event, User user);
