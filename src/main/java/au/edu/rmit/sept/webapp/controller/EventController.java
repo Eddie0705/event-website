@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 // removed unused imports
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 // removed unused imports
 import org.springframework.stereotype.Controller;
@@ -25,6 +27,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.Console;
+import java.io.StringReader;
+import java.net.http.HttpHeaders;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 // removed unused imports
@@ -388,6 +393,48 @@ public class EventController {
         return ResponseEntity.ok()
                 .header("Content-Type", "image/png")
                 .body(qrImage);
+    }
+
+
+    @GetMapping("/{id}/export-rsvps")
+    @ResponseBody
+    public ResponseEntity<byte[]> exportRsvpsToCsv(@PathVariable("id") Long id) {
+
+        // Authentication
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+
+            // Permission check (only organiser or admin)
+            boolean isOrganiser = currentUser.getUserType() == UserType.ORGANISER
+                                && event.getCreatedBy().equals(currentUser.getUserId());
+
+            boolean isAdmin = currentUser.getUserType() == UserType.ADMIN;
+
+            if (!isOrganiser && !isAdmin) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            // Generate CSV ussing rsvpService
+            byte[] csvBytes = rsvpService.generateRsvpCsv(event.getEventId());
+            String fileName = "event_" + event.getEventId() + "_rsvps.csv";
+
+            // Return downloadable CSV genereated from rsvpService
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
+                    .header("Content-Type", "text/csv; charset=UTF-8")
+                    .body(csvBytes);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
 }
