@@ -394,7 +394,54 @@ class OrganiserControllerTest {
          assertEquals("redirect:/organiser/dashboard", view);
          verify(redirectAttributes).addFlashAttribute("errorMessage", "Failed to publish event: Publish failed");
      }
+     
+     //Cancel Event Tests
  
+     @Test
+     void cancelEventWithOrganiserUserReturnsSuccess() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+ 
+         String view = organiserController.cancelEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/dashboard", view);
+         verify(eventService).cancelEvent(1L, organiser.getUserId());
+         verify(redirectAttributes).addFlashAttribute("successMessage", "Event cancelled successfully!");
+     }
+ 
+     @Test
+     void cancelEventWithNonOrganiserUserRedirectsToLogin() {
+         User student = createStudentUser();
+         mockSecurityContext(student);
+ 
+         String view = organiserController.cancelEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/auth/login", view);
+         verify(eventService, never()).cancelEvent(any(), any());
+     }
+ 
+     @Test
+     void cancelEventWithNullUserRedirectsToLogin() {
+         mockSecurityContext(null);
+ 
+         String view = organiserController.cancelEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/auth/login", view);
+         verify(eventService, never()).cancelEvent(any(), any());
+     }
+ 
+     @Test
+     void cancelEventWithExceptionReturnsError() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+         doThrow(new RuntimeException("Cancel failed")).when(eventService).cancelEvent(1L, organiser.getUserId());
+ 
+         String view = organiserController.cancelEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/dashboard", view);
+         verify(redirectAttributes).addFlashAttribute("errorMessage", "Failed to cancel event: Cancel failed");
+     }
+
  
      
     //Helper Methods
