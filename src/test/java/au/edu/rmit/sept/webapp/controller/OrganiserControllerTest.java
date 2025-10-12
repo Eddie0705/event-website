@@ -1,87 +1,282 @@
 package au.edu.rmit.sept.webapp.controller;
 
+import au.edu.rmit.sept.webapp.config.GoogleMapsConfig;
+import au.edu.rmit.sept.webapp.models.Event;
 import au.edu.rmit.sept.webapp.models.User;
-import au.edu.rmit.sept.webapp.utils.SessionUtils;
-import jakarta.servlet.http.HttpSession;
+import au.edu.rmit.sept.webapp.models.UserType;
+import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
+import au.edu.rmit.sept.webapp.services.EventService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.mockito.MockedStatic;
-
+/**
+ * Unit tests for OrganiserController
+ * Tests organiser dashboard functionality including event management, creation, publishing, and cancellation
+ */
 class OrganiserControllerTest {
 
-    // mock controller, session, model
     @InjectMocks
     private OrganiserController organiserController;
 
     @Mock
-    private HttpSession session;
+    private EventService eventService;
+
+    @Mock
+    private GoogleMapsConfig googleMapsConfig;
 
     @Mock
     private Model model;
 
+    @Mock
+    private RedirectAttributes redirectAttributes;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private SecurityContext securityContext;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        SecurityContextHolder.setContext(securityContext);
+        
+        // Initialize the controller with mocked dependencies
+        organiserController = new OrganiserController(googleMapsConfig);
+        // Use reflection to inject the eventService mock
+        try {
+            java.lang.reflect.Field eventServiceField = OrganiserController.class.getDeclaredField("eventService");
+            eventServiceField.setAccessible(true);
+            eventServiceField.set(organiserController, eventService);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to inject eventService mock", e);
+        }
     }
 
-    /**  organiserDashboard  */
+    //Dashboard Tests 
 
-    // @Test
-    // void organiserDashboardNonOrganiser() {
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(false);
+    @Test
+    void showDashboardWithOrganiserUserReturnsDashboard() {
+        User organiser = createOrganiserUser();
+        EventService.EventStatistics stats = new EventService.EventStatistics(5L, 2L, 3L, 4L);
+        List<Event> events = createSampleEvents();
+        Page<Event> eventsPage = new PageImpl<>(events);
 
-    //         String view = organiserController.organiserDashboard(session, model);
-    //         assertEquals("redirect:/auth/login", view);
-    //     }
-    // }
+        mockSecurityContext(organiser);
+        when(eventService.getEventStatistics(organiser.getUserId())).thenReturn(stats);
+        when(eventService.getEventsByOrganiser(eq(organiser.getUserId()), any(Pageable.class)))
+                .thenReturn(eventsPage);
 
-    // @Test
-    // void organiserDashboardOrganiser() {
-    //     User organiser = new User("organiser@test.com", "organiser", "password", "Org", "User");
+        String view = organiserController.showDashboard(model, 0, 10, "all");
 
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(true);
-    //         sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(organiser);
+        assertEquals("organiser/dashboard", view);
+        verify(model).addAttribute("currentUser", organiser);
+        verify(model).addAttribute("stats", stats);
+        verify(model).addAttribute("events", events);
+        verify(model).addAttribute("currentFilter", "all");
+        verify(model).addAttribute("currentPage", 0);
+    }
 
-    //         String view = organiserController.organiserDashboard(session, model);
+    @Test
+    void showDashboardWithNonOrganiserUserRedirectsToLogin() {
+        User student = createStudentUser();
+        mockSecurityContext(student);
 
-    //         assertEquals("organiser/dashboard", view);
-    //         verify(model).addAttribute("currentUser", organiser);
-    //     }
-    // }
+        String view = organiserController.showDashboard(model, 0, 10, "all");
 
-    /**  eventManagement  */
+        assertEquals("redirect:/auth/login", view);
+        verify(eventService, never()).getEventStatistics(any());
+    }
 
-    // @Test
-    // void eventManagementNonOrganiser() {
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(false);
+    @Test
+    void showDashboardWithNullUserRedirectsToLogin() {
+        mockSecurityContext(null);
 
-    //         String view = organiserController.eventManagement(session, model);
-    //         assertEquals("redirect:/auth/login", view);
-    //     }
-    // }
+        String view = organiserController.showDashboard(model, 0, 10, "all");
 
-    // @Test
-    // void eventManagementOrganiser() {
-    //     User organiser = new User("organiser@test.com", "organiser", "password", "Org", "User");
+        assertEquals("redirect:/auth/login", view);
+        verify(eventService, never()).getEventStatistics(any());
+    }
 
-    //     try (MockedStatic<SessionUtils> sessionUtils = mockStatic(SessionUtils.class)) {
-    //         sessionUtils.when(() -> SessionUtils.canAccessOrganiser(session)).thenReturn(true);
-    //         sessionUtils.when(() -> SessionUtils.getCurrentUser(session)).thenReturn(organiser);
+    @Test
+    void showDashboardWithPublishedFilterReturnsPublishedEvents() {
+        User organiser = createOrganiserUser();
+        EventService.EventStatistics stats = new EventService.EventStatistics(5L, 2L, 3L, 4L);
+        List<Event> allEvents = createSampleEvents();
+        List<Event> publishedEvents = allEvents.stream()
+                .filter(event -> event.getStatus() == Event.EventStatus.published)
+                .toList();
+        Page<Event> eventsPage = new PageImpl<>(allEvents);
 
-    //         String view = organiserController.eventManagement(session, model);
+        mockSecurityContext(organiser);
+        when(eventService.getEventStatistics(organiser.getUserId())).thenReturn(stats);
+        when(eventService.getEventsByOrganiser(eq(organiser.getUserId()), any(Pageable.class)))
+                .thenReturn(eventsPage);
 
-    //         assertEquals("organiser/events", view);
-    //         verify(model).addAttribute("currentUser", organiser);
-    //     }
-    // }
+        String view = organiserController.showDashboard(model, 0, 10, "published");
+
+        assertEquals("organiser/dashboard", view);
+        verify(model).addAttribute("events", publishedEvents);
+        verify(model).addAttribute("currentFilter", "published");
+    }
+
+    @Test
+    void showDashboardWithDraftFilterReturnsDraftEvents() {
+        User organiser = createOrganiserUser();
+        EventService.EventStatistics stats = new EventService.EventStatistics(5L, 2L, 3L, 4L);
+        List<Event> allEvents = createSampleEvents();
+        List<Event> draftEvents = allEvents.stream()
+                .filter(event -> event.getStatus() == Event.EventStatus.draft)
+                .toList();
+        Page<Event> eventsPage = new PageImpl<>(allEvents);
+
+        mockSecurityContext(organiser);
+        when(eventService.getEventStatistics(organiser.getUserId())).thenReturn(stats);
+        when(eventService.getEventsByOrganiser(eq(organiser.getUserId()), any(Pageable.class)))
+                .thenReturn(eventsPage);
+
+        String view = organiserController.showDashboard(model, 0, 10, "draft");
+
+        assertEquals("organiser/dashboard", view);
+        verify(model).addAttribute("events", draftEvents);
+        verify(model).addAttribute("currentFilter", "draft");
+    }
+
+    @Test
+    void showDashboardWithUpcomingFilterReturnsUpcomingEvents() {
+        User organiser = createOrganiserUser();
+        EventService.EventStatistics stats = new EventService.EventStatistics(5L, 2L, 3L, 4L);
+        List<Event> upcomingEvents = createUpcomingEvents();
+
+        mockSecurityContext(organiser);
+        when(eventService.getEventStatistics(organiser.getUserId())).thenReturn(stats);
+        when(eventService.getEventsByOrganiser(organiser.getUserId())).thenReturn(upcomingEvents);
+
+        String view = organiserController.showDashboard(model, 0, 10, "upcoming");
+
+        assertEquals("organiser/dashboard", view);
+        verify(model).addAttribute("events", upcomingEvents);
+        verify(model).addAttribute("currentFilter", "upcoming");
+    }
+
+    @Test
+    void showDashboardWithPastFilterReturnsPastEvents() {
+        User organiser = createOrganiserUser();
+        EventService.EventStatistics stats = new EventService.EventStatistics(5L, 2L, 3L, 4L);
+        List<Event> pastEvents = createPastEvents();
+
+        mockSecurityContext(organiser);
+        when(eventService.getEventStatistics(organiser.getUserId())).thenReturn(stats);
+        when(eventService.getEventsByOrganiser(organiser.getUserId())).thenReturn(pastEvents);
+
+        String view = organiserController.showDashboard(model, 0, 10, "past");
+
+        assertEquals("organiser/dashboard", view);
+        verify(model).addAttribute("events", pastEvents);
+        verify(model).addAttribute("currentFilter", "past");
+    }
+
+    //Helper Methods
+
+    private void mockSecurityContext(User user) {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        if (user != null) {
+            CustomUserDetailsService.CustomUserPrincipal principal = 
+                    mock(CustomUserDetailsService.CustomUserPrincipal.class);
+            when(authentication.getPrincipal()).thenReturn(principal);
+            when(principal.getUser()).thenReturn(user);
+        } else {
+            when(authentication.getPrincipal()).thenReturn(null);
+        }
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    private User createOrganiserUser() {
+        User user = new User();
+        user.setUserId(1L);
+        user.setEmail("organiser@test.com");
+        user.setUserType(UserType.ORGANISER);
+        return user;
+    }
+
+    private User createStudentUser() {
+        User user = new User();
+        user.setUserId(2L);
+        user.setEmail("student@test.com");
+        user.setUserType(UserType.STUDENT);
+        return user;
+    }
+
+    private User createAdminUser() {
+        User user = new User();
+        user.setUserId(3L);
+        user.setEmail("admin@test.com");
+        user.setUserType(UserType.ADMIN);
+        return user;
+    }
+
+    private List<Event> createSampleEvents() {
+        Event event1 = new Event();
+        event1.setEventId(1L);
+        event1.setTitle("Published Event");
+        event1.setStatus(Event.EventStatus.published);
+        event1.setEventDate(LocalDate.now().plusDays(1));
+
+        Event event2 = new Event();
+        event2.setEventId(2L);
+        event2.setTitle("Draft Event");
+        event2.setStatus(Event.EventStatus.draft);
+        event2.setEventDate(LocalDate.now().plusDays(2));
+
+        return Arrays.asList(event1, event2);
+    }
+
+    private List<Event> createUpcomingEvents() {
+        Event event = new Event();
+        event.setEventId(1L);
+        event.setTitle("Upcoming Event");
+        event.setStatus(Event.EventStatus.published);
+        event.setEventDate(LocalDate.now().plusDays(1));
+        return Arrays.asList(event);
+    }
+
+    private List<Event> createPastEvents() {
+        Event event = new Event();
+        event.setEventId(1L);
+        event.setTitle("Past Event");
+        event.setStatus(Event.EventStatus.completed);
+        event.setEventDate(LocalDate.now().minusDays(1));
+        return Arrays.asList(event);
+    }
+
+    private Event createSampleEvent() {
+        Event event = new Event();
+        event.setEventId(1L);
+        event.setTitle("Test Event");
+        event.setDescription("Test Description");
+        event.setEventDate(LocalDate.now().plusDays(1));
+        event.setStartTime(LocalTime.of(10, 0));
+        event.setEndTime(LocalTime.of(12, 0));
+        event.setLocation("Test Location");
+        event.setMaxCapacity(100);
+        event.setStatus(Event.EventStatus.draft);
+        return event;
+    }
 }
