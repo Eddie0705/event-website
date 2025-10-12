@@ -20,3 +20,34 @@
 - Microsoft Teams : https://teams.microsoft.com/l/team/19%3Ahe4l5WjrlcjOpNBSncuKidbNAXV_b8wtXgNDEVkHpd01%40thread.tacv2/conversations?groupId=a5f38729-13ae-4ccc-be11-ee6d903d7d40&tenantId=d1323671-cdbe-4417-b4d4-bdb24b51316b
 
 See [Instructions](INSTRUCTIONS.md)
+
+## Production Delivery
+
+# Build the application
+
+./mvnw clean package -DskipTests
+
+# Build Docker image
+
+docker build -t eventhub-webapp:latest .
+
+# Run the container
+
+docker run -d \
+ -p 8080:8080 \
+ --add-host=host.docker.internal:host-gateway \
+ --name eventhub-app \
+ eventhub-webapp:latest
+
+# Access the application
+
+open http://localhost:8081
+
+````
+
+### Using Docker Compose (with MySQL)
+```bash
+docker-compose up -d
+````
+
+Access at http://localhost:8080
