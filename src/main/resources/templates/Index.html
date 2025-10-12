@@ -310,6 +310,58 @@
         .events_card:nth-child(2) { animation-delay: 0.1s; }
         .events_card:nth-child(3) { animation-delay: 0.2s; }
         .events_card:nth-child(4) { animation-delay: 0.3s; }
+
+
+        /* rsvp status */
+        .rsvp-status {
+            cursor: default;
+            pointer-events: none;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        /* Not RSVPed */
+        .rsvp-status.not-rsvped {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* RSVPed */
+        .rsvp-status.rsvped {
+            background: #d1fae5 ;
+            color: #065f46;
+        }
+
+        /* Event Finished */
+        .rsvp-status.event-finished {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        /* Finished event card styling */
+        .events_card.event-finished {
+            opacity: 0.7;
+            background: rgba(243, 244, 246, 0.95);
+        }
+
+        .events_card.event-finished:before {
+            background: linear-gradient(45deg, #9ca3af, #6b7280);
+        }
+
+        .events_card.event-finished h3 {
+            color: #6b7280;
+        }
+
+        .events_card.event-finished p {
+            color: #9ca3af;
+        }
+
+
+
     </style>
 </th:block>
 
@@ -392,7 +444,9 @@
         <!-- Events Container -->
         <div class="events_container">
             <!-- Loop over events -->
-            <div class="events_card" th:each="event : ${events}">
+            <div class="events_card" 
+                 th:class="${'events_card' + (event.isEventFinished() ? ' event-finished' : '')}" 
+                 th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p>
                     <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
@@ -420,26 +474,45 @@
                             <input type="hidden" name="eventId" th:value="${event.eventId}" />
                             <input type="hidden" name="rsvpStatus" value="yes" />
                             
-                            <!-- redirect to login -->
+                            <!-- redirect to login or show finished status -->
                             <button type="button"
-                                th:if="${currentUser == null}"
+                                th:if="${currentUser == null and !event.isEventFinished()}"
                                 onclick="window.location.href='/auth/login'">
-                                RSVP
+                                Login to RSVP
+                            </button>
+
+                            <!-- Show finished status for non-logged in users -->
+                            <button type="button"
+                                th:if="${currentUser == null and event.isEventFinished()}"
+                                class="rsvp-status event-finished"
+                                disabled="true">
+                                Event Finished
                             </button>
 
                             <!-- Button if user has not RSVPed -->
                             <div th:if="${currentUser != null}">
+                                <!-- Event finished - show finished status -->
                                 <button type="button"
-                                        th:if="${rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                                        th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                                    RSVP
+                                        th:if="${event.isEventFinished()}"
+                                        class="rsvp-status event-finished"
+                                        disabled="true">
+                                        Event Finished
                                 </button>
 
-                                <!-- Button if user already RSVPed -->
+                                <!-- Button if user has not RSVPed and event not finished -->
                                 <button type="button"
-                                        th:if="${rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                                        th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + '); window.location.href=window.location.href;'">
-                                    Cancel RSVP
+                                        th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
+                                        class="rsvp-status not-rsvped"
+                                        disabled="true">
+                                        Not RSVP'd
+                                </button>
+
+                                <!-- Button if user already RSVPed and event not finished -->
+                                <button type="button"
+                                        th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
+                                        class="rsvp-status rsvped"
+                                        disabled="true">
+                                    RSVP'd
                                 </button>
                             </div>
                         </form>
@@ -451,25 +524,6 @@
 </div>
 
 <script>
-function submitRsvp(eventId, userId) {
-    fetch('/rsvp/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
-    }).then(() => {
-        alert('RSVP submitted!');
-    });
-}
-
-function submitRsvpCancelled(eventId, userId) {
-    fetch('/rsvp/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
-    }).then(() => {
-        alert('RSVP Cancelled!');
-    });
-}
 </script>
 
 </body>
