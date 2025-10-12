@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}">
+<head>
+    <title>Edit Event</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container" style="max-width: 800px; margin: 0 auto; padding: 24px;">
+        <h1>Edit Event</h1>
+
+        <div th:if="${errorMessage}" class="alert-message alert-error" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert-message alert-success" th:text="${successMessage}"></div>
+
+        <form th:action="@{'/events/' + ${event.eventId} + '/update'}" method="post">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" th:value="${event.title}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="5" required th:text="${event.description}"></textarea>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="eventDate">Event Date</label>
+                    <input type="date" id="eventDate" name="eventDate" th:value="${#temporals.format(event.eventDate, 'yyyy-MM-dd')}" required />
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" th:value="${event.location}" required />
+                </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="startTime">Start Time</label>
+                    <input type="time" id="startTime" name="startTime" th:value="${#temporals.format(event.startTime, 'HH:mm')}" required />
+                </div>
+                <div class="form-group">
+                    <label for="endTime">End Time</label>
+                    <input type="time" id="endTime" name="endTime" th:value="${#temporals.format(event.endTime, 'HH:mm')}" required />
+                </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="maxCapacity">Max Capacity</label>
+                    <input type="number" id="maxCapacity" name="maxCapacity" min="1" th:value="${event.maxCapacity}" required />
+                </div>
+                <div class="form-group">
+                    <label for="venueDetails">Venue Details (optional)</label>
+                    <input type="text" id="venueDetails" name="venueDetails" th:value="${event.venueDetails}" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <a th:href="@{'/events/' + ${event.eventId}}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+    <style>
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; }
+        input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;
+        }
+        .btn-primary { background: #4f46e5; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-secondary { background: #e5e7eb; color: #111827; padding: 10px 16px; border-radius: 6px; text-decoration: none; }
+        .alert-message { margin-bottom: 12px; padding: 10px; border-radius: 6px; }
+        .alert-error { background: #fee2e2; color: #b91c1c; }
+        .alert-success { background: #dcfce7; color: #166534; }
+    </style>
+</div>
+</body>
+</html>
+
+

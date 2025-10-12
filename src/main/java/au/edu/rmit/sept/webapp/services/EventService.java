@@ -59,24 +59,24 @@ public class EventService {
     public Event updateEvent(Long eventId, Event updatedEvent) {
         Event existingEvent = getEventById(eventId);
  
-        // Update fields
-        existingEvent.setTitle(updatedEvent.getTitle());
-        existingEvent.setDescription(updatedEvent.getDescription());
-        existingEvent.setEventDate(updatedEvent.getEventDate());
-        existingEvent.setStartTime(updatedEvent.getStartTime());
-        existingEvent.setEndTime(updatedEvent.getEndTime());
-        existingEvent.setLocation(updatedEvent.getLocation());
-        existingEvent.setVenueDetails(updatedEvent.getVenueDetails());
-        existingEvent.setMaxCapacity(updatedEvent.getMaxCapacity());
-        existingEvent.setCategoryId(updatedEvent.getCategoryId());
-        existingEvent.setClubId(updatedEvent.getClubId());
-        existingEvent.setRegistrationDeadline(updatedEvent.getRegistrationDeadline());
-        existingEvent.setIsPaid(updatedEvent.getIsPaid());
-        existingEvent.setPrice(updatedEvent.getPrice());
-        existingEvent.setCurrency(updatedEvent.getCurrency());
-        existingEvent.setStatus(updatedEvent.getStatus());
-        existingEvent.setIsFeatured(updatedEvent.getIsFeatured());
-        existingEvent.setGoogleMapsUrl(updatedEvent.getGoogleMapsUrl());
+        // Update fields (preserve existing values when null in payload)
+        if (updatedEvent.getTitle() != null) existingEvent.setTitle(updatedEvent.getTitle());
+        if (updatedEvent.getDescription() != null) existingEvent.setDescription(updatedEvent.getDescription());
+        if (updatedEvent.getEventDate() != null) existingEvent.setEventDate(updatedEvent.getEventDate());
+        if (updatedEvent.getStartTime() != null) existingEvent.setStartTime(updatedEvent.getStartTime());
+        if (updatedEvent.getEndTime() != null) existingEvent.setEndTime(updatedEvent.getEndTime());
+        if (updatedEvent.getLocation() != null) existingEvent.setLocation(updatedEvent.getLocation());
+        if (updatedEvent.getVenueDetails() != null) existingEvent.setVenueDetails(updatedEvent.getVenueDetails());
+        if (updatedEvent.getMaxCapacity() != null) existingEvent.setMaxCapacity(updatedEvent.getMaxCapacity());
+        if (updatedEvent.getCategoryId() != null) existingEvent.setCategoryId(updatedEvent.getCategoryId());
+        if (updatedEvent.getClubId() != null) existingEvent.setClubId(updatedEvent.getClubId());
+        if (updatedEvent.getRegistrationDeadline() != null) existingEvent.setRegistrationDeadline(updatedEvent.getRegistrationDeadline());
+        if (updatedEvent.getIsPaid() != null) existingEvent.setIsPaid(updatedEvent.getIsPaid());
+        if (updatedEvent.getPrice() != null) existingEvent.setPrice(updatedEvent.getPrice());
+        if (updatedEvent.getCurrency() != null) existingEvent.setCurrency(updatedEvent.getCurrency());
+        if (updatedEvent.getStatus() != null) existingEvent.setStatus(updatedEvent.getStatus());
+        if (updatedEvent.getIsFeatured() != null) existingEvent.setIsFeatured(updatedEvent.getIsFeatured());
+        if (updatedEvent.getGoogleMapsUrl() != null) existingEvent.setGoogleMapsUrl(updatedEvent.getGoogleMapsUrl());
  
         // Note: Cover image handling will be added later
         if (updatedEvent.getCoverImage() != null) {
@@ -133,6 +133,13 @@ public class EventService {
     public List<Event> getFeaturedEvents() {
         return eventRepository.findByIsFeaturedTrueAndStatusOrderByEventDateAsc(EventStatus.published);
     }
+
+    // Get all events (admin only - includes all statuses)
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll().stream()
+                .sorted((e1, e2) -> e1.getEventDate().compareTo(e2.getEventDate()))
+                .collect(java.util.stream.Collectors.toList());
+    }
  
     // Search events
     public List<Event> searchEvents(String searchTerm) {
@@ -172,12 +179,11 @@ public class EventService {
     public List<Event> getPaidEvents() {
         return eventRepository.findPaidEvents(EventStatus.published);
     }
- 
-    // Delete event (only if no RSVPs)
+
+    // Delete event (only if no RSVPs and organizer owns it) - for organizers only
     public void deleteEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
- 
-        // Check if user is the organiser
+  
         if (!event.getCreatedBy().equals(organiserId)) {
             throw new RuntimeException("You can only delete your own events");
         }
@@ -191,8 +197,18 @@ public class EventService {
  
         eventRepository.delete(event);
     }
- 
-    // Cancel event
+
+    // Delete event for admin (bypasses organizer restriction and RSVP check)
+    @Transactional
+    public void deleteEventByAdmin(Long eventId) {
+        Event event = getEventById(eventId);
+
+        // Admin can delete any event regardless of RSVPs
+        // Note: Image deletion will be added when image upload is implemented
+
+        eventRepository.delete(event);
+    }
+
     public Event cancelEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
  
@@ -213,7 +229,65 @@ public class EventService {
         event.setStatus(EventStatus.cancelled);
         return eventRepository.save(event);
     }
- 
+
+    // Cancel event for admin (bypasses organizer restriction)
+    @Transactional
+    public Event cancelEventByAdmin(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+        // Check if event is not already cancelled or completed
+        if (event.getStatus() == EventStatus.cancelled) {
+            throw new RuntimeException("Event is already cancelled");
+        }
+
+        if (event.getStatus() == EventStatus.completed) {
+            throw new RuntimeException("Cannot cancel a completed event");
+        }
+
+        // Cancel the event - use direct SQL update to bypass validation
+        try {
+            eventRepository.updateEventStatus(eventId, EventStatus.cancelled);
+            // Reload the event to return updated entity
+            return eventRepository.findById(eventId)
+                    .orElseThrow(() -> new RuntimeException("Event not found after update"));
+        } catch (Exception e) {
+            // Log the actual error for debugging
+            System.err.println("Error cancelling event " + eventId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to cancel event: " + e.getMessage());
+        }
+    }
+
+
+    // Uncancel event for admin (restore cancelled event to active status)
+    @Transactional
+    public Event uncancelEventByAdmin(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found with id: " + eventId));
+
+        // Check if event is actually cancelled
+        if (event.getStatus() != EventStatus.cancelled) {
+            throw new RuntimeException("Only cancelled events can be uncancelled");
+        }
+
+        // Restore to published status - use direct SQL update to bypass validation
+        try {
+            eventRepository.updateEventStatus(eventId, EventStatus.published);
+            
+            // Reload the event to get updated entity
+            Event updatedEvent = eventRepository.findById(eventId)
+                    .orElseThrow(() -> new RuntimeException("Event not found after update"));
+            
+            // Generate QR code data if it doesn't exist
+            generateQrCodeData(updatedEvent);
+            
+            return updatedEvent;
+        } catch (Exception e) {
+            System.err.println("Error uncancelling event " + eventId + ": " + e.getMessage());
+            throw new RuntimeException("Failed to uncancel event: " + e.getMessage());
+        }
+    }
+
     // Publish event
     public Event publishEvent(Long eventId, Long organiserId) {
         Event event = getEventById(eventId);
@@ -236,8 +310,14 @@ public class EventService {
     private void generateQrCodeData(Event event) {
         // Generate QR code data containing event URL
         String eventUrl = baseUrl + "/events/" + event.getEventId();
-        event.setQrCodeData(eventUrl);
-        eventRepository.save(event);
+        
+        // Use direct SQL update to bypass validation
+        try {
+            eventRepository.updateQrCodeData(event.getEventId(), eventUrl);
+        } catch (Exception e) {
+            System.err.println("Error updating QR code data for event " + event.getEventId() + ": " + e.getMessage());
+            // Don't throw exception here as QR code generation is not critical
+        }
     }
  
     // Validate event

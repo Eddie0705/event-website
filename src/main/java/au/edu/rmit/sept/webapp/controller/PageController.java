@@ -41,7 +41,6 @@ public class PageController {
     @Autowired
     private EventService eventService;
 
-
     @Autowired
     private RSVPService rsvpService;
 
@@ -63,35 +62,40 @@ public class PageController {
     @GetMapping("/")
     public String root(Model model) {
         User currentUser = getCurrentUser();
-        
+        if (currentUser != null && currentUser.getUserType() != null &&
+                currentUser.getUserType().name().equalsIgnoreCase("ADMIN")) {
+            return "redirect:/admin/dashboard";
+        }
         // Redirect organizers to their dashboard
         if (currentUser != null && currentUser.getUserType().name().equals("ORGANISER")) {
             return "redirect:/organiser/dashboard";
         }
-        
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
 
         List<Event> events = eventService.getPublishedEvents();
         // Map<Long, String> rsvpStatusMap = new HashMap<>();
 
-        //  for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
+        // for (Event event : events) {
+        // String status = currentUser != null ? rsvpService.checkUserRsvp(event,
+        // currentUser) : "No RSVP yet";
         // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
         // }
         model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
         return "Index";
-//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
-//         // Fetch organizer name for each event
-//         Map<Long, String> organizerNames = new HashMap<>();
-//         for (Event event : events) {
-//             organizerNames.put(event.getEventId(),
-//                     userService.getUserFullNameById(event.getCreatedBy()));
-//         }
-//         model.addAttribute("events", events);
-//         model.addAttribute("organizerNames", organizerNames);
-//         return "Index"; // This will use the same template as /Index
+        // List<Event> events = eventService.getPublishedEvents(); // Make sure this
+        // returns events
+        // // Fetch organizer name for each event
+        // Map<Long, String> organizerNames = new HashMap<>();
+        // for (Event event : events) {
+        // organizerNames.put(event.getEventId(),
+        // userService.getUserFullNameById(event.getCreatedBy()));
+        // }
+        // model.addAttribute("events", events);
+        // model.addAttribute("organizerNames", organizerNames);
+        // return "Index"; // This will use the same template as /Index
 
     }
 
@@ -99,40 +103,48 @@ public class PageController {
     @GetMapping("/explore")
     public String explore(Model model) {
         User currentUser = getCurrentUser();
-        
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", currentUser != null);
 
         List<Event> events = eventService.getPublishedEvents();
-        // Map<Long, String> rsvpStatusMap = new HashMap<>();
-
-        //  for (Event event : events) {
-        // String status = currentUser != null ? rsvpService.checkUserRsvp(event, currentUser) : "No RSVP yet";
-        // rsvpStatusMap.put(event.getEventId(), status.equals("Yes") ? "yes" : "no");
-        // }
+        
+        // Sort events: upcoming events first, finished events at the bottom
+        events.sort((e1, e2) -> {
+            boolean e1Finished = e1.isEventFinished();
+            boolean e2Finished = e2.isEventFinished();
+            
+            // If one is finished and the other isn't, put the unfinished one first
+            if (e1Finished && !e2Finished) {
+                return 1; // e2 comes first
+            } else if (!e1Finished && e2Finished) {
+                return -1; // e1 comes first
+            } else if (!e1Finished && !e2Finished) {
+                // Both are upcoming - sort by event date (earliest first)
+                return e1.getEventDate().compareTo(e2.getEventDate());
+            } else {
+                // Both are finished - sort by event date (most recent first)
+                return e2.getEventDate().compareTo(e1.getEventDate());
+            }
+        });
+        
         model.addAttribute("rsvpService", rsvpService);
         model.addAttribute("events", events);
         return "Index";
-//         List<Event> events = eventService.getPublishedEvents(); // Make sure this returns events
-//         // Fetch organizer name for each event
-//         Map<Long, String> organizerNames = new HashMap<>();
-//         for (Event event : events) {
-//             organizerNames.put(event.getEventId(),
-//                     userService.getUserFullNameById(event.getCreatedBy()));
-//         }
-//         model.addAttribute("events", events);
-//         model.addAttribute("organizerNames", organizerNames);
-//         return "Index"; // This will use the same template as /Index
+        // List<Event> events = eventService.getPublishedEvents(); // Make sure this
+        // returns events
+        // // Fetch organizer name for each event
+        // Map<Long, String> organizerNames = new HashMap<>();
+        // for (Event event : events) {
+        // organizerNames.put(event.getEventId(),
+        // userService.getUserFullNameById(event.getCreatedBy()));
+        // }
+        // model.addAttribute("events", events);
+        // model.addAttribute("organizerNames", organizerNames);
+        // return "Index"; // This will use the same template as /Index
 
     }
 
-    @GetMapping("/calendar")
-    public String calendar(Model model) {
-        User currentUser = getCurrentUser();
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", currentUser != null);
-        return "Calendar";
-    }
 
     @GetMapping("/rsvp/eventRSVP")
     public String rspv(Model model) {
@@ -180,6 +192,7 @@ public class PageController {
             return "redirect:/auth/login";
         }
         model.addAttribute("user", currentUser);
+        model.addAttribute("currentUser", currentUser);
         model.addAttribute("isAuthenticated", true);
         return "user/profile";
     }

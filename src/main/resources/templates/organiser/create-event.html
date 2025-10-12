@@ -3,7 +3,10 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
-    <title>Create Event</title>
+    <title th:text="${editMode} ? 'Edit Event' : 'Create New Event'"></title>
+    <!-- Load Google Maps API only if key is available -->
+    <script th:if="${googleMapsApiKey}" 
+            th:src="'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&libraries=places&loading=async&callback=initializeAutocomplete'"></script>
 </head>
 
 <th:block layout:fragment="css">
@@ -117,6 +120,172 @@
             min-height: 100px;
         }
 
+        /* Location Autocomplete Styles */
+        .location-input-wrapper {
+            position: relative;
+        }
+
+        .location-input-wrapper input {
+            padding-right: 45px;
+        }
+
+        .location-validation-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            display: none;
+            z-index: 2;
+        }
+
+        .location-validation-icon.valid {
+            color: #10b981;
+            display: block;
+        }
+
+        .location-validation-icon.searching {
+            color: #fbbf24;
+            display: block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Autocomplete Dropdown Styles */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background-color: #ffffff;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #fffbf0;
+        }
+
+        .autocomplete-item.selected {
+            background-color: #fef3c7;
+        }
+
+        .autocomplete-item-icon {
+            color: #9ca3af;
+            font-size: 18px;
+            margin-top: 2px;
+            min-width: 20px;
+            flex-shrink: 0;
+        }
+
+        .autocomplete-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .autocomplete-item-main {
+            color: #1f2937 !important;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .autocomplete-item-secondary {
+            color: #6b7280 !important;
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+
+        .autocomplete-no-results {
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .location-helper-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        /* Map Preview */
+        .map-preview-container {
+            margin-top: 1rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .map-preview-container.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .map-preview-header {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #1f2937;
+            padding: 10px 15px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .map-preview-iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+            display: block;
+        }
+
+        .formatted-address {
+            background: #f9fafb;
+            padding: 10px 15px;
+            font-size: 0.875rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
         .form-actions {
             display: flex;
             gap: 1rem;
@@ -165,21 +334,6 @@
 
         .btn:active {
             transform: translateY(0);
-        }
-
-        .btn:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-primary:hover:before {
-            left: 100%;
         }
 
         /* Alert Messages */
@@ -234,31 +388,9 @@
             gap: 0.5rem;
         }
 
-        /* Loading state */
-        .loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .loading .btn-primary {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        /* Animations */
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .create-event-container {
-            animation: slideInUp 0.6s ease-out;
+        /* Hidden inputs */
+        .hidden-validated-fields {
+            display: none;
         }
 
         /* Responsive */
@@ -275,6 +407,10 @@
             .btn {
                 width: 100%;
             }
+
+            .map-preview-iframe {
+                height: 250px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -286,6 +422,10 @@
             .page-header h1 {
                 font-size: 2rem;
             }
+
+            .map-preview-iframe {
+                height: 200px;
+            }
         }
     </style>
 </th:block>
@@ -293,8 +433,8 @@
 <div layout:fragment="content">
     <div class="create-event-container">
         <div class="page-header">
-            <h1>Create New Event</h1>
-            <p>Share your amazing event with the world</p>
+            <h1 th:text="${editMode} ? 'Edit Event' : 'Create New Event'">Create New Event</h1>
+            <p th:text="${editMode} ? 'Update your event details' : 'Share your amazing event with the world'">Share your amazing event with the world</p>
         </div>
 
         <!-- Error Messages -->
@@ -307,55 +447,86 @@
             Success message here
         </div>
 
-        <!-- Event Creation Form -->
-        <form action="/organiser/create-event" method="post" id="eventForm">
+        <!-- Event Create/Edit Form -->
+        <form th:action="${editMode} ? @{'/events/' + ${event.eventId} + '/update'} : @{'/organiser/create-event'}" method="post" id="eventForm">
             <div class="form-group full-width">
                 <label for="title">Event Title *</label>
                 <input type="text" id="title" name="title" 
                        placeholder="Enter an engaging title for your event" 
-                       maxlength="255" required>
+                       maxlength="255" required th:value="${editMode} ? ${event.title} : ''">
             </div>
 
             <div class="form-group full-width">
                 <label for="description">Event Description *</label>
                 <textarea id="description" name="description" rows="4" 
                           placeholder="Describe what makes your event special..." 
-                          required></textarea>
+                          required th:text="${editMode} ? ${event.description} : ''"></textarea>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="eventDate">Event Date *</label>
-                    <input type="date" id="eventDate" name="eventDate" required>
+                    <input type="date" id="eventDate" name="eventDate" required th:value="${editMode} ? ${#temporals.format(event.eventDate, 'yyyy-MM-dd')} : ''">
                 </div>
                 <div class="form-group">
                     <label for="startTime">Start Time *</label>
-                    <input type="time" id="startTime" name="startTime" required>
+                    <input type="time" id="startTime" name="startTime" required th:value="${editMode} ? ${#temporals.format(event.startTime, 'HH:mm')} : ''">
                 </div>
                 <div class="form-group">
                     <label for="endTime">End Time *</label>
-                    <input type="time" id="endTime" name="endTime" required>
+                    <input type="time" id="endTime" name="endTime" required th:value="${editMode} ? ${#temporals.format(event.endTime, 'HH:mm')} : ''">
                 </div>
             </div>
 
             <div class="form-group full-width">
                 <label for="location">Event Location *</label>
-                <input type="text" id="location" name="location" 
-                       placeholder="Where will your event take place?" 
-                       maxlength="500" required>
+                <div class="location-input-wrapper">
+                    <input type="text" id="location" name="location" 
+                           placeholder="Start typing an address in Victoria..." 
+                           maxlength="500" required autocomplete="off" th:value="${editMode} ? ${event.location} : ''">
+                    <span class="location-validation-icon" id="locationIcon"></span>
+                    
+                    <!-- Autocomplete Dropdown - only shown if API available -->
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
+                <div class="location-helper-text" id="locationHelper">Type at least 3 characters to see suggestions</div>
+                
+                <!-- Map Preview - only shown if API available -->
+                <div class="map-preview-container" id="mapPreviewContainer" th:classappend="${googleMapsApiKey != null} ? 'show' : ''">
+                    <div class="map-preview-header">
+                        <span>📍 Location Preview</span>
+                        <span id="coordinatesDisplay">Victoria, Australia</span>
+                    </div>
+                    <div class="formatted-address" id="formattedAddress">Select a location to see it on the map</div>
+                    <iframe class="map-preview-iframe" 
+                            id="mapPreview"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345093746!2d144.9537353!3d-37.8172099!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad65d4c2b349649%3A0xb6899234e561db11!2sVictoria%2C%20Australia!5e0!3m2!1sen!2sus!4v1635959040000!5m2!1sen!2sus"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+
+            <!-- Hidden fields for validated location data -->
+            <div class="hidden-validated-fields">
+                <input type="hidden" id="validatedAddress" name="validatedAddress">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                <input type="hidden" id="placeId" name="placeId">
             </div>
 
             <div class="form-group full-width">
                 <label for="venueDetails">Venue Details (Optional)</label>
                 <textarea id="venueDetails" name="venueDetails" rows="2" 
-                          placeholder="Additional venue information, directions, or special instructions..."></textarea>
+                          placeholder="Additional venue information, directions, or special instructions..." th:text="${editMode} ? ${event.venueDetails} : ''"></textarea>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="maxCapacity">Maximum Capacity *</label>
                     <input type="number" id="maxCapacity" name="maxCapacity" 
-                           placeholder="e.g., 100" min="1" max="10000" required>
+                           placeholder="e.g., 100" min="1" max="10000" step="1" required th:value="${editMode} ? ${event.maxCapacity} : ''">
                 </div>
             </div>
 
@@ -387,8 +558,8 @@
             </div>
 
             <div class="form-actions">
-                <a href="/" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
+                <a th:href="${editMode} ? @{'/events/' + ${event.eventId}} : @{'/organiser/dashboard'}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn" th:text="${editMode} ? 'Save Changes' : 'Create Event'">
                     Create Event
                 </button>
             </div>
@@ -396,16 +567,368 @@
     </div>
 </div>
 
-<th:block layout:fragment="javascript">
-    <script>
-        // Set minimum date to today
+
+<th:block layout:fragment="javascript"
+        th:src="'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&libraries=places&loading=async&callback=initializeAutocomplete'"></script>
+    <script th:inline="javascript">
+        // Check if API is available from server
+        const hasGoogleMapsAPI = /*[[${googleMapsApiKey != null}]]*/ false;
+        
+        // State management
+        let autocompleteService;
+        let placesService;
+        let sessionToken;
+        let searchTimeout;
+        let selectedPlaceId = null;
+        let isValidAddress = false;
+        let currentSelectedIndex = -1;
+        let suggestions = [];
+
+        // Initialize based on API availability
+        function initializeAutocomplete() {
+            if (!hasGoogleMapsAPI || typeof google === 'undefined' || !google.maps) {
+                console.log('Google Maps API not available - location features disabled');
+                disableMapFeatures();
+                return;
+            }
+
+            autocompleteService = new google.maps.places.AutocompleteService();
+            const hiddenMap = new google.maps.Map(document.createElement('div'));
+            placesService = new google.maps.places.PlacesService(hiddenMap);
+            sessionToken = new google.maps.places.AutocompleteSessionToken();
+            
+            setupEventListeners();
+        }
+
+        // Disable map features if API not available
+        function disableMapFeatures() {
+            const mapContainer = document.getElementById('mapPreviewContainer');
+            const locationIcon = document.getElementById('locationIcon');
+            const helperText = document.getElementById('locationHelper');
+            
+            if (mapContainer) {
+                mapContainer.style.display = 'none';
+            }
+            if (locationIcon) {
+                locationIcon.style.display = 'none';
+            }
+            if (helperText) {
+                helperText.textContent = 'Enter the full address for your event';
+            }
+            
+            // Allow manual address entry without validation
+            isValidAddress = true;
+            const locationInput = document.getElementById('location');
+            locationInput.addEventListener('input', function() {
+                document.getElementById('validatedAddress').value = this.value;
+            });
+        }
+
+        function setupEventListeners() {
+            const locationInput = document.getElementById('location');
+            
+            locationInput.addEventListener('input', handleLocationInput);
+            locationInput.addEventListener('keydown', handleKeyboardNavigation);
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.location-input-wrapper')) {
+                    closeDropdown();
+                }
+            });
+            
+            locationInput.addEventListener('focus', function() {
+                if (suggestions.length > 0 && this.value.length >= 3) {
+                    openDropdown();
+                }
+            });
+        }
+
+        function handleLocationInput(e) {
+            const query = e.target.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 3) {
+                closeDropdown();
+                resetValidation();
+                return;
+            }
+            
+            showSearchingState();
+            
+            searchTimeout = setTimeout(() => {
+                searchPlaces(query);
+            }, 300);
+        }
+
+        async function searchPlaces(query) {
+            try {
+                const { Place } = await google.maps.importLibrary("places");
+                
+                // Use new AutocompleteSuggestion API with correct properties
+                const request = {
+                    input: query,
+                    locationBias: {
+                        south: -39.1992,
+                        west: 140.9617,
+                        north: -33.9806,
+                        east: 149.9767
+                    },
+                    includedRegionCodes: ['AU'],  // New API uses this instead of componentRestrictions
+                    includedPrimaryTypes: ['street_address', 'premise', 'establishment']
+                };
+                
+                const { suggestions } = await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+                
+                if (!suggestions || suggestions.length === 0) {
+                    showNoResults();
+                    return;
+                }
+                
+                // Filter for Victoria
+                const victoriaSuggestions = suggestions.filter(suggestion => {
+                    const text = suggestion.placePrediction?.text?.toString() || '';
+                    return text.includes('Victoria') || text.includes('VIC') || text.includes('Melbourne');
+                });
+                
+                if (victoriaSuggestions.length === 0) {
+                    showNoResults('No addresses found in Victoria. Try being more specific.');
+                    return;
+                }
+                
+                handleNewPredictions(victoriaSuggestions);
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+                showNoResults('Error searching for addresses. Please try again.');
+            }
+        }
+
+        function handleNewPredictions(autocompleteSuggestions) {
+            suggestions = autocompleteSuggestions.map(s => ({
+                placePrediction: s.placePrediction,
+                placeId: s.placePrediction.placeId,
+                description: s.placePrediction.text.toString()
+            }));
+            
+            displayNewSuggestions(suggestions);
+        }
+
+        function displayNewSuggestions(suggestionsList) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = '';
+            
+            suggestionsList.forEach((suggestion, index) => {
+                const item = createNewSuggestionItem(suggestion, index);
+                dropdown.appendChild(item);
+            });
+            
+            openDropdown();
+            hideSearchingState();
+        }
+
+        function createNewSuggestionItem(suggestion, index) {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.dataset.placeId = suggestion.placeId;
+            item.dataset.index = index;
+            
+            // Extract text from the new API format
+            let mainText = '';
+            let secondaryText = '';
+            
+            if (suggestion.placePrediction) {
+                // Try structured format first
+                if (suggestion.placePrediction.structuredFormat) {
+                    mainText = suggestion.placePrediction.structuredFormat.mainText?.text || '';
+                    secondaryText = suggestion.placePrediction.structuredFormat.secondaryText?.text || '';
+                }
+                
+                // Fallback to text property
+                if (!mainText && suggestion.placePrediction.text) {
+                    const fullText = suggestion.placePrediction.text.text || suggestion.description || '';
+                    const parts = fullText.split(',');
+                    mainText = parts[0] || fullText;
+                    secondaryText = parts.slice(1).join(',').trim();
+                }
+            }
+            
+            // Additional fallback to description
+            if (!mainText && suggestion.description) {
+                const parts = suggestion.description.split(',');
+                mainText = parts[0];
+                secondaryText = parts.slice(1).join(',').trim();
+            }
+            
+            item.innerHTML = `
+                <span class="autocomplete-item-icon">📍</span>
+                <div class="autocomplete-item-content">
+                    <div class="autocomplete-item-main">${mainText || 'Location'}</div>
+                    <div class="autocomplete-item-secondary">${secondaryText || ''}</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => selectNewPlace(suggestion));
+            return item;
+        }
+
+        async function selectNewPlace(suggestion) {
+            const locationInput = document.getElementById('location');
+            locationInput.value = suggestion.description;
+            
+            try {
+                const { Place } = await google.maps.importLibrary("places");
+                
+                // Fetch place details using new API
+                const place = new Place({
+                    id: suggestion.placeId,
+                    requestedLanguage: 'en',
+                });
+                
+                await place.fetchFields({
+                    fields: ['displayName', 'formattedAddress', 'location']
+                });
+                
+                handleNewPlaceDetails(place, suggestion.description);
+            } catch (error) {
+                console.error('Error fetching place details:', error);
+            }
+            
+            closeDropdown();
+        }
+
+        function handleNewPlaceDetails(place, fullAddress) {
+            const location = place.location;
+            const formattedAddress = place.formattedAddress || fullAddress;
+            
+            document.getElementById('validatedAddress').value = formattedAddress;
+            document.getElementById('latitude').value = location.lat();
+            document.getElementById('longitude').value = location.lng();
+            document.getElementById('placeId').value = place.id;
+            
+            showValidState();
+            updateMapPreview(formattedAddress, location.lat(), location.lng());
+            
+            isValidAddress = true;
+            selectedPlaceId = place.id;
+        }
+
+        function updateMapPreview(address, lat, lng) {
+            const mapIframe = document.getElementById('mapPreview');
+            const formattedAddressDiv = document.getElementById('formattedAddress');
+            const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+            
+            formattedAddressDiv.textContent = address;
+            coordinatesDisplay.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            
+            const mapUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM!5e0!3m2!1sen!2sau!4v${Date.now()}!5m2!1sen!2sau&q=${encodeURIComponent(address)}`;
+            mapIframe.src = mapUrl;
+        }
+
+        function showSearchingState() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon searching';
+            icon.textContent = '🔍';
+        }
+
+        function hideSearchingState() {
+            const icon = document.getElementById('locationIcon');
+            if (!isValidAddress) {
+                icon.className = 'location-validation-icon';
+            }
+        }
+
+        function showValidState() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon valid';
+            icon.textContent = '✓';
+        }
+
+        function resetValidation() {
+            const icon = document.getElementById('locationIcon');
+            icon.className = 'location-validation-icon';
+            isValidAddress = false;
+            selectedPlaceId = null;
+            
+            document.getElementById('validatedAddress').value = '';
+            document.getElementById('latitude').value = '';
+            document.getElementById('longitude').value = '';
+            document.getElementById('placeId').value = '';
+        }
+
+        function openDropdown() {
+            document.getElementById('autocompleteDropdown').classList.add('show');
+            currentSelectedIndex = -1;
+        }
+
+        function closeDropdown() {
+            document.getElementById('autocompleteDropdown').classList.remove('show');
+            currentSelectedIndex = -1;
+            suggestions = [];
+        }
+
+        function showNoResults(message = 'No results found. Try a different search.') {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.innerHTML = `
+                <div class="autocomplete-no-results">
+                    🔍 ${message}
+                </div>
+            `;
+            openDropdown();
+            hideSearchingState();
+        }
+
+        function handleKeyboardNavigation(e) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            
+            if (!dropdown.classList.contains('show') || items.length === 0) return;
+            
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    currentSelectedIndex = Math.min(currentSelectedIndex + 1, items.length - 1);
+                    updateSelectedItem(items);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    currentSelectedIndex = Math.max(currentSelectedIndex - 1, -1);
+                    updateSelectedItem(items);
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (currentSelectedIndex >= 0 && suggestions[currentSelectedIndex]) {
+                        selectNewPlace(suggestions[currentSelectedIndex]);
+                    }
+                    break;
+                case 'Escape':
+                    closeDropdown();
+                    break;
+            }
+        }
+
+        function updateSelectedItem(items) {
+            items.forEach((item, index) => {
+                if (index === currentSelectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             const dateInput = document.getElementById('eventDate');
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
             
-            // Initialize preview
             updatePreview();
+            
+            // Initialize autocomplete if available, otherwise disable features
+            if (!hasGoogleMapsAPI) {
+                disableMapFeatures();
+            }
         });
 
         // Live preview functionality
@@ -418,13 +941,11 @@
             const location = document.getElementById('location').value;
             const capacity = document.getElementById('maxCapacity').value;
 
-            // Update preview elements
             document.getElementById('preview-title').textContent = title || 'Your event title will appear here';
             document.getElementById('preview-description').textContent = description || 'Your event description will appear here';
             document.getElementById('preview-location').textContent = location || 'Event location';
             document.getElementById('preview-capacity').textContent = capacity || '0';
 
-            // Format date and time
             let dateTimeText = 'Event date and time';
             if (eventDate) {
                 const date = new Date(eventDate);
@@ -437,27 +958,14 @@
                 }
             }
             document.getElementById('preview-datetime').textContent = dateTimeText;
-
-            // Update styling based on content
-            updatePreviewStyling();
-        }
-
-        function updatePreviewStyling() {
-            const previewItems = document.querySelectorAll('.preview-content span:not(.preview-item span:first-child)');
-            previewItems.forEach(item => {
-                const parent = item.closest('.preview-item');
-                if (item.textContent && !item.textContent.includes('will appear here') && 
-                    !item.textContent.includes('Event ') && item.textContent !== '0') {
-                    parent.classList.add('has-content');
-                } else {
-                    parent.classList.remove('has-content');
-                }
-            });
         }
 
         // Add event listeners for live preview
         ['title', 'description', 'eventDate', 'startTime', 'endTime', 'location', 'maxCapacity'].forEach(id => {
-            document.getElementById(id).addEventListener('input', updatePreview);
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', updatePreview);
+            }
         });
 
         // Time validation
@@ -477,17 +985,37 @@
         document.getElementById('endTime').addEventListener('change', validateTimes);
 
         // Form submission handling
-        document.getElementById('eventForm').addEventListener('submit', function() {
-            const submitBtn = document.getElementById('submitBtn');
-            const form = document.getElementById('eventForm');
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            // Only check validation if Google Maps API is available
+            if (hasGoogleMapsAPI && !isValidAddress) {
+                e.preventDefault();
+                const locationInput = document.getElementById('location');
+                locationInput.focus();
+                
+                const dropdown = document.getElementById('autocompleteDropdown');
+                dropdown.innerHTML = `
+                    <div class="autocomplete-no-results" style="background: #fee2e2; color: #991b1b;">
+                        ⚠️ Please select a valid address from the dropdown suggestions
+                    </div>
+                `;
+                dropdown.classList.add('show');
+                
+                setTimeout(() => {
+                    dropdown.classList.remove('show');
+                }, 3000);
+                
+                return false;
+            }
             
-            // Add loading state
-            form.classList.add('loading');
-            submitBtn.textContent = 'Creating Event...';
+            const submitBtn = document.getElementById('submitBtn');
+            const isEdit = /*[[${editMode}]]*/ false;
+            submitBtn.textContent = isEdit ? 'Saving...' : 'Creating Event...';
+            submitBtn.disabled = true;
         });
 
         // Auto-focus first field
         document.getElementById('title').focus();
     </script>
 </th:block>
+
 </html>
