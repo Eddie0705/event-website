@@ -21,33 +21,25 @@
 
 See [Instructions](INSTRUCTIONS.md)
 
-## Production Delivery
+## Build and Run
 
-# Build the application
+### 1. Build the Docker Image
 
-./mvnw clean package -DskipTests
-
-# Build Docker image
-
-docker build -t eventhub-webapp:latest .
-
-# Run the container
-
-docker run -d \
- -p 8080:8080 \
- --add-host=host.docker.internal:host-gateway \
- --name eventhub-app \
- eventhub-webapp:latest
-
-# Access the application
-
-open http://localhost:8081
-
-````
-
-### Using Docker Compose (with MySQL)
 ```bash
-docker-compose up -d
-````
+docker build --platform linux/amd64 -t eventhub-webapp .
+```
 
-Access at http://localhost:8080
+### 2. Run the Container
+
+```bash
+docker run -d \
+  --platform linux/amd64 \
+  -p 8080:8080 \
+  --add-host=host.docker.internal:host-gateway \
+  --name eventhub-app \
+  eventhub-webapp
+```
+
+### 3. Access the Application
+
+Open: **http://localhost:8080**
