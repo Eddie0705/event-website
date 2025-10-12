@@ -17,7 +17,6 @@
             <input type="hidden" name="eventId" th:value="${event.eventId}" />
             <input type="hidden" name="rsvpStatus" value="yes" />
 
-            <!-- 🟢 For logged-in users -->
             <div th:if="${currentUser != null}">
                 <button type="button"
                         th:if="${rsvpService != null and rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
@@ -31,8 +30,7 @@
                     Cancel RSVP
                 </button>
             </div>
-
-            <!-- 🔴 For not logged-in users -->
+            
             <div th:if="${currentUser == null}">
                 <button type="button" onclick="window.location.href='/auth/login'">RSVP</button>
             </div>
