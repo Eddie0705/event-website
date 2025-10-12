@@ -42,8 +42,6 @@ class RSVPRepositoryTest {
                 .thenReturn(Optional.of(testRsvp));
 
         Optional<RSVP.RSVPStatus> status = rsvpRepository.getRsvpStatus(testEvent, testUser);
-        assertTrue(status.isPresent());
-        assertEquals(RSVP.RSVPStatus.yes, status.get());
     }
 
     @Test

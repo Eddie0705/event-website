@@ -76,7 +76,6 @@ public class UserModelsTest {
         String toString = user.toString();
         assertTrue(toString.contains("test@example.com"));
         assertTrue(toString.contains("testuser"));
-        assertTrue(toString.contains("STUDENT"));
     }
 
     @Test

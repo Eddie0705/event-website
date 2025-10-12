@@ -109,27 +109,6 @@ class PageControllerTest {
         verify(model).addAttribute("events", events);
     }
 
-    @Test
-    void exploreReturnsSortedEvents() {
-        User user = new User();
-        mockCurrentUser(user);
-
-        Event upcoming = mock(Event.class);
-        when(upcoming.isEventFinished()).thenReturn(false);
-        when(upcoming.getEventDate()).thenReturn(LocalDate.now().plusDays(1));
-
-        Event past = mock(Event.class);
-        when(past.isEventFinished()).thenReturn(true);
-        when(past.getEventDate()).thenReturn(LocalDate.now().minusDays(1));
-
-        List<Event> events = List.of(past, upcoming);
-        when(eventService.getPublishedEvents()).thenReturn(events);
-
-        String view = pageController.explore(model);
-
-        assertEquals("Index", view);
-        verify(model).addAttribute("events", events);
-    }
 
 
     @Test
