@@ -193,7 +193,7 @@ class OrganiserControllerTest {
         verify(model).addAttribute("currentFilter", "past");
     }
 
-     // ========== Create Event Form Tests ==========
+     //Create Event Form Tests
 
      @Test
      void showCreateEventFormWithOrganiserUserReturnsForm() {
@@ -440,10 +440,232 @@ class OrganiserControllerTest {
  
          assertEquals("redirect:/organiser/dashboard", view);
          verify(redirectAttributes).addFlashAttribute("errorMessage", "Failed to cancel event: Cancel failed");
-     }
+    }
 
- 
-     
+    //Edit Event Form Tests
+
+    @Test
+    void showEditEventFormWithOrganiserUserReturnsForm() {
+        User organiser = createOrganiserUser();
+        Event event = createSampleEvent();
+        event.setCreatedBy(organiser.getUserId());
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(event);
+        when(googleMapsConfig.getApiKey()).thenReturn("test-api-key");
+
+        String view = organiserController.showEditEventForm(1L, model);
+
+        assertEquals("organiser/create-event", view);
+        verify(model).addAttribute("event", event);
+        verify(model).addAttribute("currentUser", organiser);
+        verify(model).addAttribute("isAuthenticated", true);
+        verify(model).addAttribute("googleMapsApiKey", "test-api-key");
+        verify(model).addAttribute("editMode", true);
+    }
+
+    @Test
+    void showEditEventFormWithNonOrganiserUserRedirectsToLogin() {
+        User student = createStudentUser();
+        mockSecurityContext(student);
+
+        String view = organiserController.showEditEventForm(1L, model);
+
+        assertEquals("redirect:/auth/login", view);
+        verify(eventService, never()).getEventById(any());
+    }
+
+    @Test
+    void showEditEventFormWithNullUserRedirectsToLogin() {
+        mockSecurityContext(null);
+
+        String view = organiserController.showEditEventForm(1L, model);
+
+        assertEquals("redirect:/auth/login", view);
+        verify(eventService, never()).getEventById(any());
+    }
+
+    @Test
+    void showEditEventFormWithNonOwnerRedirectsToDashboard() {
+        User organiser = createOrganiserUser();
+        User otherOrganiser = createOrganiserUser();
+        otherOrganiser.setUserId(2L);
+        
+        Event event = createSampleEvent();
+        event.setCreatedBy(2L); // Different user
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(event);
+
+        String view = organiserController.showEditEventForm(1L, model);
+
+        assertEquals("redirect:/organiser/dashboard", view);
+        verify(eventService).getEventById(1L);
+    }
+
+    @Test
+    void showEditEventFormWithExceptionRedirectsToDashboard() {
+        User organiser = createOrganiserUser();
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenThrow(new RuntimeException("Event not found"));
+
+        String view = organiserController.showEditEventForm(1L, model);
+
+        assertEquals("redirect:/organiser/dashboard", view);
+        verify(eventService).getEventById(1L);
+    }
+
+    //Update Event Tests
+
+    @Test
+    void updateEventWithValidDataReturnsSuccess() {
+        User organiser = createOrganiserUser();
+        Event existingEvent = createSampleEvent();
+        existingEvent.setCreatedBy(organiser.getUserId());
+        Event updatedEvent = createSampleEvent();
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(existingEvent);
+        when(eventService.updateEvent(eq(1L), any(Event.class))).thenReturn(updatedEvent);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "10:00", "12:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/organiser/dashboard", view);
+        verify(eventService).getEventById(1L);
+        verify(eventService).updateEvent(eq(1L), any(Event.class));
+        verify(redirectAttributes).addFlashAttribute("successMessage", "Event updated successfully!");
+    }
+
+    @Test
+    void updateEventWithNonOrganiserUserRedirectsToLogin() {
+        User student = createStudentUser();
+        mockSecurityContext(student);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "10:00", "12:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/auth/login", view);
+        verify(eventService, never()).getEventById(any());
+        verify(eventService, never()).updateEvent(any(), any());
+    }
+
+    @Test
+    void updateEventWithNullUserRedirectsToLogin() {
+        mockSecurityContext(null);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "10:00", "12:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/auth/login", view);
+        verify(eventService, never()).getEventById(any());
+        verify(eventService, never()).updateEvent(any(), any());
+    }
+
+    @Test
+    void updateEventWithNonOwnerReturnsError() {
+        User organiser = createOrganiserUser();
+        User otherOrganiser = createOrganiserUser();
+        otherOrganiser.setUserId(2L);
+        
+        Event event = createSampleEvent();
+        event.setCreatedBy(2L); // Different user
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(event);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "10:00", "12:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/organiser/dashboard", view);
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "You can only edit your own events");
+        verify(eventService, never()).updateEvent(any(), any());
+    }
+
+    @Test
+    void updateEventWithPastDateReturnsError() {
+        User organiser = createOrganiserUser();
+        Event existingEvent = createSampleEvent();
+        existingEvent.setCreatedBy(organiser.getUserId());
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(existingEvent);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2020-01-01", 
+                "10:00", "12:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/organiser/events/1/edit", view);
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "Event date must be in the future");
+        verify(eventService, never()).updateEvent(any(), any());
+    }
+
+    @Test
+    void updateEventWithInvalidTimeReturnsError() {
+        User organiser = createOrganiserUser();
+        Event existingEvent = createSampleEvent();
+        existingEvent.setCreatedBy(organiser.getUserId());
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(existingEvent);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "12:00", "10:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/organiser/events/1/edit", view);
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "End time must be after start time");
+        verify(eventService, never()).updateEvent(any(), any());
+    }
+
+    @Test
+    void updateEventWithInvalidCapacityReturnsError() {
+        User organiser = createOrganiserUser();
+        Event existingEvent = createSampleEvent();
+        existingEvent.setCreatedBy(organiser.getUserId());
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(existingEvent);
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "10:00", "12:00", "Updated Location", 0, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/organiser/events/1/edit", view);
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "Maximum capacity must be greater than 0");
+        verify(eventService, never()).updateEvent(any(), any());
+    }
+
+    @Test
+    void updateEventWithExceptionReturnsError() {
+        User organiser = createOrganiserUser();
+        Event existingEvent = createSampleEvent();
+        existingEvent.setCreatedBy(organiser.getUserId());
+        
+        mockSecurityContext(organiser);
+        when(eventService.getEventById(1L)).thenReturn(existingEvent);
+        when(eventService.updateEvent(eq(1L), any(Event.class))).thenThrow(new RuntimeException("Update failed"));
+
+        String view = organiserController.updateEvent(
+                1L, "Updated Event", "Updated Description", "2025-12-25", 
+                "10:00", "12:00", "Updated Location", 150, "Updated Venue", 
+                redirectAttributes);
+
+        assertEquals("redirect:/organiser/events/1/edit", view);
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "Error updating event: Update failed");
+    }
+
     //Helper Methods
 
     private void mockSecurityContext(User user) {
