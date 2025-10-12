@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 <head>
-    <title>Organizer Dashboard - EventHub</title>
+    <title>Organiser Dashboard</title>
 </head>
 
 <th:block layout:fragment="css">
@@ -499,13 +499,13 @@
                         <a th:href="@{/events/{id}(id=${event.eventId})}" class="action-btn btn-primary">View</a>
                         <a th:href="@{/events/{id}/edit(id=${event.eventId})}" class="action-btn btn-secondary">Edit</a>
                         
-                        <th:block th:if="${event.status.name() == 'DRAFT'}">
+                        <th:block th:if="${event.status.name() == 'draft'}">
                             <form th:action="@{/organiser/events/{id}/publish(id=${event.eventId})}" method="post" style="display: inline;">
                                 <button type="submit" class="action-btn btn-success">Publish</button>
                             </form>
                         </th:block>
                         
-                        <th:block th:if="${event.status.name() == 'PUBLISHED'}">
+                        <th:block th:if="${event.status.name() == 'published'}">
                             <form th:action="@{/organiser/events/{id}/cancel(id=${event.eventId})}" method="post" style="display: inline;">
                                 <button type="submit" class="action-btn btn-warning" 
                                         onclick="return confirm('Are you sure you want to cancel this event?')">Cancel</button>
@@ -549,8 +549,8 @@
     </div>
 </div>
 
-<th:block layout:fragment="javascript">
-    <script>
+
+<script th:inline="javascript">
         // Auto-hide alert messages after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert-message');
@@ -569,6 +569,29 @@
         function confirmAction(message) {
             return confirm(message);
         }
+
+        // Profile dropdown functionality
+        function toggleDropdown(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const dropdown = document.getElementById('profileDropdown');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            
+            dropdown.classList.toggle('show');
+            profileDropdown.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            
+            if (!profileDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+                profileDropdown.classList.remove('active');
+            }
+        });
     </script>
 </th:block>
 </html>
