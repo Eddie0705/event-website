@@ -112,32 +112,4 @@ public class RSVPController {
                 .orElse("No RSVP yet");
     }
 
-    // @GetMapping("/eventRSVP")
-    // public String showMyRsvps(Model model) {
-
-    //     User currentUser = getCurrentUser();
-    //     model.addAttribute("user", currentUser);
-    //     model.addAttribute("isAuthenticated", currentUser != null);
-
-    //     // List<RSVP> rsvps = rsvpService.getUserRsvps(currentUser);
-    //     // model.addAttribute("rsvps", rsvps);
-
-    //     // model.addAttribute("yes", rsvps.stream()
-    //     //                             .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.yes)
-    //     //                             .toList());
-
-    //     // model.addAttribute("no", rsvps.stream()
-    //     //                             .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.no)
-    //     //                             .toList());
-
-    //     // model.addAttribute("maybe", rsvps.stream()
-    //     //                                 .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.maybe)
-    //     //                                 .toList());
-
-    //     // model.addAttribute("cancelled", rsvps.stream()
-    //     //                                     .filter(r -> r.getRsvpStatus() == RSVP.RSVPStatus.cancelled)
-    //     //                                     .toList());
-
-    //     return "eventRSVP";
-    // }
 }

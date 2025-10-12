@@ -1,9 +1,12 @@
 package au.edu.rmit.sept.webapp.controller;
 
 import au.edu.rmit.sept.webapp.models.Event;
+import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.EventService;
+import au.edu.rmit.sept.webapp.services.RSVPService;
+import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -32,6 +35,9 @@ public class CalendarController {
     private EventService eventService;
 
     @Autowired
+    private RSVPService rsvpService;
+
+    @Autowired
     private CustomUserDetailsService userDetailsService;
 
     // -------- Helpers --------
@@ -48,6 +54,7 @@ public class CalendarController {
 
     // -------- Route --------
     @GetMapping("/calendar")
+    @Transactional
     public String showCalendar(
             @RequestParam(value = "view", defaultValue = "month") String view,
             @RequestParam(value = "date", required = false) String dateIso,
@@ -85,8 +92,21 @@ public class CalendarController {
             rangeEnd = days.isEmpty() ? anchorDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)) : days.get(days.size() - 1);
         }
 
+        // Fetch events limited to the visible grid window
         List<Event> visibleEvents = eventService.getEventsByDateRange(rangeStart, rangeEnd);
 
+        // filter these events to only those the current user can see
+        if (currentUser != null) {
+            // Fetch RSVPs for this user with "yes" status
+            List<RSVP> userRsvps = rsvpService.findAllByUserAndRsvpStatus(currentUser, RSVP.RSVPStatus.yes);
+
+            // Extract events from RSVPs and filter by date range
+            visibleEvents = userRsvps.stream()
+                    .map(RSVP::getEvent)
+                    .filter(e -> !e.getEventDate().isBefore(rangeStart) && !e.getEventDate().isAfter(rangeEnd))
+                    .collect(Collectors.toList());
+        }
+        
         // Group events by LocalDate for Thymeleaf
         Map<LocalDate, List<Event>> eventsByDate = new HashMap<>();
         for (Event e : visibleEvents) {

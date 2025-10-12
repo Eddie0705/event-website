@@ -19,9 +19,17 @@ import java.util.Optional;
 
 public interface RSVPRepository extends JpaRepository<RSVP, Long> {
 
+
+    List<RSVP> findAllByEvent(Event event);
+
     Optional<RSVP> findByEventAndUser(Event event, User user);
 
     boolean existsByEventAndUser(Event event, User user);
+
+
+    boolean existsByEventAndUserAndRsvpStatus(Event event, User user, RSVP.RSVPStatus rsvpStatus);
+
+    List<RSVP> findAllByUserAndRsvpStatus(User user, RSVP.RSVPStatus rsvpStatus);
 
     // Custom default method to get RSVP status
     default Optional<RSVP.RSVPStatus> getRsvpStatus(Event event, User user) {

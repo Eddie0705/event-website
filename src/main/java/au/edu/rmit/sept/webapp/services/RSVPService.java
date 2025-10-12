@@ -5,6 +5,7 @@ import au.edu.rmit.sept.webapp.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.List;
@@ -14,15 +15,27 @@ public class RSVPService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final EventService eventService;
 
     public RSVPService(RSVPRepository rsvpRepository,
                        EventRepository eventRepository,
                        UserRepository userRepository,
-                       EmailService emailService) {
+                       EmailService emailService,
+                       EventService eventService) {
         this.rsvpRepository = rsvpRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.eventService = eventService;
+    }
+
+
+    public List<RSVP> findAllByEvent(Event event) {
+        return rsvpRepository.findAllByEvent(event);
+    }
+
+    public List<RSVP> findAllByUserAndRsvpStatus(User user, RSVP.RSVPStatus status) {
+        return rsvpRepository.findAllByUserAndRsvpStatus(user, status);
     }
 
     @Transactional
@@ -210,4 +223,49 @@ public class RSVPService {
             throw new RuntimeException("Failed to send RSVP email to " + recipient, e);
         }
     }
+
+    //Generates a CSV export of all RSVPs for a given event.
+    public byte[] generateRsvpCsv(Long eventId) {
+        Event event = eventService.getEventById(eventId);
+
+        // validate event exists
+        if (event == null) {
+            throw new IllegalArgumentException("Event not found with ID: " + eventId);
+        }
+
+        // fetch all RSVPs for the event
+        List<RSVP> rsvps = findAllByEvent(event);
+
+        // build CSV tabel with stringbuilder
+        StringBuilder csvBuilder = new StringBuilder();
+        csvBuilder.append("Name,Email,RSVP Status,Attendance Status,Check-in Time\n");
+
+        // populate rows
+        for (RSVP rsvp : rsvps) {
+            String userName = rsvp.getUser().getFullName();
+            String email = rsvp.getUser().getEmail();
+            String rsvpStatus = rsvp.getRsvpStatus() != null ? rsvp.getRsvpStatus().name() : "N/A";
+            String attendance = rsvp.getAttendanceStatus() != null ? rsvp.getAttendanceStatus().name() : "N/A";
+            String checkInTime = rsvp.getCheckInTime() != null ? rsvp.getCheckInTime().toString() : "N/A";
+
+            csvBuilder.append(String.format("%s,%s,%s,%s,%s\n",
+                    escapeCsv(userName),
+                    escapeCsv(email),
+                    escapeCsv(rsvpStatus),
+                    escapeCsv(attendance),
+                    escapeCsv(checkInTime)
+            ));
+        }
+
+        return csvBuilder.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"")) {
+            value = "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+    
 }

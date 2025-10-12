@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$CONTENT_TITLE - EventHub">EventHub</title>
     
+    <!-- Page-specific CSS -->
+    <th:block layout:fragment="css"></th:block>
+    
     <!-- Common CSS from your existing style.css -->
     <style>
         * {
@@ -356,8 +359,7 @@
         }
     </style>
     
-    <!-- Page-specific CSS -->
-    <th:block layout:fragment="css"></th:block>
+    
 </head>
 <body>
     <!-- Navigation -->
@@ -441,31 +443,33 @@
 </footer>
 
     <!-- Page-specific JavaScript -->
-    <th:block layout:fragment="javascript">
-         <script>
-            // Profile dropdown functionality
-            function toggleDropdown(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                const dropdown = document.getElementById('profileDropdown');
-                const profileDropdown = document.querySelector('.profile-dropdown');
-                
-                dropdown.classList.toggle('show');
-                profileDropdown.classList.toggle('active');
+    <script>
+        // Profile dropdown functionality
+        function toggleDropdown(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const dropdown = document.getElementById('profileDropdown');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            
+            dropdown.classList.toggle('show');
+            profileDropdown.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            
+            if (!profileDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+                profileDropdown.classList.remove('active');
             }
+        });    
+    </script>
     
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(event) {
-                const dropdown = document.getElementById('profileDropdown');
-                const profileDropdown = document.querySelector('.profile-dropdown');
-                
-                if (!profileDropdown.contains(event.target)) {
-                    dropdown.classList.remove('show');
-                    profileDropdown.classList.remove('active');
-                }
-            });    
-        </script>
+    <th:block layout:fragment="javascript">
+         
     </th:block>
 </body>
 </html>
