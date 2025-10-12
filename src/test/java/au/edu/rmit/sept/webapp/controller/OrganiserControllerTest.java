@@ -193,6 +193,162 @@ class OrganiserControllerTest {
         verify(model).addAttribute("currentFilter", "past");
     }
 
+     // ========== Create Event Form Tests ==========
+
+     @Test
+     void showCreateEventFormWithOrganiserUserReturnsForm() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+         when(googleMapsConfig.getApiKey()).thenReturn("test-api-key");
+ 
+         String view = organiserController.showCreateEventForm(model);
+ 
+         assertEquals("organiser/create-event", view);
+         verify(model).addAttribute("currentUser", organiser);
+         verify(model).addAttribute("isAuthenticated", true);
+         verify(model).addAttribute("googleMapsApiKey", "test-api-key");
+     }
+ 
+     @Test
+     void showCreateEventFormWithAdminUserReturnsForm() {
+         User admin = createAdminUser();
+         mockSecurityContext(admin);
+         when(googleMapsConfig.getApiKey()).thenReturn("test-api-key");
+ 
+         String view = organiserController.showCreateEventForm(model);
+ 
+         assertEquals("organiser/create-event", view);
+         verify(model).addAttribute("currentUser", admin);
+         verify(model).addAttribute("isAuthenticated", true);
+         verify(model).addAttribute("googleMapsApiKey", "test-api-key");
+     }
+ 
+     @Test
+     void showCreateEventFormWithNonOrganiserUserRedirectsToLogin() {
+         User student = createStudentUser();
+         mockSecurityContext(student);
+ 
+         String view = organiserController.showCreateEventForm(model);
+ 
+         assertEquals("redirect:/auth/login", view);
+     }
+ 
+     @Test
+     void showCreateEventFormWithNullUserRedirectsToLogin() {
+         mockSecurityContext(null);
+ 
+         String view = organiserController.showCreateEventForm(model);
+ 
+         assertEquals("redirect:/auth/login", view);
+     }
+ 
+     //Create Event Tests
+ 
+     @Test
+     void createEventWithValidDataReturnsSuccess() {
+         User organiser = createOrganiserUser();
+         Event createdEvent = createSampleEvent();
+         mockSecurityContext(organiser);
+         when(eventService.createEvent(any(Event.class))).thenReturn(createdEvent);
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2025-12-25", 
+                 "10:00", "12:00", "Test Location", 100, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/dashboard", view);
+         verify(eventService).createEvent(any(Event.class));
+         verify(redirectAttributes).addFlashAttribute("successMessage", "Event 'Test Event' created successfully!");
+     }
+ 
+     @Test
+     void createEventWithPastDateReturnsError() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2020-01-01", 
+                 "10:00", "12:00", "Test Location", 100, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/create-event", view);
+         verify(redirectAttributes).addFlashAttribute("errorMessage", "Event date must be in the future");
+         verify(eventService, never()).createEvent(any(Event.class));
+     }
+ 
+     @Test
+     void createEventWithInvalidTimeReturnsError() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2025-12-25", 
+                 "12:00", "10:00", "Test Location", 100, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/create-event", view);
+         verify(redirectAttributes).addFlashAttribute("errorMessage", "End time must be after start time");
+         verify(eventService, never()).createEvent(any(Event.class));
+     }
+ 
+     @Test
+     void createEventWithInvalidCapacityReturnsError() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2025-12-25", 
+                 "10:00", "12:00", "Test Location", 0, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/create-event", view);
+         verify(redirectAttributes).addFlashAttribute("errorMessage", "Maximum capacity must be greater than 0");
+         verify(eventService, never()).createEvent(any(Event.class));
+     }
+ 
+     @Test
+     void createEventWithNonOrganiserUserRedirectsToLogin() {
+         User student = createStudentUser();
+         mockSecurityContext(student);
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2024-12-25", 
+                 "10:00", "12:00", "Test Location", 100, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/auth/login", view);
+         verify(eventService, never()).createEvent(any(Event.class));
+     }
+ 
+     @Test
+     void createEventWithNullUserRedirectsToLogin() {
+         mockSecurityContext(null);
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2024-12-25", 
+                 "10:00", "12:00", "Test Location", 100, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/auth/login", view);
+         verify(eventService, never()).createEvent(any(Event.class));
+     }
+ 
+     @Test
+     void createEventWithExceptionReturnsError() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+         when(eventService.createEvent(any(Event.class))).thenThrow(new RuntimeException("Database error"));
+ 
+         String view = organiserController.createEvent(
+                 "Test Event", "Test Description", "2025-12-25", 
+                 "10:00", "12:00", "Test Location", 100, "Test Venue", 
+                 redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/create-event", view);
+         verify(redirectAttributes).addFlashAttribute("errorMessage", "Error creating event: Database error");
+     }
+ 
+     
     //Helper Methods
 
     private void mockSecurityContext(User user) {
