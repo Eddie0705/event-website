@@ -156,4 +156,50 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         @Modifying
         @Query("DELETE FROM Event e WHERE e.createdBy = :createdBy")
         void deleteByCreatedBy(@Param("createdBy") Long createdBy);
+
+        // Advanced search with multiple optional filters
+        @Query("""
+                        SELECT e FROM Event e
+                        WHERE e.status = 'PUBLISHED'
+                        AND (
+                            :search IS NULL OR :search = ''
+                            OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))
+                            OR LOWER(e.description) LIKE LOWER(CONCAT('%', :search, '%'))
+                        )
+                        AND (
+                            :locations IS NULL OR e.location IN :locations
+                        )
+                        AND (
+                            :date IS NULL OR :date = '' OR e.eventDate = CAST(:date AS date)
+                        )
+                        ORDER BY e.eventDate ASC
+                        """)
+        List<Event> searchEventsWithLocations(
+                        @Param("search") String search,
+                        @Param("date") String date,
+                        @Param("locations") List<String> locations);
+
+        // Advanced search with single location filter
+        @Query("""
+                            SELECT e FROM Event e
+                            WHERE e.status = 'PUBLISHED'
+                            AND (
+                                :search IS NULL OR :search = ''
+                                OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))
+                                OR LOWER(e.description) LIKE LOWER(CONCAT('%', :search, '%'))
+                            )
+                            AND (
+                                :location IS NULL OR :location = ''
+                                OR LOWER(e.location) LIKE LOWER(CONCAT('%', TRIM(:location), '%'))
+                            )
+                            AND (
+                                :date IS NULL OR :date = ''
+                                OR e.eventDate = CAST(:date AS date)
+                            )
+                            ORDER BY e.eventDate ASC
+                        """)
+        List<Event> searchEventsBasic(
+                        @Param("search") String search,
+                        @Param("date") String date,
+                        @Param("location") String location);
 }

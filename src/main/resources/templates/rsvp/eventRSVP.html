@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" 
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -167,7 +168,6 @@
             overflow: hidden;
             transition: all 0.3s ease;
             border: 1px solid #e2e8f0;
-            /* remove flex-related properties */
         }
 
         .event-card:hover {
@@ -249,9 +249,15 @@
         }
     </style>
 </head>
-
+ 
+<th:block layout:fragment="css">
+<style>
+        /* Page-specific styles */
+        
+</style>
+</th:block>
+ 
 <div layout:fragment="content">
-<body>
 <div id="rsvpPage">
     <div class="header">
         <div class="content">
@@ -278,16 +284,18 @@
         </div>
     </div>
 
+    <!-- filter buttons -->
     <div class="filters">
         <h1>Your Events</h1>
-        <div class='filter-buttons'>
+        <div class="filter-buttons">
             <button class="filter-btn" onclick="filterEvents('upcoming')">Upcoming Events</button>
-            <button class="filter-btn" onclick="filterEvents('confirmed')">Confirmed</button>
-            <button class="filter-btn" onclick="filterEvents('declined')">Declined</button>
+            <button class="filter-btn">Confirmed</button>
+            <button class="filter-btn">Declined</button>
             <button class="filter-btn" onclick="filterEvents('past')">Past Events</button>
         </div>
     </div>
 
+    <!-- event card section rsvp -->
     <div class="events-section">
         <div id="upcoming-section" class="event-grid">
             <div class="event-card" th:each="rsvp : ${yes}" th:attr="data-date=${rsvp.event.eventDate}">
@@ -302,14 +310,15 @@
                 </div>
             </div>
         </div>
-
-        <!-- Repeat similar blocks for no, maybe, cancelled using your original th:each logic -->
     </div>
-</div>
-</body>
-</div>
 
+    <footer>
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
+</div>
+ 
 <th:block layout:fragment="javascript">
+
 <script>
 function filterEvents(type) {
     const now = new Date();
@@ -317,20 +326,32 @@ function filterEvents(type) {
     const clickedButton = document.querySelector(`.filter-btn[onclick="filterEvents('${type}')"]`);
     const isActive = clickedButton.classList.contains('active');
 
+    // Remove active from all buttons first
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
 
+    // Determine whether to reset view (show all) or filter
     const resetView = isActive;
 
     document.querySelectorAll('.event-card').forEach(card => {
         const eventDate = new Date(card.dataset.date + "T00:00:00");
-        if (resetView) card.style.display = 'block';
-        else {
+
+        if (resetView) {
+            // Show all cards
+            card.style.display = 'block';
+        } else {
+            // Filter by type
             if (type === 'upcoming' && eventDate >= now) card.style.display = 'block';
             else if (type === 'past' && eventDate < now) card.style.display = 'block';
             else card.style.display = 'none';
         }
     });
 
+    // Update section title
+    sectionTitle.textContent = resetView ? "All Events" :
+        type === 'upcoming' ? "Upcoming Events" :
+        type === 'past' ? "Past Events" : "Your Events";
+
+    // Only add active class if button was not already active
     if (!isActive) clickedButton.classList.add('active');
 }
 </script>

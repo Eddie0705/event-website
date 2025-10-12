@@ -477,4 +477,55 @@ public class EventService {
             return publishedCount + draftCount;
         }
     }
+
+    // Advanced search filter method
+    public List<Event> searchFilterEvents(String search, String date, List<String> locations, String price) {
+        System.out.println("📍 locations received = " + locations);
+
+        // 1️⃣ Fetch all published events first (base dataset)
+        List<Event> events = eventRepository.findByStatusOrderByEventDateAsc(Event.EventStatus.published);
+
+        // 2️⃣ 🏫 Location filter (case-insensitive, partial match)
+        if (locations != null && !locations.isEmpty() && !locations.contains("Any")) {
+            events = events.stream()
+                    .filter(e -> e.getLocation() != null &&
+                            locations.stream()
+                                    .anyMatch(loc -> e.getLocation().toLowerCase().contains(loc.toLowerCase())))
+                    .toList();
+        }
+
+        // 3️⃣ 🔍 Search filter (in-memory partial match)
+        if (search != null && !search.isBlank()) {
+            String s = search.toLowerCase();
+            events = events.stream()
+                    .filter(e -> (e.getTitle() != null && e.getTitle().toLowerCase().contains(s))
+                            || (e.getDescription() != null && e.getDescription().toLowerCase().contains(s)))
+                    .toList();
+        }
+
+        // 4️⃣ 📅 Date filter
+        if (date != null && !date.isBlank()) {
+            LocalDate filterDate = LocalDate.parse(date);
+            events = events.stream()
+                    .filter(e -> e.getEventDate() != null && e.getEventDate().isEqual(filterDate))
+                    .toList();
+        }
+
+        // 5️⃣ 💰 Price filter
+        if (price != null && !"any".equalsIgnoreCase(price.trim())) {
+            if (price.equalsIgnoreCase("free")) {
+                events = events.stream()
+                        .filter(e -> (e.getIsPaid() == null || !e.getIsPaid())
+                                || (e.getPrice() != null && e.getPrice().compareTo(java.math.BigDecimal.ZERO) == 0))
+                        .toList();
+            } else if (price.equalsIgnoreCase("paid")) {
+                events = events.stream()
+                        .filter(e -> (e.getIsPaid() != null && e.getIsPaid())
+                                && (e.getPrice() != null && e.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0))
+                        .toList();
+            }
+        }
+
+        return events;
+    }
 }
