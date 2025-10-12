@@ -23,10 +23,10 @@ See [Instructions](INSTRUCTIONS.md)
 
 ## Build and Run
 
-### 1. Build the Docker Image
+### 1. Load the Docker Image
 
 ```bash
-docker build --platform linux/amd64 -t eventhub-webapp .
+docker load -i eventhub-webapp.tar
 ```
 
 ### 2. Run the Container
