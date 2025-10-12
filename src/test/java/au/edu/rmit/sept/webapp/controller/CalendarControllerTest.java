@@ -230,4 +230,39 @@ class CalendarControllerTest {
         verify(model).addAttribute(eq("yearMonth"), any(YearMonth.class));
     }
 
+    //Calendar Data Building Tests
+
+    @Test
+    void buildCalendarDataForMonthView() {
+        // This tests the private method indirectly through showCalendar
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", "2024-03-15", model);
+
+        
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute(eq("calendarData"), any(CalendarController.CalendarData.class));
+    }
+
+    @Test
+    void buildCalendarDataForWeekView() {
+        // This tests the private method indirectly through showCalendar
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("week", "2024-03-15", model);
+
+        
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute(eq("calendarData"), any(CalendarController.CalendarData.class));
+    }
+
+
 }
