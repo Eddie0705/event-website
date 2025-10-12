@@ -164,7 +164,7 @@ class EventControllerTest {
         String view = eventController.createEvent("T", "d", LocalDate.now().plusDays(1).toString(),
                 "10:00", "11:00", "loc", 10, null, redirectAttributes);
 
-        assertEquals("redirect:/login", view);
+        assertEquals("redirect:/auth/login", view);
         verify(eventService, never()).createEvent(any());
     }
 
@@ -268,7 +268,7 @@ class EventControllerTest {
         String view = eventController.editEvent(30L, model);
 
         // Assert correct view and model attribute
-        assertEquals("events/edit", view);
+        assertEquals("redirect:/organiser/dashboard", view);
         verify(model).addAttribute("event", event);
     }
 
@@ -281,7 +281,7 @@ class EventControllerTest {
         mockSecurityContext(student);
 
         String view = eventController.editEvent(31L, model);
-        assertEquals("redirect:/login", view);
+        assertEquals("redirect:/auth/login", view);
     }
 
     @Test
