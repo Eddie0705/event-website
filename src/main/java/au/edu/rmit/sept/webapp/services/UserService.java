@@ -3,10 +3,12 @@ package au.edu.rmit.sept.webapp.services;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.models.UserType;
 import au.edu.rmit.sept.webapp.repository.UserRepository;
+import au.edu.rmit.sept.webapp.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +24,12 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -224,17 +232,29 @@ public class UserService {
      * @return true if user banned successfully
      */
     public boolean banUser(Long userId) {
+        System.out.println("=== USER SERVICE BAN USER ===");
+        System.out.println("Looking for user with ID: " + userId);
+        
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+            System.out.println("Found user: " + user.getUsername() + " (was banned: " + user.getIsBanned() + ")");
+            
             user.setIsBanned(true);
             user.setIsActive(false);
-            userRepository.save(user);
+            
+            System.out.println("Setting user banned to: " + user.getIsBanned());
+            System.out.println("Setting user active to: " + user.getIsActive());
+            
+            User savedUser = userRepository.save(user);
+            System.out.println("User saved. Verifying ban status: " + savedUser.getIsBanned());
+            
             return true;
+        } else {
+            System.out.println("User with ID " + userId + " not found!");
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -401,5 +421,54 @@ public class UserService {
         public long getAdmins() {
             return admins;
         }
+    }
+
+    /**
+     * Permanently delete a user (admin only)
+     * This will also cascade delete any events created by this user
+     * WARNING: This is permanent and cannot be undone
+     */
+    @Transactional
+    public void deleteUser(Long userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (!userOptional.isPresent()) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
+
+        User user = userOptional.get();
+        
+        // Additional safety check - prevent deletion of the last admin
+        if (user.getUserType() == UserType.ADMIN) {
+            long adminCount = userRepository.countByUserType(UserType.ADMIN);
+            if (adminCount <= 1) {
+                throw new RuntimeException("Cannot delete the last remaining admin user");
+            }
+        }
+        
+        // Handle foreign key constraints manually before deleting the user
+        // Since we don't have all entity repositories, we'll use native SQL queries
+        // to handle the RESTRICT constraints
+        
+        // Delete events created by this user (this will cascade to RSVPs, feedback, etc.)
+        eventRepository.deleteByCreatedBy(userId);
+        
+        // Delete clubs created by this user using native query
+        entityManager.createNativeQuery("DELETE FROM clubs WHERE created_by = ?")
+                    .setParameter(1, userId)
+                    .executeUpdate();
+        
+        // Delete audit logs where this user was the admin using native query
+        entityManager.createNativeQuery("DELETE FROM audit_log WHERE admin_id = ?")
+                    .setParameter(1, userId)
+                    .executeUpdate();
+        
+        // Delete payments made by this user using native query
+        entityManager.createNativeQuery("DELETE FROM payments WHERE user_id = ?")
+                    .setParameter(1, userId)
+                    .executeUpdate();
+        
+        // Other entities with CASCADE will be handled automatically by the database
+        // Delete the user
+        userRepository.delete(user);
     }
 }

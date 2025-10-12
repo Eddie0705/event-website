@@ -172,7 +172,7 @@ public class AuthController {
     /**
      * Display profile page
      */
-    @GetMapping("/profile")
+    @GetMapping("/profile") 
     public String showProfile(Model model) {
         User currentUser = getCurrentUser();
 
@@ -180,7 +180,10 @@ public class AuthController {
             return "redirect:/auth/login";
         }
 
-        // Get fresh user data from database
+        // Add currentUser for the base layout navigation
+        model.addAttribute("currentUser", currentUser);
+        
+        // Get fresh user data from database for the profile page
         Optional<User> userOpt = userService.findById(currentUser.getUserId());
         if (userOpt.isPresent()) {
             model.addAttribute("user", userOpt.get());
