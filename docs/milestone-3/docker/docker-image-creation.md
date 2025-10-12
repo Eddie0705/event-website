@@ -2,10 +2,10 @@ These instructions for creating off of my personal local device. Havent finished
 
 ## Build and Run
 
-### 1. Load the Docker Image
+### 1. Build the Docker Image
 
 ```bash
-docker load -i eventhub-webapp.tar
+docker build --platform linux/amd64 -t eventhub-webapp .
 ```
 
 ### 2. Run the Container
