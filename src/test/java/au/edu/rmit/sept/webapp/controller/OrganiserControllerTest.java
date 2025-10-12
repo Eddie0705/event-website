@@ -347,6 +347,54 @@ class OrganiserControllerTest {
          assertEquals("redirect:/organiser/create-event", view);
          verify(redirectAttributes).addFlashAttribute("errorMessage", "Error creating event: Database error");
      }
+
+     //Publish Event Tests
+ 
+     @Test
+     void publishEventWithOrganiserUserReturnsSuccess() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+ 
+         String view = organiserController.publishEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/dashboard", view);
+         verify(eventService).publishEvent(1L, organiser.getUserId());
+         verify(redirectAttributes).addFlashAttribute("successMessage", "Event published successfully!");
+     }
+ 
+     @Test
+     void publishEventWithNonOrganiserUserRedirectsToLogin() {
+         User student = createStudentUser();
+         mockSecurityContext(student);
+ 
+         String view = organiserController.publishEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/auth/login", view);
+         verify(eventService, never()).publishEvent(any(), any());
+     }
+ 
+     @Test
+     void publishEventWithNullUserRedirectsToLogin() {
+         mockSecurityContext(null);
+ 
+         String view = organiserController.publishEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/auth/login", view);
+         verify(eventService, never()).publishEvent(any(), any());
+     }
+ 
+     @Test
+     void publishEventWithExceptionReturnsError() {
+         User organiser = createOrganiserUser();
+         mockSecurityContext(organiser);
+         doThrow(new RuntimeException("Publish failed")).when(eventService).publishEvent(1L, organiser.getUserId());
+ 
+         String view = organiserController.publishEvent(1L, redirectAttributes);
+ 
+         assertEquals("redirect:/organiser/dashboard", view);
+         verify(redirectAttributes).addFlashAttribute("errorMessage", "Failed to publish event: Publish failed");
+     }
+ 
  
      
     //Helper Methods
