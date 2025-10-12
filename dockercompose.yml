@@ -1,0 +1,43 @@
+version: '3.5'
+services:
+  web:
+    platform: "linux/amd64"
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      spring.datasource.url: jdbc:mysql://database:3306/eventhub_db?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Australia/Melbourne
+      spring.datasource.driverClassName: com.mysql.cj.jdbc.Driver
+      spring.datasource.username: root
+      spring.datasource.password: ${DB_PASSWORD}
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    platform: "linux/amd64"
+    image: mysql:8.0-oracle
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: eventhub_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$DB_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
+
+  adminer:
+    platform: "linux/amd64"
+    image: adminer
+    restart: always
+    ports:
+      - 9000:8080
+       
+volumes:
+  db:

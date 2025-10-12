@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" 
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -249,14 +248,7 @@
         }
     </style>
 </head>
- 
-<th:block layout:fragment="css">
-<style>
-        /* Page-specific styles */
-        
-</style>
-</th:block>
- 
+
 <div layout:fragment="content">
 <div id="rsvpPage">
     <div class="header">
@@ -316,9 +308,10 @@
         <p>&copy; 2024 Your Company. All rights reserved.</p>
     </footer>
 </div>
- 
-<th:block layout:fragment="javascript">
+</body>
+</div>
 
+<th:block layout:fragment="javascript">
 <script>
 function filterEvents(type) {
     const now = new Date();
@@ -326,32 +319,20 @@ function filterEvents(type) {
     const clickedButton = document.querySelector(`.filter-btn[onclick="filterEvents('${type}')"]`);
     const isActive = clickedButton.classList.contains('active');
 
-    // Remove active from all buttons first
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
 
-    // Determine whether to reset view (show all) or filter
     const resetView = isActive;
 
     document.querySelectorAll('.event-card').forEach(card => {
         const eventDate = new Date(card.dataset.date + "T00:00:00");
-
-        if (resetView) {
-            // Show all cards
-            card.style.display = 'block';
-        } else {
-            // Filter by type
+        if (resetView) card.style.display = 'block';
+        else {
             if (type === 'upcoming' && eventDate >= now) card.style.display = 'block';
             else if (type === 'past' && eventDate < now) card.style.display = 'block';
             else card.style.display = 'none';
         }
     });
 
-    // Update section title
-    sectionTitle.textContent = resetView ? "All Events" :
-        type === 'upcoming' ? "Upcoming Events" :
-        type === 'past' ? "Past Events" : "Your Events";
-
-    // Only add active class if button was not already active
     if (!isActive) clickedButton.classList.add('active');
 }
 </script>
