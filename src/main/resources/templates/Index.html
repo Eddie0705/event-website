@@ -364,11 +364,10 @@
 
     </style>
 </th:block>
-
 <!-- Page Content (Navigation and Footer are handled by the layout) -->
 <div layout:fragment="content">
     <!-- Search Area -->
-<body>
+
 
     <div class="search_area">
         <input type="text" id="searchText" placeholder="Search...">
@@ -418,89 +417,12 @@
           
           </div>          
 
-        <!-- Events Container -->
-        <div class="events_container">
-            <!-- Loop over events -->
-            <div class="events_card" 
-                 th:class="${'events_card' + (event.isEventFinished() ? ' event-finished' : '')}" 
-                 th:each="event : ${events}">
-                <h3 th:text="${event.title}">Event Title</h3>
-                <p>
-                    <span th:text="${event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy'))}"></span>
-                    |
-                    <span th:text="${event.startTime}">Start Time</span>
-                </p>
-                <p th:text="${event.description} ?: 'No Description'">Event Description</p>
-                <p th:text="'Location: ' + ${event.location} ?: 'No Location'">Event Location</p>
-                <p th:text="${event.venueDetails} ?: 'No Venue Details'">Venue Details</p>
-                
-                <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0} ? 'Price: Free' : '$' + ${event.price}">Event Price</p>
-                <p th:text="${event.maxCapacity} != null ? ${event.maxCapacity} + ' Attendees' : 'Unlimited Attendees'">Event Capacity</p>
-
-                <!-- Button container -->
-                <div class="event-buttons">
-                    <!-- View Button -->
-                    <button type="button" class="view-button" th:onclick="'window.location.href=\'/events/' + ${event.eventId} + '\''">
-                        View
-                    </button>
-
-                    <!-- RSVP form and button -->
-                    <div style="flex: 1;">
-                        <form style="margin: 0;">
-                            <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
-                            <input type="hidden" name="eventId" th:value="${event.eventId}" />
-                            <input type="hidden" name="rsvpStatus" value="yes" />
-                            
-                            <!-- redirect to login or show finished status -->
-                            <button type="button"
-                                th:if="${currentUser == null and !event.isEventFinished()}"
-                                onclick="window.location.href='/auth/login'">
-                                Login to RSVP
-                            </button>
-
-                            <!-- Show finished status for non-logged in users -->
-                            <button type="button"
-                                th:if="${currentUser == null and event.isEventFinished()}"
-                                class="rsvp-status event-finished"
-                                disabled="true">
-                                Event Finished
-                            </button>
-
-                            <!-- Button if user has not RSVPed -->
-                            <div th:if="${currentUser != null}">
-                                <!-- Event finished - show finished status -->
-                                <button type="button"
-                                        th:if="${event.isEventFinished()}"
-                                        class="rsvp-status event-finished"
-                                        disabled="true">
-                                        Event Finished
-                                </button>
-
-                                <!-- Button if user has not RSVPed and event not finished -->
-                                <button type="button"
-                                        th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                                        class="rsvp-status not-rsvped"
-                                        disabled="true">
-                                        Not RSVP'd
-                                </button>
-
-                                <!-- Button if user already RSVPed and event not finished -->
-                                <button type="button"
-                                        th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                                        class="rsvp-status rsvped"
-                                        disabled="true">
-                                    RSVP'd
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+       <!-- Events Container -->
+       <div class="events_container" id="eventsContainer" th:include="fragments/eventCards :: eventsContainer"> 
             </div>
         </div>
     </div>
 </div>
-
-</body>
 </html>
 <script>
     /* ===========================
