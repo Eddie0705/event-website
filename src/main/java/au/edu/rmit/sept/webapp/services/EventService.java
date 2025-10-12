@@ -423,63 +423,39 @@ public class EventService {
         }
     }
 
-    public List<Event> searchEvents(String search, List<String> categories, String date,
-            String dateFrom, String dateTo, String location,
-            String price, String organizer) {
+    public List<Event> searchFilterEvents(String search, String date, List<String> locations, String price) {
+        System.out.println("📍 locations received = " + locations);
 
+        // 1️⃣ Fetch all published events first (base dataset)
         List<Event> events = eventRepository.findByStatusOrderByEventDateAsc(Event.EventStatus.published);
 
-        // 🔍 text
+        // 2️⃣ 🏫 Location filter (case-insensitive, partial match)
+        if (locations != null && !locations.isEmpty() && !locations.contains("Any")) {
+            events = events.stream()
+                    .filter(e -> e.getLocation() != null &&
+                            locations.stream()
+                                    .anyMatch(loc -> e.getLocation().toLowerCase().contains(loc.toLowerCase())))
+                    .toList();
+        }
+
+        // 3️⃣ 🔍 Search filter (in-memory partial match)
         if (search != null && !search.isBlank()) {
             String s = search.toLowerCase();
             events = events.stream()
-                    .filter(e -> e.getTitle().toLowerCase().contains(s)
+                    .filter(e -> (e.getTitle() != null && e.getTitle().toLowerCase().contains(s))
                             || (e.getDescription() != null && e.getDescription().toLowerCase().contains(s)))
                     .toList();
         }
 
-        // 📁 category
-        if (categories != null && !categories.isEmpty()) {
-            List<String> normalized = categories.stream()
-                    .filter(c -> c != null && !c.trim().isEmpty())
-                    .map(c -> c.trim().toLowerCase())
-                    .toList();
-            boolean all = normalized.contains("all");
-            if (!all) {
-                events = events.stream()
-                        .filter(e -> e.getCategory() != null && !e.getCategory().isBlank()
-                                && normalized.stream().anyMatch(c -> e.getCategory().toLowerCase().contains(c)))
-                        .toList();
-            }
-        }
-
-        // 📅 single date
+        // 4️⃣ 📅 Date filter
         if (date != null && !date.isBlank()) {
+            LocalDate filterDate = LocalDate.parse(date);
             events = events.stream()
-                    .filter(e -> e.getEventDate() != null && e.getEventDate().toString().equals(date))
+                    .filter(e -> e.getEventDate() != null && e.getEventDate().isEqual(filterDate))
                     .toList();
         }
 
-        // 📅 date range
-        if ((dateFrom != null && !dateFrom.isBlank()) || (dateTo != null && !dateTo.isBlank())) {
-            LocalDate from = (dateFrom != null && !dateFrom.isBlank()) ? LocalDate.parse(dateFrom) : LocalDate.MIN;
-            LocalDate to = (dateTo != null && !dateTo.isBlank()) ? LocalDate.parse(dateTo) : LocalDate.MAX;
-            events = events.stream()
-                    .filter(e -> e.getEventDate() != null &&
-                            (e.getEventDate().isEqual(from) || e.getEventDate().isAfter(from)) &&
-                            (e.getEventDate().isEqual(to) || e.getEventDate().isBefore(to)))
-                    .toList();
-        }
-
-        // 📍 location
-        if (location != null && !"any".equalsIgnoreCase(location.trim())) {
-            events = events.stream()
-                    .filter(e -> e.getLocation() != null &&
-                            e.getLocation().toLowerCase().contains(location.toLowerCase()))
-                    .toList();
-        }
-
-        // 💰 price
+        // 5️⃣ 💰 Price filter
         if (price != null && !"any".equalsIgnoreCase(price.trim())) {
             if (price.equalsIgnoreCase("free")) {
                 events = events.stream()
@@ -489,17 +465,9 @@ public class EventService {
             } else if (price.equalsIgnoreCase("paid")) {
                 events = events.stream()
                         .filter(e -> (e.getIsPaid() != null && e.getIsPaid())
-                                || (e.getPrice() != null && e.getPrice().compareTo(BigDecimal.ZERO) > 0))
+                                && (e.getPrice() != null && e.getPrice().compareTo(BigDecimal.ZERO) > 0))
                         .toList();
             }
-        }
-
-        // 👥 organizer
-        if (organizer != null && !"any".equalsIgnoreCase(organizer.trim())) {
-            events = events.stream()
-                    .filter(e -> e.getCreatedBy() != null &&
-                            String.valueOf(e.getCreatedBy()).equalsIgnoreCase(organizer))
-                    .toList();
         }
 
         return events;

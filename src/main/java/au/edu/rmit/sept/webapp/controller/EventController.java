@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 import java.time.LocalDateTime;
 
@@ -221,26 +222,27 @@ public class EventController {
     @GetMapping("/search")
     public String searchEvents(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, name = "category") List<String> categories,
+            @RequestParam(required = false) String datePreferred,
             @RequestParam(required = false) String date,
-            @RequestParam(required = false) String dateFrom,
-            @RequestParam(required = false) String dateTo,
-            @RequestParam(required = false) String location,
+            @RequestParam(required = false) List<String> locations,
             @RequestParam(required = false) String price,
-            @RequestParam(required = false) String organizer,
             Model model) {
 
         User currentUser = getCurrentUser();
         model.addAttribute("currentUser", currentUser);
 
-        // optional: log incoming params for debugging
-        System.out.println("[SEARCH] categories=" + categories + ", dateFrom=" + dateFrom + ", dateTo=" + dateTo +
-                ", location=" + location + ", price=" + price + ", organizer=" + organizer);
+        // ✅ Pick whichever date is filled
+        String selectedDate = (datePreferred != null && !datePreferred.isBlank()) ? datePreferred : date;
 
-        List<Event> filteredEvents = eventService.searchEvents(
-                search, categories, date, dateFrom, dateTo, location, price, organizer);
+        // ✅ Pass selectedDate, not conditional inside argument
+        List<Event> filteredEvents = eventService.searchFilterEvents(
+                search,
+                selectedDate,
+                locations,
+                price);
 
         model.addAttribute("events", filteredEvents);
+
         return "fragments/eventCards :: eventsContainer";
     }
 

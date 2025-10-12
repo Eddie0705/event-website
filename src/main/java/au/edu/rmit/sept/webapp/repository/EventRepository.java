@@ -61,7 +61,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                         "(LOWER(e.title) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
                         "LOWER(e.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
                         "ORDER BY e.eventDate ASC")
-        Page<Event> searchEvents(@Param("status") EventStatus status, @Param("searchTerm") String searchTerm,
+        Page<Event> searchEvents(@Param("status") EventStatus status,
+                        @Param("searchTerm") String searchTerm,
                         Pageable pageable);
 
         // Find events with available spots
@@ -135,6 +136,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' AND (e.qrCodeData IS NULL OR e.qrCodeData = '')")
         List<Event> findEventsNeedingQrCode();
 
+        // Advanced search with multiple optional filters
         @Query("""
                         SELECT e FROM Event e
                         WHERE e.status = 'PUBLISHED'
@@ -144,22 +146,40 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                             OR LOWER(e.description) LIKE LOWER(CONCAT('%', :search, '%'))
                         )
                         AND (
-                            :location IS NULL OR :location = '' OR :location = 'any'
-                            OR LOWER(e.location) LIKE LOWER(CONCAT('%', :location, '%'))
+                            :locations IS NULL OR e.location IN :locations
                         )
                         AND (
-                            :category IS NULL OR :category = '' OR :category = 'all'
-                            OR e.categoryId = CAST(:category AS long)
-                        )
-                        AND (
-                            :date IS NULL OR :date = ''
-                            OR e.eventDate = CAST(:date AS date)
+                            :date IS NULL OR :date = '' OR e.eventDate = CAST(:date AS date)
                         )
                         ORDER BY e.eventDate ASC
                         """)
-        List<Event> searchEvents(
+        List<Event> searchEventsWithLocations(
                         @Param("search") String search,
-                        @Param("category") String category,
+                        @Param("date") String date,
+                        @Param("locations") List<String> locations);
+
+        // Advanced search with single location filter
+        // Advanced search with single location filter
+        @Query("""
+                            SELECT e FROM Event e
+                            WHERE e.status = 'PUBLISHED'
+                            AND (
+                                :search IS NULL OR :search = ''
+                                OR LOWER(e.title) LIKE LOWER(CONCAT('%', :search, '%'))
+                                OR LOWER(e.description) LIKE LOWER(CONCAT('%', :search, '%'))
+                            )
+                            AND (
+                                :location IS NULL OR :location = ''
+                                OR LOWER(e.location) LIKE LOWER(CONCAT('%', TRIM(:location), '%'))
+                            )
+                            AND (
+                                :date IS NULL OR :date = ''
+                                OR e.eventDate = CAST(:date AS date)
+                            )
+                            ORDER BY e.eventDate ASC
+                        """)
+        List<Event> searchEventsBasic(
+                        @Param("search") String search,
                         @Param("date") String date,
                         @Param("location") String location);
 
