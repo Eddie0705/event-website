@@ -63,35 +63,7 @@ class AuthControllerTest {
         assertEquals("auth/register", view);
     }
 
-    /**  Registration  */
 
-    // @Test
-    // void processRegistrationPasswordsDontMatch() {
-    //     User user = new User();
-    //     user.setPasswordHash("password1");
-
-    //     String view = authController.processRegistration(user, mock(org.springframework.validation.BindingResult.class),
-    //             "password2", model, redirectAttributes);
-
-    //     verify(model).addAttribute(eq("errorMessage"), eq("Passwords do not match"));
-    //     assertEquals("auth/register", view);
-    // }
-
-    // @Test
-    // void processRegistrationSuccessfulRegistration() {
-    //     User user = new User();
-    //     user.setPasswordHash("password");
-    //     org.springframework.validation.BindingResult bindingResult = mock(org.springframework.validation.BindingResult.class);
-    //     when(bindingResult.hasErrors()).thenReturn(false);
-    //     when(userService.registerUser(user)).thenReturn(user);
-
-    //     String view = authController.processRegistration(user, bindingResult, "password", model, redirectAttributes);
-
-    //     verify(redirectAttributes).addFlashAttribute(contains("successMessage"), anyString());
-    //     assertEquals("redirect:/auth/login", view);
-    // }
-
-    /**  Logout  */
 
     @Test
     void processLogout() {
@@ -163,22 +135,6 @@ class AuthControllerTest {
         String view = authController.changePassword("old", "new1", "new2", redirectAttributes);
         assertEquals("redirect:/auth/profile", view);
     }
-
-    /**  API endpoints  */
-
-    // @Test
-    // void checkEmail() {
-    //     when(userService.emailExists("test@example.com")).thenReturn(true);
-    //     Map<String, Object> result = authController.checkEmail("test@example.com");
-    //     assertTrue((Boolean) result.get("exists"));
-    // }
-
-    // @Test
-    // void checkUsername() {
-    //     when(userService.usernameExists("username")).thenReturn(false);
-    //     Map<String, Object> result = authController.checkUsername("username");
-    //     assertFalse((Boolean) result.get("exists"));
-    // }
 
     /**  Private Helper method to mock the spring security context  */
 
