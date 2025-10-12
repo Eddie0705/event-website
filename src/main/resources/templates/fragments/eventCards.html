@@ -1,0 +1,43 @@
+<th:block th:fragment="eventsContainer">
+    <div class="events_card" th:each="event : ${events}">
+        <h3 th:text="${event.title}">Event Title</h3>
+
+        <p>
+            <span th:text="${event.eventDate != null ? event.eventDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy')) : ''}"></span>
+            |
+            <span th:text="${event.startTime}">Start Time</span>
+        </p>
+
+        <p th:text="${event.description != null ? event.description : 'No Description'}"></p>
+        <p th:text="'Location: ' + (event.location != null ? event.location : 'No Location')"></p>
+        <p th:text="${event.price == null or event.price.compareTo(T(java.math.BigDecimal).ZERO) == 0 ? 'Price: Free' : 'Price: $' + event.price}"></p>
+
+        <form>
+            <input type="hidden" name="userId" th:value="${currentUser != null ? currentUser.userId : 0}" />
+            <input type="hidden" name="eventId" th:value="${event.eventId}" />
+            <input type="hidden" name="rsvpStatus" value="yes" />
+
+            <div th:if="${currentUser != null}">
+                <button type="button"
+                        th:if="${rsvpService != null and rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
+                        th:onclick="'submitRsvp(' + ${event.eventId} + ', ' + ${currentUser.userId} + ');'">
+                    RSVP
+                </button>
+
+                <button type="button"
+                        th:if="${rsvpService != null and rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
+                        th:onclick="'submitRsvpCancelled(' + ${event.eventId} + ', ' + ${currentUser.userId} + ');'">
+                    Cancel RSVP
+                </button>
+            </div>
+            
+            <div th:if="${currentUser == null}">
+                <button type="button" onclick="window.location.href='/auth/login'">RSVP</button>
+            </div>
+        </form>
+    </div>
+
+    <div th:if="${#lists.isEmpty(events)}">
+        <p style="text-align:center; color:#6b7280;">No events found.</p>
+    </div>
+</th:block>

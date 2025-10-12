@@ -370,22 +370,10 @@
     <!-- Search Area -->
 <body>
 
-    <div class="search_area">
-        <input type="text" placeholder="Search...">
-        <select name="category" id="category">
-            <option value="all">All</option>
-            <option value="events">Events</option>
-            <option value="users">Users</option>
-            <option value="groups">Groups</option>
-        </select>
-        <input type="date" id="date_preferred" name="date_preferred">
-        <select name="location" id="location">
-            <option value="any">Any Location</option>
-            <option value="newyork">New York</option>
-            <option value="losangeles">Los Angeles</option>
-            <option value="chicago">Chicago</option>
-        </select>
-        <input type="submit" value="Search"/>
+    div class="search_area">
+        <input type="text" id="searchText" placeholder="Search...">
+        <input type="date" id="datePreferred" name="date_preferred">
+        <input type="submit" id="searchBtn" value="Search"/>
     </div>
 
     <!-- Main Content Area -->
@@ -393,53 +381,42 @@
         <!-- Filter Sidebar -->
         <div class="filter">
             <h1>Filters</h1>
-            
-            <h2>Category</h2>
-            <div class="filter-group">
-                <input type="checkbox" id="Academic" name="Academic" value="Academic">
-                <label for="Academic">Academic</label>
-            </div>
-            <div class="filter-group">
-                <input type="checkbox" id="Social" name="Social" value="Social">
-                <label for="Social">Social</label>
-            </div>
-            <div class="filter-group">
-                <input type="checkbox" id="Sport" name="Sport" value="Sport">
-                <label for="Sport">Sport</label>
-            </div>
-            
-            <h2>Date Range</h2>
-            <input type="date" id="date_from" name="date_from">
-            <input type="date" id="date_to" name="date_to">
-            
+          
+            <!-- Date -->
+            <h2>Date</h2>
+            <input type="date" id="date_from" name="date">
+          
+            <!-- Location -->
             <h2>Location</h2>
             <div class="filter-group">
-                <input type="checkbox" id="Main Campus" name="Main Campus" value="Main Campus">
-                <label for="Main Campus">Main Campus</label>
+              <input type="checkbox" name="locations" value="Any" checked>
+              <label>Any Location</label>
             </div>
             <div class="filter-group">
-                <input type="checkbox" id="Student Center" name="Student Center" value="Student Center">
-                <label for="Student Center">Student Center</label>
+              <input type="checkbox" name="locations" value="Main Campus">
+              <label>Main Campus</label>
             </div>
-            
+            <div class="filter-group">
+              <input type="checkbox" name="locations" value="Student Center">
+              <label>Student Center</label>
+            </div>
+          
+            <!-- Price -->
             <h2>Price</h2>
             <div class="filter-group">
-                <input type="radio" id="free" name="price" value="free">
-                <label for="free">Free</label>
+              <input type="radio" name="price" value="any" checked>
+              <label>Any</label>
             </div>
             <div class="filter-group">
-                <input type="radio" id="paid" name="price" value="paid">
-                <label for="paid">Paid</label>
+              <input type="radio" name="price" value="free">
+              <label>Free</label>
             </div>
-            
-            <h2>Organizer</h2>
-            <select name="organizer" id="organizer">
-                <option value="any">Any Organizer</option>
-                <option value="org1">Organizer 1</option>
-                <option value="org2">Organizer 2</option>
-                <option value="org3">Organizer 3</option>
-            </select>
-        </div>
+            <div class="filter-group">
+              <input type="radio" name="price" value="paid">
+              <label>Paid</label>
+            </div>
+          
+          </div>          
 
         <!-- Events Container -->
         <div class="events_container">
@@ -523,8 +500,144 @@
     </div>
 </div>
 
-<script>
-</script>
-
 </body>
 </html>
+<script>
+    /* ===========================
+       🔍 Unified Search Function
+       =========================== */
+       async function doSearch() {
+  const params = new URLSearchParams();
+
+  // --- Top Search Bar ---
+  const search = document.getElementById('searchText').value.trim();
+  const datePreferred = document.getElementById('datePreferred').value;
+  if (search) params.set('search', search);
+  if (datePreferred) params.set('datePreferred', datePreferred);
+
+  // --- Sidebar Filters ---
+  // ✅ Single date filter
+  const dateFrom = document.getElementById('date_from').value;
+  if (dateFrom) params.set('date', dateFrom);
+
+  // ✅ Price radio
+  const price = document.querySelector('input[name="price"]:checked');
+  if (price && price.value !== 'any') params.set('price', price.value);
+
+  // ✅ Allow multiple locations
+const locations = Array.from(document.querySelectorAll('input[name="locations"]:checked'))
+  .map(el => el.value);
+if (locations.length > 0 && !locations.includes('Any')) {
+  locations.forEach(loc => params.append('locations', loc));
+}
+
+
+  // --- Fetch from backend ---
+  try {
+    const response = await fetch(`/events/search?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'include'
+    });
+
+    if (!response.ok) throw new Error('Network error');
+    const html = await response.text();
+
+    const container = document.getElementById('eventsContainer');
+container.innerHTML = html;
+container.classList.add('events_container');
+container.style.display = 'grid';
+
+    
+  } catch (error) {
+    console.error(error);
+    document.getElementById('eventsContainer').innerHTML = "<p>Failed to load events. Please try again.</p>";
+  }
+}
+
+    
+document.getElementById('searchBtn').addEventListener('click', async (event) => {
+  event.preventDefault();
+  await doSearch();
+});
+
+document.querySelectorAll('.filter input[type="checkbox"]').forEach(el => {
+  el.addEventListener('change', doSearch);
+});
+
+const anyLocation = document.querySelector('input[name="locations"][value="Any"]');
+const otherLocations = document.querySelectorAll('input[name="locations"]:not([value="Any"])');
+
+if (anyLocation) {
+  anyLocation.addEventListener('change', () => {
+    if (anyLocation.checked) {
+      // Uncheck all others if Any is selected
+      otherLocations.forEach(cb => cb.checked = false);
+      doSearch(); // ✅ Trigger search for "Any"
+    } else {
+      // If "Any" was unchecked manually, don’t trigger search immediately
+      // Wait for next box to be checked instead
+    }
+  });
+
+  otherLocations.forEach(cb => {
+    cb.addEventListener('change', () => {
+      // When checking another box, uncheck Any immediately
+      if (cb.checked) {
+        anyLocation.checked = false;
+      }
+
+      // If no boxes are checked, default back to Any
+      const anyChecked = Array.from(otherLocations).some(c => c.checked);
+      if (!anyChecked) {
+        anyLocation.checked = true;
+      }
+
+      // ✅ Only trigger search after state is settled
+      setTimeout(doSearch, 50);
+    });
+  });
+}
+
+
+
+document.querySelectorAll('.filter input[name="price"]').forEach(el => {
+  el.addEventListener('change', doSearch);
+});
+document.getElementById('date_from').addEventListener('change', doSearch);
+
+let typingTimer;
+document.getElementById('searchText').addEventListener('input', function () {
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(doSearch, 400);
+});
+
+    
+    /* ===========================
+       🟢 RSVP Buttons
+       =========================== */
+    function submitRsvp(eventId, userId) {
+      fetch('/rsvp/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=yes`
+      }).then(() => {
+        alert('RSVP submitted!');
+        window.location.reload();
+      });
+    }
+    
+    function submitRsvpCancelled(eventId, userId) {
+      fetch('/rsvp/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `eventId=${eventId}&userId=${userId}&rsvpStatus=cancelled`
+      }).then(() => {
+        alert('RSVP cancelled!');
+        window.location.reload();
+      });
+    }
+
+    </script>
+    
+    
