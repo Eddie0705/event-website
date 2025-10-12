@@ -333,5 +333,117 @@ class CalendarControllerTest {
         verify(rsvpService).findAllByUserAndRsvpStatus(user, RSVP.RSVPStatus.yes);
     }
 
+    //Navigation Tests
+
+    @Test
+    void showCalendarCalculatesCorrectNavigationDatesForMonth() {
+    
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", "2024-03-15", model);
+
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute(eq("prevDate"), any(LocalDate.class));
+        verify(model).addAttribute(eq("nextDate"), any(LocalDate.class));
+    }
+
+    @Test
+    void showCalendarCalculatesCorrectNavigationDatesForWeek() {
+        
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("week", "2024-03-15", model);
+
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute(eq("prevDate"), any(LocalDate.class));
+        verify(model).addAttribute(eq("nextDate"), any(LocalDate.class));
+    }
+
+
+    @Test
+    void showCalendarWithEmptyEventList() {
+        
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", null, model);
+
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute(eq("eventsByDate"), any(Map.class));
+        verify(model).addAttribute(eq("eventsByDateStr"), any(Map.class));
+    }
+
+    @Test
+    void showCalendarWithNullDateParameter() {
+       
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", null, model);
+
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute("anchorDate", LocalDate.now());
+    }
+
+    @Test
+    void showCalendarWithBlankDateParameter() {
+        
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", "   ", model);
+
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute("anchorDate", LocalDate.now());
+    }
+
+    @Test
+    void showCalendarWithAnonymousUser() {
+       
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(authentication.getName()).thenReturn("anonymousUser");
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", null, model);
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute("currentUser", null);
+        verify(model).addAttribute("isAuthenticated", false);
+    }
+
+    @Test
+    void showCalendarWithNullAuthentication() {
+        
+        when(securityContext.getAuthentication()).thenReturn(null);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new ArrayList<>());
+
+        
+        String view = calendarController.showCalendar("month", null, model);
+
+        assertEquals("calendar/calendar", view);
+        verify(model).addAttribute("currentUser", null);
+        verify(model).addAttribute("isAuthenticated", false);
+    }
+
 
 }
