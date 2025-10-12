@@ -19,6 +19,8 @@ import java.time.YearMonth;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -262,6 +264,73 @@ class CalendarControllerTest {
         
         assertEquals("calendar/calendar", view);
         verify(model).addAttribute(eq("calendarData"), any(CalendarController.CalendarData.class));
+    }
+
+    //Event Filtering Tests
+
+    @Test
+    void showCalendarFiltersEventsByDateRange() {
+        
+        Event eventInRange = new Event();
+        eventInRange.setEventId(1L);
+        eventInRange.setEventDate(LocalDate.now().plusDays(1));
+
+        Event eventOutOfRange = new Event();
+        eventOutOfRange.setEventId(2L);
+        eventOutOfRange.setEventDate(LocalDate.now().plusDays(30));
+
+        List<Event> eventsInRange = Arrays.asList(eventInRange);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        when(eventService.getEventsByDateRange(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(eventsInRange);
+
+        
+        String view = calendarController.showCalendar("month", null, model);
+
+        
+        assertEquals("calendar/calendar", view);
+        verify(eventService).getEventsByDateRange(any(LocalDate.class), any(LocalDate.class));
+    }
+
+    @Test
+    void showCalendarWithUserRsvpsFiltersCorrectly() {
+        
+        User user = new User();
+        user.setUserId(1L);
+
+        Event rsvpEvent = new Event();
+        rsvpEvent.setEventId(1L);
+        rsvpEvent.setEventDate(LocalDate.now().plusDays(1));
+
+        Event nonRsvpEvent = new Event();
+        nonRsvpEvent.setEventId(2L);
+        nonRsvpEvent.setEventDate(LocalDate.now().plusDays(2));
+
+        RSVP rsvp = new RSVP();
+        rsvp.setEvent(rsvpEvent);
+        rsvp.setUser(user);
+        rsvp.setRSVPStatus(RSVP.RSVPStatus.yes);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getName()).thenReturn("test@example.com");
+        
+        CustomUserDetailsService.CustomUserPrincipal principal = 
+                mock(CustomUserDetailsService.CustomUserPrincipal.class);
+        when(authentication.getPrincipal()).thenReturn(principal);
+        when(principal.getUser()).thenReturn(user);
+
+        when(rsvpService.findAllByUserAndRsvpStatus(user, RSVP.RSVPStatus.yes))
+                .thenReturn(Arrays.asList(rsvp));
+
+       
+        String view = calendarController.showCalendar("month", null, model);
+
+        
+        assertEquals("calendar/calendar", view);
+        verify(rsvpService).findAllByUserAndRsvpStatus(user, RSVP.RSVPStatus.yes);
     }
 
 
