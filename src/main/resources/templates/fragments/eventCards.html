@@ -46,18 +46,19 @@
                         </button>
 
                         <button type="button"
-                                th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
-                                class="rsvp-status not-rsvped"
-                                disabled="true">
-                            Not RSVP'd
-                        </button>
+        th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) != 'yes'}"
+        class="rsvp-status not-rsvped"
+        disabled="true">
+    Not RSVP'd
+</button>
 
-                        <button type="button"
-                                th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
-                                class="rsvp-status rsvped"
-                                disabled="true">
-                            RSVP'd
-                        </button>
+<button type="button"
+        th:if="${!event.isEventFinished() and rsvpService.checkUserRsvp(event, currentUser) == 'yes'}"
+        class="rsvp-status rsvped"
+        disabled="true">
+    RSVP'd
+</button>
+
                     </div>
                 </form>
             </div>
