@@ -31,10 +31,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         // Find featured events
         List<Event> findByIsFeaturedTrueAndStatusOrderByEventDateAsc(EventStatus status);
 
-
         // Find event by ID
         Optional<Event> findByEventId(Long eventId);
-
 
         // Find upcoming events (published and future dates)
         @Query("SELECT e FROM Event e WHERE e.status = :status AND e.eventDate >= :currentDate ORDER BY e.eventDate ASC")
@@ -202,4 +200,5 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                         @Param("search") String search,
                         @Param("date") String date,
                         @Param("location") String location);
+
 }
