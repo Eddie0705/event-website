@@ -448,17 +448,15 @@ public class EventController {
             Model model) {
 
         User currentUser = getCurrentUser();
+
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("rsvpService", rsvpService); // 👈 critical
 
-        // ✅ Pick whichever date is filled
-        String selectedDate = (datePreferred != null && !datePreferred.isBlank()) ? datePreferred : date;
+        String selectedDate = (datePreferred != null && !datePreferred.isBlank())
+                ? datePreferred
+                : date;
 
-        // ✅ Pass selectedDate, not conditional inside argument
-        List<Event> filteredEvents = eventService.searchFilterEvents(
-                search,
-                selectedDate,
-                locations,
-                price);
+        List<Event> filteredEvents = eventService.searchFilterEvents(search, selectedDate, locations, price);
 
         model.addAttribute("events", filteredEvents);
 
