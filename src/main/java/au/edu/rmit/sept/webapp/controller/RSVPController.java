@@ -5,13 +5,17 @@ import au.edu.rmit.sept.webapp.models.RSVP;
 import au.edu.rmit.sept.webapp.models.User;
 import au.edu.rmit.sept.webapp.repository.RSVPRepository;
 import au.edu.rmit.sept.webapp.repository.UserRepository;
+import au.edu.rmit.sept.webapp.security.CustomUserDetailsService;
 import au.edu.rmit.sept.webapp.services.RSVPService;
 import au.edu.rmit.sept.webapp.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Optional;
+import java.util.List;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 @Controller
 @RequestMapping("/rsvp")
 public class RSVPController {
@@ -20,6 +24,17 @@ public class RSVPController {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final RSVPService rsvpService;
+
+    private User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null
+            && authentication.getPrincipal() instanceof CustomUserDetailsService.CustomUserPrincipal) {
+        CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
+            (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getUser();
+    }
+    return null;
+}
     
 
     @Autowired
@@ -65,6 +80,13 @@ public class RSVPController {
             return "rsvp/rsvp-test";
         }
 
+        // Check if event has finished
+        if (event.isEventFinished()) {
+            model.addAttribute("message", "Cannot RSVP to an event that has already finished!");
+            model.addAttribute("rsvp", rsvp);
+            return "rsvp/rsvp-test";
+        }
+
         // Convert Strings to enums safely
         RSVP.RSVPStatus rsvpEnum = null;
         RSVP.AttendanceStatus attendanceEnum = null;
@@ -89,4 +111,5 @@ public class RSVPController {
                 .map(RSVP.RSVPStatus::name)
                 .orElse("No RSVP yet");
     }
+
 }

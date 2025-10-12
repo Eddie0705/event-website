@@ -55,6 +55,7 @@ public class SecurityConfig {
 
                                                 // Event viewing - Allow anonymous access to view events
                                                 .requestMatchers(HttpMethod.GET, "/events/*").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/events/*/**").permitAll()
                                                 .requestMatchers("/events/*/rsvp").authenticated()
 
                                                 // Admin endpoints
@@ -68,7 +69,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/events/*/delete").hasAnyRole("ORGANISER", "ADMIN")
 
                                                 // User endpoints (authenticated users)
-                                                .requestMatchers("/auth/profile", "/auth/change-password")
+                                                .requestMatchers("/auth/profile", "/auth/change-password","rsvp/eventRSVP")
                                                 .authenticated()
                                                 .requestMatchers("/profile").authenticated()
 

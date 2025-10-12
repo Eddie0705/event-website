@@ -26,6 +26,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
  
 @Entity
 @Table(name = "events")
@@ -94,8 +96,9 @@ public class Event {
  
     @Column(name = "is_paid", nullable = false)
     private Boolean isPaid = false;
- 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be greater than or equal to 0")
+
     @Digits(integer = 8, fraction = 2, message = "Price format is invalid")
     @Column(name = "price", precision = 10, scale = 2)
     private BigDecimal price;
@@ -126,13 +129,33 @@ public class Event {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RSVP> rsvps = new ArrayList<>();
+
+    public List<RSVP> getRsvps() {
+        return rsvps;
+    }
+
+    public void setRsvps(List<RSVP> rsvps) {
+        this.rsvps = rsvps;
+    }
+
+    
+    // Returns true if the given user has RSVP'd "yes" for this event.
+    public boolean hasRsvp(User user) {
+        if (user == null) return false;
+        return rsvps.stream()
+                    .anyMatch(r -> r.getUser().equals(user) && r.getRsvpStatus() == RSVP.RSVPStatus.yes);
+    }
+
  
     // Enum for event status
     public enum EventStatus {
-            draft,
+        draft,
         published,
         cancelled,
-        completed
+        completed;
     }
 
 
@@ -389,6 +412,16 @@ public class Event {
         }
         return status == EventStatus.published &&
                 LocalDateTime.now().isBefore(registrationDeadline);
+    }
+
+    // Check if event has finished (past event date and time)
+    public boolean isEventFinished() {
+        if (eventDate == null || endTime == null) {
+            return false;
+        }
+        
+        LocalDateTime eventEndDateTime = LocalDateTime.of(eventDate, endTime);
+        return LocalDateTime.now().isAfter(eventEndDateTime);
     }
  
     @Override
