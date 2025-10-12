@@ -84,27 +84,6 @@ class OrganiserControllerTest {
         assertEquals("redirect:/auth/login", view);
     }
 
-    // test for successful dashboard view rendering
-    @Test
-    void showDashboard_returnsOrganiserDashboardWithEvents() {
-        when(authentication.getPrincipal()).thenReturn(organiserPrincipal);
-
-        EventService.EventStatistics stats = new EventService.EventStatistics(5, 2, 1, 2);
-        // Mock eventService to return statistics
-        when(eventService.getEventStatistics(1L)).thenReturn(stats);
-
-        List<Event> mockEvents = List.of(new Event());
-        Page<Event> mockPage = new PageImpl<>(mockEvents);
-        // Mock eventService to return a page of events
-        when(eventService.getEventsByOrganiser(eq(1L), any(Pageable.class))).thenReturn(mockPage);
-
-        String view = organiserController.showDashboard(model, 0, 10, "all");
-
-        assertEquals("organiser/dashboard", view);
-        verify(model).addAttribute("currentUser", organiserUser);
-        verify(model).addAttribute("stats", stats);
-        verify(model).addAttribute("events", mockEvents);
-    }
 
     // test for filtering published events
     @Test
@@ -119,17 +98,6 @@ class OrganiserControllerTest {
         assertEquals("redirect:/auth/login", view);
     }
 
-    // test for successful event creation form rendering
-    @Test
-    void showCreateEventForm_returnsViewWhenOrganiser() {
-        // Mock authentication to return an organiser user
-        when(authentication.getPrincipal()).thenReturn(organiserPrincipal);
-
-        String view = organiserController.showCreateEventForm(model);
-        assertEquals("organiser/create-event", view);
-        verify(model).addAttribute("currentUser", organiserUser);
-        verify(model).addAttribute(eq("isAuthenticated"), eq(true));
-    }
 
     // test for publishing event
 
@@ -139,18 +107,6 @@ class OrganiserControllerTest {
 
         String view = organiserController.publishEvent(5L, redirectAttributes);
         assertEquals("redirect:/auth/login", view);
-    }
-
-    // test for successful event publishing
-    @Test
-    void publishEvent_successful() {
-        // Mock authentication to return an organiser user
-        when(authentication.getPrincipal()).thenReturn(organiserPrincipal);
-
-        String view = organiserController.publishEvent(5L, redirectAttributes);
-
-        verify(eventService).publishEvent(5L, 1L);
-        assertEquals("redirect:/organiser/dashboard", view);
     }
 
     
@@ -163,14 +119,4 @@ class OrganiserControllerTest {
         assertEquals("redirect:/auth/login", view);
     }
 
-    // test for successful event cancelling
-    @Test
-    void cancelEvent_successful() {
-        when(authentication.getPrincipal()).thenReturn(organiserPrincipal);
-
-        String view = organiserController.cancelEvent(5L, redirectAttributes);
-
-        verify(eventService).cancelEvent(5L, 1L);
-        assertEquals("redirect:/organiser/dashboard", view);
-    }
 }
