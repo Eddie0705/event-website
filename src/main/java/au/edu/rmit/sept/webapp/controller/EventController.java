@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 // removed unused imports
+import java.util.List;
 
 @Controller
 @RequestMapping("/events")
@@ -71,8 +72,6 @@ public class EventController {
         }
         return null;
     }
-
-    
 
     @PostMapping("/create")
     public String createEvent(@RequestParam String title,
@@ -162,14 +161,16 @@ public class EventController {
                 model.addAttribute("hasRsvped", hasRsvped);
 
                 if (hasRsvped) {
-                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
+                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(),
+                            currentUser.getUserId());
                     model.addAttribute("attendanceStatus", attendanceStatus);
                 }
 
-                if (currentUser.getUserType() == UserType.ADMIN || 
-                    (currentUser.getUserType() == UserType.ORGANISER && event.getCreatedBy().equals(currentUser.getUserId()))) {
+                if (currentUser.getUserType() == UserType.ADMIN ||
+                        (currentUser.getUserType() == UserType.ORGANISER
+                                && event.getCreatedBy().equals(currentUser.getUserId()))) {
                     model.addAttribute("canViewQR", true);
-                } 
+                }
             }
 
             return "events/event-details";
@@ -312,8 +313,6 @@ public class EventController {
             model.addAttribute("event", event);
             model.addAttribute("currentUser", currentUser);
 
-
-
             // Use the RSVP controller's method to check status
             if (currentUser != null) {
                 String userRsvpStatus = rsvpController.checkUserRsvp(event, currentUser);
@@ -324,7 +323,8 @@ public class EventController {
                 model.addAttribute("hasRsvped", hasRsvped);
 
                 if (hasRsvped) {
-                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(), currentUser.getUserId());
+                    String attendanceStatus = rsvpService.checkAttendanceStatus(event.getEventId(),
+                            currentUser.getUserId());
                     model.addAttribute("attendanceStatus", attendanceStatus);
                 }
             }
@@ -338,7 +338,7 @@ public class EventController {
         }
     }
 
-    // POST method to checkin to an event 
+    // POST method to checkin to an event
     @PostMapping("/{id}/checkin")
     public String checkInUser(@PathVariable Long id, RedirectAttributes redirectAttributes, Model model) {
         User currentUser = getCurrentUser();
@@ -346,13 +346,15 @@ public class EventController {
             return "redirect:/auth/login?redirect=/events/" + id + "/checkin";
         }
 
-
         try {
             Event event = eventService.getEventById(id);
-            rsvpService.updateAttendanceStatus(event.getEventId(), currentUser.getUserId(), RSVP.AttendanceStatus.checked_in);
+            rsvpService.updateAttendanceStatus(event.getEventId(), currentUser.getUserId(),
+                    RSVP.AttendanceStatus.checked_in);
         } catch (IllegalArgumentException e) {
-            // Handle known errors (e.g., event not found, cannot check-in before event date)
-            redirectAttributes.addFlashAttribute("checkinError", "Ensure you are checking in on the event date and have RSVPed.");
+            // Handle known errors (e.g., event not found, cannot check-in before event
+            // date)
+            redirectAttributes.addFlashAttribute("checkinError",
+                    "Ensure you are checking in on the event date and have RSVPed.");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("checkinError", "Error during check-in. Please try again.");
@@ -371,22 +373,22 @@ public class EventController {
         if (currentUser == null) {
             return ResponseEntity.status(401).build();
         }
-        
+
         Event event = eventService.getEventById(id);
 
-        //  only the event's organiser or admin can generate the QR code
-        boolean isOrganiser = currentUser.getUserType() == UserType.ORGANISER 
-                            && event.getCreatedBy().equals(currentUser.getUserId());
+        // only the event's organiser or admin can generate the QR code
+        boolean isOrganiser = currentUser.getUserType() == UserType.ORGANISER
+                && event.getCreatedBy().equals(currentUser.getUserId());
         boolean isAdmin = currentUser.getUserType() == UserType.ADMIN;
 
         if (!isOrganiser && !isAdmin) {
-            return ResponseEntity.status(403).build(); 
+            return ResponseEntity.status(403).build();
         }
 
         // Generate QR linking to the event with /checkin route
         String checkinUrl = baseUrl + "/events/" + event.getEventId() + "/checkin";
 
-        // used 250x250 for size 
+        // used 250x250 for size
         byte[] qrImage = qrCodeService.generateQRCodeImage(checkinUrl, 250, 250);
 
         // return as PNG image
@@ -394,7 +396,6 @@ public class EventController {
                 .header("Content-Type", "image/png")
                 .body(qrImage);
     }
-
 
     @GetMapping("/{id}/export-rsvps")
     @ResponseBody
@@ -411,7 +412,7 @@ public class EventController {
 
             // Permission check (only organiser or admin)
             boolean isOrganiser = currentUser.getUserType() == UserType.ORGANISER
-                                && event.getCreatedBy().equals(currentUser.getUserId());
+                    && event.getCreatedBy().equals(currentUser.getUserId());
 
             boolean isAdmin = currentUser.getUserType() == UserType.ADMIN;
 
@@ -435,6 +436,31 @@ public class EventController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/search")
+    public String searchEvents(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String datePreferred,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) List<String> locations,
+            @RequestParam(required = false) String price,
+            Model model) {
+
+        User currentUser = getCurrentUser();
+
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("rsvpService", rsvpService); // 👈 critical
+
+        String selectedDate = (datePreferred != null && !datePreferred.isBlank())
+                ? datePreferred
+                : date;
+
+        List<Event> filteredEvents = eventService.searchFilterEvents(search, selectedDate, locations, price);
+
+        model.addAttribute("events", filteredEvents);
+
+        return "fragments/eventCards :: eventsContainer";
     }
 
 }

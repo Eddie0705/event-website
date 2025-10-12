@@ -245,4 +245,103 @@ public class OrganiserController {
 
         return "redirect:/organiser/dashboard";
     }
+
+    /**
+     * Show edit event form
+     */
+    @GetMapping("/events/{id}/edit")
+    public String showEditEventForm(@PathVariable Long id, Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+            
+            if (!event.getCreatedBy().equals(currentUser.getUserId())) {
+                return "redirect:/organiser/dashboard";
+            }
+
+            model.addAttribute("event", event);
+            model.addAttribute("currentUser", currentUser);
+            model.addAttribute("isAuthenticated", true);
+            model.addAttribute("googleMapsApiKey", googleMapsConfig.getApiKey());
+            model.addAttribute("editMode", true);
+            
+            return "organiser/create-event";
+        } catch (Exception e) {
+            return "redirect:/organiser/dashboard";
+        }
+    }
+
+    /**
+     * Update an event
+     */
+    @PostMapping("/events/{id}/update")
+    public String updateEvent(@PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam String description,
+            @RequestParam String eventDate,
+            @RequestParam String startTime,
+            @RequestParam String endTime,
+            @RequestParam String location,
+            @RequestParam Integer maxCapacity,
+            @RequestParam(required = false) String venueDetails,
+            RedirectAttributes redirectAttributes) {
+
+        User currentUser = getCurrentUser();
+        if (currentUser == null || currentUser.getUserType() != UserType.ORGANISER) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            Event event = eventService.getEventById(id);
+            
+            if (!event.getCreatedBy().equals(currentUser.getUserId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "You can only edit your own events");
+                return "redirect:/organiser/dashboard";
+            }
+
+            LocalDate date = LocalDate.parse(eventDate);
+            java.time.LocalTime start = java.time.LocalTime.parse(startTime);
+            java.time.LocalTime end = java.time.LocalTime.parse(endTime);
+
+            if (date.isBefore(LocalDate.now())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Event date must be in the future");
+                return "redirect:/organiser/events/" + id + "/edit";
+            }
+
+            if (!end.isAfter(start)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "End time must be after start time");
+                return "redirect:/organiser/events/" + id + "/edit";
+            }
+
+            if (maxCapacity <= 0) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Maximum capacity must be greater than 0");
+                return "redirect:/organiser/events/" + id + "/edit";
+            }
+
+            Event updatedEvent = new Event();
+            updatedEvent.setTitle(title);
+            updatedEvent.setDescription(description);
+            updatedEvent.setEventDate(date);
+            updatedEvent.setStartTime(start);
+            updatedEvent.setEndTime(end);
+            updatedEvent.setLocation(location);
+            updatedEvent.setMaxCapacity(maxCapacity);
+            
+            if (venueDetails != null && !venueDetails.trim().isEmpty()) {
+                updatedEvent.setVenueDetails(venueDetails);
+            }
+
+            eventService.updateEvent(id, updatedEvent);
+            redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully!");
+            return "redirect:/organiser/dashboard";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating event: " + e.getMessage());
+            return "redirect:/organiser/events/" + id + "/edit";
+        }
+    }
 }

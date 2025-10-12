@@ -167,7 +167,6 @@
             overflow: hidden;
             transition: all 0.3s ease;
             border: 1px solid #e2e8f0;
-            /* remove flex-related properties */
         }
 
         .event-card:hover {
@@ -251,7 +250,6 @@
 </head>
 
 <div layout:fragment="content">
-<body>
 <div id="rsvpPage">
     <div class="header">
         <div class="content">
@@ -278,16 +276,18 @@
         </div>
     </div>
 
+    <!-- filter buttons -->
     <div class="filters">
         <h1>Your Events</h1>
-        <div class='filter-buttons'>
+        <div class="filter-buttons">
             <button class="filter-btn" onclick="filterEvents('upcoming')">Upcoming Events</button>
-            <button class="filter-btn" onclick="filterEvents('confirmed')">Confirmed</button>
-            <button class="filter-btn" onclick="filterEvents('declined')">Declined</button>
+            <button class="filter-btn">Confirmed</button>
+            <button class="filter-btn">Declined</button>
             <button class="filter-btn" onclick="filterEvents('past')">Past Events</button>
         </div>
     </div>
 
+    <!-- event card section rsvp -->
     <div class="events-section">
         <div id="upcoming-section" class="event-grid">
             <div class="event-card" th:each="rsvp : ${yes}" th:attr="data-date=${rsvp.event.eventDate}">
@@ -302,9 +302,11 @@
                 </div>
             </div>
         </div>
-
-        <!-- Repeat similar blocks for no, maybe, cancelled using your original th:each logic -->
     </div>
+
+    <footer>
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
 </div>
 </body>
 </div>
