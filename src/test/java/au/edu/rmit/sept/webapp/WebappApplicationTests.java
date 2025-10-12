@@ -11,12 +11,6 @@ class WebappApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
-	@Test
-	void basicPassTest() {
-		assertTrue(true, "Basic sanity check should pass");
-	}
-  
 	// @Test
 	// void failTest() {
 	// 	assertTrue(false, "This test case should fail ");
