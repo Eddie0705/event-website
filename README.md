@@ -11,7 +11,7 @@
 - Khanh Nguyen 3 (s4090097)
 - Athrinandana Vase 4 (s4007366)
 - Halbert Setiawan 5 (s3962208)
-- Yong Tianh Goh 6 (s4025884)
+- Yong Tian Goh 6 (s4025884)
 
 ## Records
 
